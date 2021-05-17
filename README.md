@@ -1,5 +1,5 @@
-# Free RFID sport timing (powered by Naikom Motocross Club)
-http://naikomextreme.ru
+# Open RFID sport timing. 
+### Powered by Naikom Motocross Club (naikomextreme.ru)
 
 Cистема хронометража для любого трека на базе RFID 905-912 MHZ.
 пока что в процессе разработки.
