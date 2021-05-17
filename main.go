@@ -64,17 +64,21 @@ func handleRequest(conn net.Conn) {
 			var rfid AlienRFIDTag
 			err := xml.Unmarshal(data, &rfid)
 			if err != nil {
-				panic(err)
-			}       
-			//2021/05/17 16:33:18.960
-			xmlTimeFormat := `2006/01/02 15:04:05.000`
-			discoveryTime, err := time.Parse(xmlTimeFormat, rfid.DiscoveryTime)
-			unixMillyTime:=discoveryTime.UnixNano()/int64(time.Millisecond)
-			if err != nil {
-				fmt.Println(err)
-			}
+				//received data of type TEXT (parse TEXT).
+				fmt.Printf("%s\n", data)
 
-			fmt.Printf("%s, %d, %d\n", strings.ReplaceAll(rfid.TagID, " ", ""), unixMillyTime, rfid.Antenna)
+			} else {
+				//received data of type XML (parse XML)
+				//2021/05/17 16:33:18.960
+				xmlTimeFormat := `2006/01/02 15:04:05.000`
+				discoveryTime, err := time.Parse(xmlTimeFormat, rfid.DiscoveryTime)
+				unixMillyTime:=discoveryTime.UnixNano()/int64(time.Millisecond)
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				fmt.Printf("%s, %d, %d\n", strings.ReplaceAll(rfid.TagID, " ", ""), unixMillyTime, rfid.Antenna)
+			}
 		}
 
 	}
