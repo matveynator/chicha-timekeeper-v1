@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-05-17T14:32:37.601Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15" etag="iBN6brdjPxharqU-eCAa" version="14.6.13" type="github">
+<mxfile host="app.diagrams.net" modified="2021-05-17T14:41:58.788Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15" etag="8ntH1gL7QwGXepnPW4vF" version="14.6.13" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="656" dy="482" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+    <mxGraphModel dx="756" dy="488" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -67,23 +67,42 @@
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="520" y="680" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="585" y="610" />
+              <mxPoint x="615" y="610" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-7" value="парсим &amp;nbsp;XML" style="whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="315" y="580" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="-xHk1IHz1QswQUi32ddZ-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-9" target="-xHk1IHz1QswQUi32ddZ-13">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-9" target="-xHk1IHz1QswQUi32ddZ-23">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="273" y="720" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="275" y="760" />
+              <mxPoint x="275" y="710" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="-xHk1IHz1QswQUi32ddZ-15" value="да" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="-xHk1IHz1QswQUi32ddZ-14">
-          <mxGeometry x="-0.2333" relative="1" as="geometry">
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-33" value="нет" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="-xHk1IHz1QswQUi32ddZ-14">
+          <mxGeometry x="-0.2892" y="2" relative="1" as="geometry">
+            <mxPoint x="1" y="-12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-34" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-9" target="-xHk1IHz1QswQUi32ddZ-13">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300" y="800" />
+              <mxPoint x="300" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-35" value="да" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="-xHk1IHz1QswQUi32ddZ-34">
+          <mxGeometry x="-0.1027" y="-3" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-9" value="Формат ТЕКСТ?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="175" y="760" width="80" height="80" as="geometry" />
+          <mxGeometry x="175" y="720" width="80" height="80" as="geometry" />
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-9" target="-xHk1IHz1QswQUi32ddZ-9">
           <mxGeometry relative="1" as="geometry" />
@@ -94,24 +113,19 @@
         <mxCell id="-xHk1IHz1QswQUi32ddZ-13" value="парсим текст" style="whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="315" y="770" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="-xHk1IHz1QswQUi32ddZ-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-18">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="860" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="-xHk1IHz1QswQUi32ddZ-22" value="да" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="-xHk1IHz1QswQUi32ddZ-21">
-          <mxGeometry x="-0.3241" y="2" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-24" value="нет" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-18" target="-xHk1IHz1QswQUi32ddZ-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-18">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="830" y="900" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-18" value="&lt;p style=&quot;line-height: 100%&quot;&gt;Есть ли среди полученных данных информация RFID ID и время Unix(Millis)?&lt;/p&gt;" style="rhombus;whiteSpace=wrap;html=1;perimeterSpacing=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="460" y="640" width="250" height="140" as="geometry" />
+          <mxGeometry x="490" y="640" width="250" height="140" as="geometry" />
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-23" value="пропускаем сообщение" style="whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="275" y="680" width="120" height="60" as="geometry" />
+          <mxGeometry x="310" y="680" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-25" target="-xHk1IHz1QswQUi32ddZ-27">
           <mxGeometry relative="1" as="geometry" />
@@ -121,8 +135,11 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="-xHk1IHz1QswQUi32ddZ-25" value="есть массив c ID=RFID?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="650" y="905" width="160" height="90" as="geometry" />
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-42" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-25" target="-xHk1IHz1QswQUi32ddZ-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-25" value="существует ли массив c ID=RFID?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="750" y="905" width="160" height="90" as="geometry" />
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-27" target="WIyWlLk6GJQsqaUBKTNV-10">
           <mxGeometry relative="1" as="geometry">
@@ -135,6 +152,21 @@
         </mxCell>
         <mxCell id="-xHk1IHz1QswQUi32ddZ-27" value="создаем массив &amp;nbsp;с ID=RFID, создаем первые элементы массива: time = (unix.milli), &amp;nbsp;заезд = 1, круг = 0, антенна=номер антенны (если есть)" style="whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="175" y="900" width="230" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-44" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="-xHk1IHz1QswQUi32ddZ-41" target="-xHk1IHz1QswQUi32ddZ-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-41" value="запрашиваем элементы массива, сортируем и берем последний элемент по времени" style="whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="770" y="1040" width="120" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-43" value="запрошенное крайнее время больше текущего на дельту круга минимальное?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="725" y="1260" width="210" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-45" value="Дельта круга минимальная = 15с; &amp;nbsp;Дельта круга максимальная = времени присвоенного класса&amp;nbsp;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="360" y="30" width="560" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="-xHk1IHz1QswQUi32ddZ-46" value="&lt;br&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="540" y="50" width="20" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
