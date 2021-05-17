@@ -60,7 +60,10 @@ func handleRequest(conn net.Conn) {
 		size, err := conn.Read(buf)
 		if err == nil {
 			data := buf[:size]
+
+			//echo raw data for debug:
 			//fmt.Printf("%s\n", data);
+
 			var rfid AlienRFIDTag
 			err := xml.Unmarshal(data, &rfid)
 			if err != nil {
