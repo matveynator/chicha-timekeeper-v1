@@ -12,12 +12,14 @@ import (
 	"net"
 	"strconv"
 	"encoding/xml"
+	"encoding/csv"
 	"strings"
+	"bytes"
 	"fmt"
 	"time"
 )
 
-type AlienRFIDTag struct {
+type tagXML struct {
 	TagID   string     `xml:"TagID"`
 	DiscoveryTime string `xml:"DiscoveryTime"`
 	LastSeenTime string `xml:"LastSeenTime"`
@@ -26,6 +28,11 @@ type AlienRFIDTag struct {
 	Protocol int `xml:"Protocol"`
 }
 
+type tagCSV struct {
+	TagID string
+	UnixTime string
+	Antenna int
+}
 
 func main() {
 
@@ -64,11 +71,17 @@ func handleRequest(conn net.Conn) {
 			//echo raw data for debug:
 			//fmt.Printf("%s\n", data);
 
-			var rfid AlienRFIDTag
+			var rfid tagXML
 			err := xml.Unmarshal(data, &rfid)
 			if err != nil {
 				//received data of type TEXT (parse TEXT).
-				fmt.Printf("%s\n", data)
+				r := csv.NewReader(bytes.NewReader(data))
+				r.Comma = ','
+				r.FieldsPerRecord = 3
+				CSV, err := r.Read()
+				if err == nil {
+					fmt.Printf("%s,%s,%s\n", CSV[0], CSV[1], CSV[2])
+				}
 
 			} else {
 				//received data of type XML (parse XML)
@@ -76,11 +89,10 @@ func handleRequest(conn net.Conn) {
 				xmlTimeFormat := `2006/01/02 15:04:05.000`
 				discoveryTime, err := time.Parse(xmlTimeFormat, rfid.DiscoveryTime)
 				unixMillyTime:=discoveryTime.UnixNano()/int64(time.Millisecond)
-				if err != nil {
-					fmt.Println(err)
+				if err == nil {
+					fmt.Printf("%s, %d, %d\n", strings.ReplaceAll(rfid.TagID, " ", ""), unixMillyTime, rfid.Antenna)
 				}
 
-				fmt.Printf("%s, %d, %d\n", strings.ReplaceAll(rfid.TagID, " ", ""), unixMillyTime, rfid.Antenna)
 			}
 		}
 
