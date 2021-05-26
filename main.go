@@ -11,33 +11,10 @@ import (
 	"gorm.io/driver/postgres" // Gorm Postgres driver package
 	"github.com/joho/godotenv" // Enviroment read package
 	"./Models" // Our package with database models
-	"flag"
 	"log"
 	"os"
-	"net"
-	"strconv"
-	"encoding/xml"
-	"encoding/csv"
-	"strings"
-	"bytes"
 	"fmt"
-	"time"
 )
-
-type tagXML struct {
-	TagID   string     `xml:"TagID"`
-	DiscoveryTime string `xml:"DiscoveryTime"`
-	LastSeenTime string `xml:"LastSeenTime"`
-	Antenna int     `xml:"Antenna"`
-	ReadCount int   `xml:"ReadCount"`
-	Protocol int `xml:"Protocol"`
-}
-
-type tagCSV struct {
-	TagID string
-	UnixTime string
-	Antenna int
-}
 
 func main() {
 
@@ -48,12 +25,14 @@ func main() {
 	}
 
 	// Check enviroment
-	DB_HOST, exists := os.LookupEnv("DB_HOST")
+	APP_ANTENNA_LISTENER_IP, exists := os.LookupEnv("APP_ANTENNA_LISTENER_IP")
 	if !exists {
 		log.Fatal(".env file is incorrect")
 	}
+	API_SERVER_LISTENER_IP, _ := os.LookupEnv("API_SERVER_LISTENER_IP")
 
 	// DB connection preferences
+	DB_HOST, _ := os.LookupEnv("DB_HOST")
 	DB_USER, _ := os.LookupEnv("DB_USER")
 	DB_PASSWORD, _ := os.LookupEnv("DB_PASSWORD")
 	DB_NAME, _ := os.LookupEnv("DB_NAME")
@@ -70,68 +49,18 @@ func main() {
 
 	// Database Migrations
 	fmt.Println("Apply migrations")
-	Models.DB.AutoMigrate(&Models.Lap{})
+	Models.DB.AutoMigrate(&Models.Lap{}, &Models.User{}, &Models.Race{}, &Models.Checkin{})
 
+	// Start antenna listener
+	fmt.Println("Start antenna listener")
+	RFID_LISTEN_TIMEOUT, _ := os.LookupEnv("RFID_LISTEN_TIMEOUT")
+	LAPS_SAVE_INTERVAL, _ := os.LookupEnv("LAPS_SAVE_INTERVAL")
+	go Models.StartAntennaListener(APP_ANTENNA_LISTENER_IP, RFID_LISTEN_TIMEOUT, LAPS_SAVE_INTERVAL)
 
-	port := flag.Int("port", 4000, "Port to accept connections on.")
-	host := flag.String("host", "0.0.0.0", "Host or IP to bind to")
-	flag.Parse()
+	// Routing
+	r := Models.SetupRouter()
+	fmt.Println("Start API server")
 
-	l, err := net.Listen("tcp", *host+":"+strconv.Itoa(*port))
-	if err != nil {
-		log.Panicln(err)
-	}
-	fmt.Println("Listening to connections at '"+*host+"' on port", strconv.Itoa(*port))
-	defer l.Close()
-
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			log.Panicln(err)
-		}
-
-		go handleRequest(conn)
-	}
-}
-
-func handleRequest(conn net.Conn) {
-	fmt.Println("Accepted new connection.")
-	defer conn.Close()
-	defer fmt.Println("Closed connection.")
-
-	for {
-		buf := make([]byte, 8192)
-		size, err := conn.Read(buf)
-		if err == nil {
-			data := buf[:size]
-
-			//echo raw data for debug:
-			//fmt.Printf("%s\n", data);
-
-			var rfid tagXML
-			err := xml.Unmarshal(data, &rfid)
-			if err != nil {
-				//received data of type TEXT (parse TEXT).
-				r := csv.NewReader(bytes.NewReader(data))
-				r.Comma = ','
-				r.FieldsPerRecord = 3
-				CSV, err := r.Read()
-				if err == nil {
-					fmt.Printf("%s,%s,%s\n", CSV[0], CSV[1], CSV[2])
-				}
-
-			} else {
-				//received data of type XML (parse XML)
-				//2021/05/17 16:33:18.960
-				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				discoveryTime, err := time.Parse(xmlTimeFormat, rfid.DiscoveryTime)
-				unixMillyTime:=discoveryTime.UnixNano()/int64(time.Millisecond)
-				if err == nil {
-					fmt.Printf("%s, %d, %d\n", strings.ReplaceAll(rfid.TagID, " ", ""), unixMillyTime, rfid.Antenna)
-				}
-
-			}
-		}
-
-	}
+	// Start API server
+	r.Run(API_SERVER_LISTENER_IP)
 }
