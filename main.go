@@ -3,12 +3,17 @@ package main
 NAIKOM arena timing - free to use by general public.
 based on Alien F800 RFID 912 MHZ.
 
-Work in progress. 
+Work in progress.
 */
 
 import (
+	"gorm.io/gorm" // Database ORM package
+	"gorm.io/driver/postgres" // Gorm Postgres driver package
+	"github.com/joho/godotenv" // Enviroment read package
+	"./Models" // Our package with database models
 	"flag"
 	"log"
+	"os"
 	"net"
 	"strconv"
 	"encoding/xml"
@@ -35,6 +40,38 @@ type tagCSV struct {
 }
 
 func main() {
+
+	// Load enviroment
+	fmt.Println("Load enviroment")
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(".env file not found")
+	}
+
+	// Check enviroment
+	DB_HOST, exists := os.LookupEnv("DB_HOST")
+	if !exists {
+		log.Fatal(".env file is incorrect")
+	}
+
+	// DB connection preferences
+	DB_USER, _ := os.LookupEnv("DB_USER")
+	DB_PASSWORD, _ := os.LookupEnv("DB_PASSWORD")
+	DB_NAME, _ := os.LookupEnv("DB_NAME")
+	DB_PORT, _ := os.LookupEnv("DB_PORT")
+
+	// Try connect to DB
+	fmt.Println("Connect to DB")
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Moscow", DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)
+	if db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}); err != nil {
+		log.Fatal("DB not opened. Check your .env settings. Status: ", err)
+	} else {
+		Models.DB = db
+	}
+
+	// Database Migrations
+	fmt.Println("Apply migrations")
+	Models.DB.AutoMigrate(&Models.Lap{})
+
 
 	port := flag.Int("port", 4000, "Port to accept connections on.")
 	host := flag.String("host", "0.0.0.0", "Host or IP to bind to")
@@ -98,4 +135,3 @@ func handleRequest(conn net.Conn) {
 
 	}
 }
-
