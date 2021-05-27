@@ -38,11 +38,11 @@ func SetupRouter() *gin.Engine {
         v1.PUT("users/:id", UpdateUser)
         v1.DELETE("users/:id", DeleteUser)
 
-        /*v1.GET("checkin", GetLisfCheckin)
-        v1.GET("users/:id", GetCheckin)
-        v1.POST("users", CreateCheckin)
-        v1.PUT("users", UpdateCheckin)
-        v1.DELETE("users", DeleteCheckin)*/
+        v1.GET("checkins", GetListCheckins)
+        v1.GET("checkins/:id", GetCheckin)
+        v1.POST("checkins", CreateCheckin)
+        v1.PUT("checkins/:id", UpdateCheckin)
+        v1.DELETE("checkins/:id", DeleteCheckin)
 
 	}
 

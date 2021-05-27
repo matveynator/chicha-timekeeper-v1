@@ -48,7 +48,7 @@ type User struct {
 type Checkin struct {
     ID          uint `gorm:"primaryKey" json:"id"`
     Number      string `gorm:"varchar(30)" json:"number" form:"number"` // Bib number of user
-    TagID       string `gorm:"char(36);index" json:"tag_id"`
+    TagID       string `gorm:"char(36);index" json:"tag_id" form:"tag_id"`
     UserId      uint `gorm:"index"`
     User        User `gorm:"foreignKey:UserId" json:"user"`
     RaceId      uint `gorm:"index"`

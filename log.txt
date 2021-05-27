@@ -1,0 +1,24 @@
+Load enviroment
+Connect to DB
+Apply migrations
+Start antenna listener
+Start API server
+[GIN] 2021/05/27 - 00:52:20 | 200 |  140.088258ms |    192.168.96.5 | GET      "/api/laps"
+[GIN] 2021/05/27 - 04:02:42 | 404 |       1.644µs |    192.168.96.5 | POST     "/_ignition/execute-solution"
+
+2021/05/27 11:09:14 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[306.664ms] [33m[rows:16539][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 11:09:14 | 200 |  429.732767ms |    192.168.96.5 | GET      "/api/laps"
+
+2021/05/27 12:30:30 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[346.184ms] [33m[rows:18095][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 12:30:30 | 200 |  484.717487ms |    192.168.96.5 | GET      "/api/laps"
+
+2021/05/27 13:02:16 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[347.424ms] [33m[rows:18698][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 13:02:16 | 200 |  502.161007ms |    192.168.96.5 | GET      "/api/laps"
+
+2021/05/27 13:02:55 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[340.389ms] [33m[rows:18710][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 13:02:56 | 200 |  491.075929ms |    192.168.96.5 | GET      "/api/laps"
+[GIN] 2021/05/27 - 13:30:32 | 404 |        1.62µs |    192.168.96.5 | GET      "/api/laps/bytagid/100008020200000100000268"
