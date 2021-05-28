@@ -22,3 +22,15 @@ Start API server
 [0m[31;1m[340.389ms] [33m[rows:18710][35m SELECT * FROM "laps"[0m
 [GIN] 2021/05/27 - 13:02:56 | 200 |  491.075929ms |    192.168.96.5 | GET      "/api/laps"
 [GIN] 2021/05/27 - 13:30:32 | 404 |        1.62µs |    192.168.96.5 | GET      "/api/laps/bytagid/100008020200000100000268"
+
+2021/05/27 14:17:40 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[383.643ms] [33m[rows:20050][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 14:17:40 | 200 |   557.25088ms |    192.168.96.5 | GET      "/api/laps"
+
+2021/05/27 16:30:10 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[413.128ms] [33m[rows:22532][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 16:30:11 | 200 |  587.527226ms |    192.168.96.5 | GET      "/api/laps"
+
+2021/05/27 17:13:43 [32m/root/naikomarena/Models/Lap.go:7 [33mSLOW SQL >= 200ms
+[0m[31;1m[577.817ms] [33m[rows:23101][35m SELECT * FROM "laps"[0m
+[GIN] 2021/05/27 - 17:13:43 | 200 |  802.427452ms |    192.168.96.5 | GET      "/api/laps"

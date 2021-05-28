@@ -51,8 +51,8 @@ func main() {
 	fmt.Println("Apply migrations")
 	Models.DB.AutoMigrate(&Models.Lap{}, &Models.User{}, &Models.Race{}, &Models.Checkin{})
 
-	// Start antenna listener
-	fmt.Println("Start antenna listener")
+	// Start RFID listener
+	fmt.Println("Start RFID data listener")
 	RFID_LISTEN_TIMEOUT, _ := os.LookupEnv("RFID_LISTEN_TIMEOUT")
 	LAPS_SAVE_INTERVAL, _ := os.LookupEnv("LAPS_SAVE_INTERVAL")
 	go Models.StartAntennaListener(APP_ANTENNA_LISTENER_IP, RFID_LISTEN_TIMEOUT, LAPS_SAVE_INTERVAL)
