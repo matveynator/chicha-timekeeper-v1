@@ -8,12 +8,29 @@ import(
     "github.com/gin-gonic/gin"
 )
 
+// Active race (used as storage for active Race)
+var ActiveRace Race
+
 // Start race
 func StartRace(c *gin.Context) {
 
     // Search unfinished race
+    var unfinishedRace Race
+    if err := GetOneUnfinishedRace(&unfinishedRace); err == nil {
+        c.JSON(401, map[string]string{"error" : "Complete an active ride first"})
+        return
+    }
 
     // Start race
+    var race Race
+    id := c.Params.ByName("id")
+    if err := GetOneRace(&race, id); err != nil {
+        c.JSON(404, map[string]string{"error" : "Race not found"})
+        return
+    }
+
+    // Store active race in variable
+    ActiveRace = race
 
     c.JSON(200, nil)
 }
@@ -22,8 +39,21 @@ func StartRace(c *gin.Context) {
 func FinishRace(c *gin.Context) {
 
     // Search unfinished race
+    var unfinishedRaces []Race
+    if err := GetAllUnfinishedRace(&unfinishedRaces); err != nil {
+        c.JSON(401, map[string]string{"error" : "Complete an active ride first"})
+        return
+    }
 
     // Finish race
+    for _,race := range unfinishedRaces {
+        race.IsActive = false
+
+        if err := PutOneRace(&race); err != nil {
+            c.JSON(500, map[string]string{"error" : "Server cannot finish an active race"})
+            return
+        }
+    }
 
     c.JSON(200, nil)
 }
