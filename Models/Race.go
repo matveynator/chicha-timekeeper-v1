@@ -8,6 +8,12 @@ func GetAllRaces(u *[]Race) (err error) {
 	return result.Error
 }
 
+func GetAllUnfinishedRace(u *[]Race) (err error) {
+
+	result := DB.Where("is_active = '1'").Find(u)
+	return result.Error
+}
+
 func AddNewRace(u *Race) (err error) {
 	if err = DB.Create(u).Error; err != nil {
 		return err
@@ -18,6 +24,14 @@ func AddNewRace(u *Race) (err error) {
 
 func GetOneRace(u *Race, race_id string) (err error) {
 	if err := DB.Where("id = ?", race_id).First(u).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetOneUnfinishedRace(u *Race) (err error) {
+	if err := DB.Where("is_active = '1'").First(u).Error; err != nil {
 		return err
 	}
 
