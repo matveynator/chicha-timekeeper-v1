@@ -29,6 +29,10 @@ func StartRace(c *gin.Context) {
         return
     }
 
+    // Save race
+    race.IsActive = true
+    PutOneRace(&race)
+
     // Store active race in variable
     ActiveRace = race
 
