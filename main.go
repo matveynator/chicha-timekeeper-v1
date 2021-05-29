@@ -58,8 +58,6 @@ func main() {
 	go Models.StartAntennaListener(APP_ANTENNA_LISTENER_IP, RFID_LISTEN_TIMEOUT, LAPS_SAVE_INTERVAL)
 
 
-        
-
 
 	// Routing
 	r := Models.SetupRouter()

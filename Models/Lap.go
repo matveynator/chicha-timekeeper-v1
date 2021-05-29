@@ -4,7 +4,7 @@ package Models
 // Return all laps in system
 func GetAllLaps(u *[]Lap) (err error) {
 
-	result := DB.Find(u)
+	result := DB.Order("discovery_time desc").Find(u)
 	return result.Error
 }
 
