@@ -28,7 +28,7 @@ type Lap struct {
 	DiscoveryTimePrepared time.Time `json:"discovery_time"`
 	Antenna        uint8 `gorm:"index" json:"antenna" xml:"Antenna"`
 	CreatedAt      time.Time `json:"created_at"`
-	RaceID         uint `gorm:"index" json:"raceid"`
+	RaceID         uint `gorm:"index" json:"race_id"`
 	LapNumber      uint `gorm:"index" json:"lap_number"`
 }
 
