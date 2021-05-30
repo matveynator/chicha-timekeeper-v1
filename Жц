@@ -20,23 +20,15 @@ func GetLastLap(u *Lap) (err error) {
 	fmt.Println(time.Now().UnixNano()/int64(time.Millisecond)-300000);
 	fmt.Println(u.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond))
 
-	if (time.Now().UnixNano()/int64(time.Millisecond)-300000 > u.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)) {
-		//last lap data was created more than 300 seconds ago
-		//RaceID++ (create new race)
-		//LapNumber=0 (first lap)
-		u.RaceID = (u.RaceID+1)
-		u.LapNumber = 0
+	if (time.Now().UnixNano()/int64(time.Millisecond)-300000 < u.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)) {
+	//last lap data was created more than 300 seconds ago
+	//RaceID++ (create new race)
+	//LapNumber=0 (first lap)
 
 	} else {
-		//last lap data was created less than 300 seconds ago
-		//RaceID==RaceID (use same race)
-		//LapNumber=LapNumber+1
-		copyU := u
-		if DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_time desc").First(copyU).Error != nil { 
-			u.LapNumber = 0
-		} else {
-			u.LapNumber = copyU.LapNumber+1
-		}	
+	//last lap data was created less than 300 seconds ago
+	//RaceID==RaceID (use same race)
+	//LapNumber= (get lap number from previous laps if any)
 	}
 
 	fmt.Printf("Current RaceId = %d\n", u.RaceID)
@@ -46,7 +38,7 @@ func GetLastLap(u *Lap) (err error) {
 
 // Get laps by tag ID
 func GetAllLapsByTagId(u *[]Lap, tag_id string) (err error) {
-	result := DB.Where("tag_id = ?" , tag_id).Order("discovery_time desc").Find(u)
+	result := DB.Where("tag_id = ?", tag_id).Order("discovery_time desc").Find(u)
 	return result.Error
 }
 

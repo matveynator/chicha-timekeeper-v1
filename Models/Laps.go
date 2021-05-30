@@ -1,57 +1,70 @@
 package Models
 
 /**
- * This controller only for API work
- */
+* This controller only for API work
+*/
 
 import(
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 // Return list of all laps
 func GetListLaps(c *gin.Context) {
-    var laps []Lap
+	var laps []Lap
 
 	err := GetAllLaps(&laps)
 	if err != nil {
-        c.JSON(404, nil)
-        return
+		c.JSON(404, nil)
+		return
 	}
 
-    c.JSON(200, laps)
+	c.JSON(200, laps)
+}
+
+// Return list current raceid
+func GetCurrentRaceId(c *gin.Context) {
+	var laps Lap
+
+	err := GetLastLap(&laps)
+	if err != nil {
+		c.JSON(404, nil)
+		return
+	}
+
+	c.JSON(200, laps)
 }
 
 func GetLap(c *gin.Context) {
 
-    var lap Lap
-    id := c.Params.ByName("id")
+	var lap Lap
+	id := c.Params.ByName("id")
 
-    if err := GetOneLap(&lap, id); err != nil {
-        c.JSON(404, nil)
-        return
-    }
+	if err := GetOneLap(&lap, id); err != nil {
+		c.JSON(404, nil)
+		return
+	}
 
 
-    c.JSON(200, lap)
+	c.JSON(200, lap)
 }
 
 // Return list of all laps
 func GetLapsByTagId(c *gin.Context) {
-    var laps []Lap
-    id := c.Params.ByName("id")
+	var laps []Lap
+	id := c.Params.ByName("id")
 
 	err := GetAllLapsByTagId(&laps, id)
 	if err != nil {
-        c.JSON(404, nil)
-        return
+		c.JSON(404, nil)
+		return
 	}
 
-    c.JSON(200, laps)
+	c.JSON(200, laps)
 }
 
 func CreateLap(c *gin.Context) {
 
-    var lap Lap
+	var lap Lap
 
 	// Bind and validation
 	if err := c.ShouldBind(&lap); err != nil {
@@ -66,12 +79,12 @@ func CreateLap(c *gin.Context) {
 		return
 	}
 
-    c.JSON(200, lap)
+	c.JSON(200, lap)
 }
 
 func UpdateLap(c *gin.Context) {
 
-    var lap Lap
+	var lap Lap
 	id := c.Params.ByName("id")
 
 
@@ -86,29 +99,29 @@ func UpdateLap(c *gin.Context) {
 	}
 
 	if err := PutOneLap(&lap); err != nil {
-        c.JSON(401, nil)
+		c.JSON(401, nil)
 		return
 	}
 
-    c.JSON(200, lap)
+	c.JSON(200, lap)
 }
 
 func DeleteLap(c *gin.Context) {
 
-    var lap Lap
+	var lap Lap
 	id := c.Params.ByName("id")
 
 	// Check lap exists
 	if err := GetOneLap(&lap, id); err != nil {
-        c.JSON(404, nil)
+		c.JSON(404, nil)
 		return
 	}
 
 	// Try to delete
 	if err := DeleteOneLap(&lap, id); err != nil {
-        c.JSON(401, nil)
+		c.JSON(401, nil)
 		return
 	}
 
-    c.JSON(200, nil)
+	c.JSON(200, nil)
 }
