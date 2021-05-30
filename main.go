@@ -24,12 +24,15 @@ func main() {
 		log.Fatal(".env file not found")
 	}
 
+
+
 	// Check enviroment
 	APP_ANTENNA_LISTENER_IP, exists := os.LookupEnv("APP_ANTENNA_LISTENER_IP")
 	if !exists {
 		log.Fatal(".env file is incorrect")
 	}
 	API_SERVER_LISTENER_IP, _ := os.LookupEnv("API_SERVER_LISTENER_IP")
+	TIME_ZONE, _ :=  os.LookupEnv("TIME_ZONE")
 
 	// DB connection preferences
 	DB_HOST, _ := os.LookupEnv("DB_HOST")
@@ -55,7 +58,7 @@ func main() {
 	fmt.Println("Start RFID data listener")
 	RFID_LISTEN_TIMEOUT, _ := os.LookupEnv("RFID_LISTEN_TIMEOUT")
 	LAPS_SAVE_INTERVAL, _ := os.LookupEnv("LAPS_SAVE_INTERVAL")
-	go Models.StartAntennaListener(APP_ANTENNA_LISTENER_IP, RFID_LISTEN_TIMEOUT, LAPS_SAVE_INTERVAL)
+	go Models.StartAntennaListener(APP_ANTENNA_LISTENER_IP, RFID_LISTEN_TIMEOUT, LAPS_SAVE_INTERVAL, TIME_ZONE)
 
 
 

@@ -39,7 +39,7 @@ var rfidTimeoutLocker sync.Mutex
 
 
 // Start antenna listener
-func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSaveIntervalString string) {
+func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSaveIntervalString string, TIME_ZONE string) {
 
 	// Start buffer synchro with database
 	go startSaveLapsBufferToDatabase()
@@ -75,7 +75,7 @@ func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSav
 			log.Panicln(err)
 		}
 
-		go newAntennaConnection(conn)
+		go newAntennaConnection(conn, TIME_ZONE)
 	}
 }
 
@@ -146,7 +146,7 @@ func setNewExpriredDataForRfidTag(tagID string) {
 }
 
 // New antenna connection (private func)
-func newAntennaConnection(conn net.Conn) {
+func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 
 	defer conn.Close()
 
@@ -182,8 +182,9 @@ func newAntennaConnection(conn net.Conn) {
 				}
 
 				// Prepare date
+				loc, _ := time.LoadLocation(TIME_ZONE)
 				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				discoveryTime, err := time.Parse(xmlTimeFormat, CSV[1])
+				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, CSV[1], loc)
 
 				if err != nil {
 					fmt.Println("Recived incorrect time from RFID reader:", err)
@@ -198,8 +199,12 @@ func newAntennaConnection(conn net.Conn) {
 			} else {
 
 				// Prepare date
+				loc, _ := time.LoadLocation(TIME_ZONE)
 				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				discoveryTime, err := time.Parse(xmlTimeFormat, lap.DiscoveryTime)
+				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryTime, loc)
+
+
+
 				//unixMillyTime:=discoveryTime.UnixNano()/int64(time.Millisecond)
 				// If time is incorrect than skip them
 				if err != nil {
@@ -211,7 +216,7 @@ func newAntennaConnection(conn net.Conn) {
 
 			// Additional preparing for TagID
 			lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
-			
+
 			//Debug all received data from RFID reader
 			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared, lap.Antenna)
 
