@@ -1,47 +1,47 @@
 package Models
 
 import ( 
-	"fmt"
+//	"fmt"
 	"time" 
 )
 
-
-// Return all laps in system
+// Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {
 
 	result := DB.Order("discovery_time desc").Find(u)
 	return result.Error
 }
 
-// current/raceid
+// Return all laps in system order by date
 func GetLastLap(u *Lap) (err error) {
-	result := DB.Order("discovery_time desc").First(u)
 
-	fmt.Println(time.Now().UnixNano()/int64(time.Millisecond)-300000);
-	fmt.Println(u.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond))
+        result := DB.Order("discovery_time desc").First(u)
+	        return result.Error
+		}
 
-	if (time.Now().UnixNano()/int64(time.Millisecond)-300000 > u.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)) {
-		//last lap data was created more than 300 seconds ago
-		//RaceID++ (create new race)
-		//LapNumber=0 (first lap)
-		u.RaceID = (u.RaceID+1)
-		u.LapNumber = 0
-
-	} else {
-		//last lap data was created less than 300 seconds ago
-		//RaceID==RaceID (use same race)
-		//LapNumber=LapNumber+1
-		if DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_time desc").First(u).Error != nil { 
-			u.LapNumber = 0
-		} else {
-			u.LapNumber = u.LapNumber+1
-		}	
+// Return last known lap
+func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
+	if DB.Order("discovery_time desc").First(u).Error == nil {
+		lastLapRaceID = u.RaceID
+		lastLapTime = u.DiscoveryTimePrepared
 	}
+	return
+}
 
-	fmt.Printf("Current RaceId = %d\n", u.RaceID)
-	fmt.Printf("Current LapNumber = %d\n", u.LapNumber)
+func GetLastLapNumberFromRaceByTagID(u *Lap, tagID string, raceID uint) (lastLapNumber uint) {
+	if DB.Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_time desc").First(u).Error == nil {
+		lastLapNumber = u.LapNumber
+	} else {
+ 		lastLapNumber = 0
+	}
+	return
+}
+
+func GetMyLastLapDataFromCurrentRace(u *Lap)  (err error) {
+	result := DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_time desc").First(u)
 	return result.Error
 }
+
 
 // Get laps by tag ID
 func GetAllLapsByTagId(u *[]Lap, tag_id string) (err error) {

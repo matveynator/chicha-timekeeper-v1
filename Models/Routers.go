@@ -23,7 +23,7 @@ func SetupRouter() *gin.Engine {
 		v1.GET("laps/:id", GetLap) // Get one lap details
 		v1.GET("laps/bytagid/:id", GetLapsByTagId)
 		v1.GET("laps/delete/bytagid/:id", DeleteLap)
-		v1.GET("current/raceid", GetCurrentRaceId)
+		v1.GET("laps/last", GetLastLapData)
 
 		v1.GET("races", GetListRaces)
 		v1.GET("races/:id", GetRace)
