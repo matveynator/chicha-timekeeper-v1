@@ -31,11 +31,10 @@ func GetLastLap(u *Lap) (err error) {
 		//last lap data was created less than 300 seconds ago
 		//RaceID==RaceID (use same race)
 		//LapNumber=LapNumber+1
-		copyU := u
-		if DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_time desc").First(copyU).Error != nil { 
+		if DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_time desc").First(u).Error != nil { 
 			u.LapNumber = 0
 		} else {
-			u.LapNumber = copyU.LapNumber+1
+			u.LapNumber = u.LapNumber+1
 		}	
 	}
 
