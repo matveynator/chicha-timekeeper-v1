@@ -22,7 +22,7 @@ func GetListLaps(c *gin.Context) {
 }
 
 // Return list current raceid
-func GetCurrentRaceId(c *gin.Context) {
+func GetLastLapData(c *gin.Context) {
 	var laps Lap
 
 	err := GetLastLap(&laps)

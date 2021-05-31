@@ -29,7 +29,7 @@ type Lap struct {
 	Antenna        uint8 `gorm:"index" json:"antenna" xml:"Antenna"`
 	RfidIp	       string `gorm:"char(36);index" json:"rfid_ip"`
 	CreatedAt      time.Time `json:"created_at"`
-	RaceID        uint `gorm:"index" json:"race_id"`
+	RaceID         uint `gorm:"index" json:"race_id"`
 	LapNumber      uint `gorm:"index" json:"lap_number"`
 
 }
