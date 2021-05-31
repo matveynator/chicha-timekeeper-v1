@@ -84,12 +84,42 @@ func startSaveLapsBufferToDatabase() {
 	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
 		lapsLocker.Lock()
 
+		var lapStruct Lap
+		var currentRaceID, currentLapNumber uint
+		lastRaceID, lastLapTime := GetLastRaceIDandTime(&lapStruct)
+		if lastRaceID == 0 {
+			currentRaceID = 1
+		} else {
+			currentRaceID = lastRaceID
+			if (time.Now().UnixNano()/int64(time.Millisecond)-300000 > lastLapTime.UnixNano()/int64(time.Millisecond)) {
+				//last lap data was created more than 300 seconds ago
+				//RaceID++ (create new race)
+				currentRaceID = (lastRaceID+1)
+
+			} else {
+				//last lap data was created less than 300 seconds ago
+				currentRaceID = lastRaceID
+			}
+		}
+
+
 		// Save laps to database
 		for _,lap := range laps {
+
+			lastLapNumber := GetLastLapNumberFromRaceByTagID(&lapStruct, lap.TagID, currentRaceID)
+			if lastLapNumber == 0 {
+				currentLapNumber = 1
+			} else {
+				currentLapNumber = lastLapNumber+1
+			}
+			lap.LapNumber=currentLapNumber
+			lap.RaceID=currentRaceID
+
 			if err := AddNewLap(&lap); err != nil {
 				fmt.Println("Error. Lap not added to database")
 			}
 		}
+
 
 		// Clear lap buffer
 		var cL []Lap
