@@ -25,24 +25,22 @@ var laps []Lap
 var lapsLocker sync.Mutex
 
 // Laps save into DB interval
-var lapsSaveInterval int64
+var lapsSaveInterval int
 
 // Check RFID mute timeout map
 var rfidTimeoutMap map[string]time.Time
 
 // Mute timeout duration (stored in .env)
-var rfidListenTimeout int64
+var rfidListenTimeout int
 
 // Check RFID mute timeout locker
 var rfidTimeoutLocker sync.Mutex
 
-
-
 // Start antenna listener
-func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSaveIntervalString string, TIME_ZONE string) {
+func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSaveIntervalString string, TIME_ZONE string, RACE_TIMEOUT_SEC int64) {
 
 	// Start buffer synchro with database
-	go startSaveLapsBufferToDatabase()
+	go startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC)
 
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
@@ -52,14 +50,14 @@ func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSav
 	if rfidTimeoutErr != nil {
 		log.Panicln("Incorrect RFID_LISTEN_TIMEOUT parameter in .env file")
 	}
-	rfidListenTimeout = int64(rfidTimeout)
+	rfidListenTimeout = int(rfidTimeout)
 
 	// Prepare lapsSaveInterval
 	lapsInterval, lapsIntervalErr := strconv.Atoi(lapsSaveIntervalString)
 	if lapsIntervalErr != nil {
 		log.Panicln("Incorrect LAPS_SAVE_INTERVAL parameter in .env file")
 	}
-	lapsSaveInterval = int64(lapsInterval)
+	lapsSaveInterval = int(lapsInterval)
 
 	// Start listener
 	l, err := net.Listen("tcp", appAntennaListenerIp)
@@ -80,10 +78,9 @@ func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSav
 }
 
 // Save laps buffer to database
-func startSaveLapsBufferToDatabase() {
+func startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC int64) {
 	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
 		lapsLocker.Lock()
-
 		var lapStruct Lap
 		var currentRaceID, currentLapNumber uint
 		lastRaceID, lastLapTime := GetLastRaceIDandTime(&lapStruct)
@@ -91,7 +88,7 @@ func startSaveLapsBufferToDatabase() {
 			currentRaceID = 1
 		} else {
 			currentRaceID = lastRaceID
-			if (time.Now().UnixNano()/int64(time.Millisecond)-300000 > lastLapTime.UnixNano()/int64(time.Millisecond)) {
+			if (time.Now().UnixNano()/int64(time.Millisecond)-(RACE_TIMEOUT_SEC*1000) > lastLapTime.UnixNano()/int64(time.Millisecond)) {
 				//last lap data was created more than 300 seconds ago
 				//RaceID++ (create new race)
 				currentRaceID = (lastRaceID+1)
@@ -114,7 +111,7 @@ func startSaveLapsBufferToDatabase() {
 			}
 			lap.LapNumber=currentLapNumber
 			lap.RaceID=currentRaceID
-
+			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 			if err := AddNewLap(&lap); err != nil {
 				fmt.Println("Error. Lap not added to database")
 			}
@@ -248,7 +245,7 @@ func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 			lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
 
 			//Debug all received data from RFID reader
-			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared, lap.Antenna)
+			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
 			// Add current Lap to Laps buffer
 			go addNewLapToLapsBuffer(lap)
