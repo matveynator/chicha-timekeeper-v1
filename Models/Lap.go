@@ -1,7 +1,7 @@
 package Models
 
 import ( 
-//	"fmt"
+	//"fmt"
 	"time" 
 )
 
@@ -15,9 +15,9 @@ func GetAllLaps(u *[]Lap) (err error) {
 // Return all laps in system order by date
 func GetLastLap(u *Lap) (err error) {
 
-        result := DB.Order("discovery_time desc").First(u)
-	        return result.Error
-		}
+	result := DB.Order("discovery_time desc").First(u)
+	return result.Error
+}
 
 // Return last known lap
 func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
@@ -28,11 +28,12 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	return
 }
 
-func GetLastLapNumberFromRaceByTagID(u *Lap, tagID string, raceID uint) (lastLapNumber uint) {
-	if DB.Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_time desc").First(u).Error == nil {
-		lastLapNumber = u.LapNumber
+func GetLastLapNumberFromRaceByTagID(tagID string, raceID uint) (lastLapNumber uint) {
+	var lapStructCopy Lap
+	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_time desc").First(&lapStructCopy).Error == nil {
+		lastLapNumber = lapStructCopy.LapNumber
 	} else {
- 		lastLapNumber = 0
+		lastLapNumber = 0
 	}
 	return
 }

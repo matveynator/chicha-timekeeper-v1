@@ -106,7 +106,7 @@ func startSaveLapsBufferToDatabase() {
 		// Save laps to database
 		for _,lap := range laps {
 
-			lastLapNumber := GetLastLapNumberFromRaceByTagID(&lapStruct, lap.TagID, currentRaceID)
+			lastLapNumber := GetLastLapNumberFromRaceByTagID(lap.TagID, currentRaceID)
 			if lastLapNumber == 0 {
 				currentLapNumber = 1
 			} else {
