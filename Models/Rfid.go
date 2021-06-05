@@ -126,6 +126,19 @@ func startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC int64) {
 	}
 }
 
+func proxyDataToMotosponder(tagID string, unixTime int64, antennaNumber uint8) {
+
+	conn, err := net.Dial("tcp", "192.168.96.4:4000")
+	if err != nil {
+		fmt.Println("dial error:", err)
+		return
+	}
+	defer conn.Close()
+	//fmt.Fprintf(conn, tagID +", "+ unixTime + ", "+ antennaNumber +"\n")
+	fmt.Fprintf(conn, "%s, %d, %d\n", tagID, unixTime, antennaNumber)
+
+}
+
 // Add new lap to laps buffer (private func)
 func addNewLapToLapsBuffer(lap Lap) {
 
@@ -246,6 +259,8 @@ func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 
 			//Debug all received data from RFID reader
 			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+
+			go proxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
 			// Add current Lap to Laps buffer
 			go addNewLapToLapsBuffer(lap)
