@@ -45,6 +45,13 @@ func SetupRouter() *gin.Engine {
 		v1.PUT("checkins/:id", UpdateCheckin)
 		v1.DELETE("checkins/:id", DeleteCheckin)
 
+		v1.GET("admins", GetListAdmins)
+		v1.GET("admins/:id", GetAdmin)
+		v1.POST("admins", CreateAdmin)
+		v1.PUT("admins/:id", UpdateAdmin)
+		v1.DELETE("admins/:id", DeleteAdmin)
+		v1.POST("admins/login", LoginAdmin)
+
 	}
 
 	return r
