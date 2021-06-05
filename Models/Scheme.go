@@ -61,6 +61,15 @@ type Checkin struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// System administators
+type Admin struct {
+	ID		   uint `gorm:"primaryKey" json:"id"`
+	Login	   string `gorm:varchar(100);index" json:"login"`
+	Password   string `gorm:varchar(100);index" json:"login"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
 // Races table name
 func (u *Race) TableName() string {
 	return "races"
@@ -79,4 +88,9 @@ func (u *User) TableName() string {
 // Laps time labels table name
 func (u *Checkin) TableName() string {
 	return "checkins"
+}
+
+// Systems admin table name
+func (u *Admin) TableName() string {
+	return "admins"
 }
