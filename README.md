@@ -1,4 +1,6 @@
-# Open RFID sport timing. 
+# CHICHA : Open RFID sport timing. 
+
+<img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
 Cистема хронометража для любого трека на базе RFID 905-912 MHZ.
 пока что в процессе разработки.
