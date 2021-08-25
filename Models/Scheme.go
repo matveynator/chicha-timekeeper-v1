@@ -20,18 +20,30 @@ type Race struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
-// Laps time labels
+// Laps main data of the race 
 type Lap struct {
-	ID             uint `gorm:"primaryKey" json:"id"`
-	TagID          string `gorm:"char(36);index" json:"tag_id" xml:"TagID"`
-	DiscoveryTime  string `json:"-" xml:"DiscoveryTime"`
-	DiscoveryTimePrepared time.Time `json:"discovery_time"`
-	Antenna        uint8 `gorm:"index" json:"antenna" xml:"Antenna"`
-	RfidIp	       string `gorm:"char(36);index" json:"rfid_ip"`
-	CreatedAt      time.Time `json:"created_at"`
-	RaceID         uint `gorm:"index" json:"race_id"`
-	LapNumber      uint `gorm:"index" json:"lap_number"`
+	ID             		uint `gorm:"primaryKey" json:"id"`
+	OwnerID    		uint `gorm:"primaryKey" json:"owner_id"`
+	TagID          		string `gorm:"char(80);index" json:"tag_id" xml:"TagID"`
+	DiscoveryUnixTime  	string `gorm:"char(80);index" json:"discovery_unix_time" xml:"DiscoveryUnixTime"`
+	DiscoveryTime  		time.Time `json:"discovery_time" xml:"DiscoveryTime"`
+	Antenna        		uint8 `gorm:"index" json:"antenna" xml:"Antenna"`
+	AntennaIP      		string `gorm:"char(80);index" json:"antenna_ip" xml:"AntennaIP"`
+	CreatedAt      		time.Time `json:"created_at"`
+	RaceID         		uint `gorm:"index" json:"race_id" xml:"RaceId"`
+	CurrentRacePosition   	uint `gorm:"index" json:"current_race_postition" xml:CurrentRacePosition`
+	TimeBehindTheLeader 	string `gorm:"index" json:"time_behind_the_leader" xml:TimeBehindTheLeader`
+	LapNumber      		uint `gorm:"index" json:"lap_number"`
+	LapTime        		string `gorm:"index" json:"lap_time"`
+	LapPosition    		uint `gorm:"index" json:"lap_postition"`
+}
 
+// Laps time labels
+type LapSmall struct {
+        RaceID         uint `gorm:"index" json:"race_id"`
+        LapNumber      uint `gorm:"index" json:"lap_number"`
+        DiscoveryTime  string `json:"discovery_time`
+        TagID          string `gorm:"char(36);index" json:"tag_id"`
 }
 
 // Users

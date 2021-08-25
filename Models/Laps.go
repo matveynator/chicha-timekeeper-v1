@@ -5,8 +5,28 @@ package Models
 */
 
 import(
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
+
+// Return list of all laps
+func GetLapsByRaceId(c *gin.Context) {
+        var laps []LapSmall
+        race_id := c.Params.ByName("id")
+        err := GetAllLapsByRaceId(&laps, race_id)
+	fmt.Println(err)
+        if err != nil {
+		c.JSON(404, err)
+                return
+        }
+
+	//for _, lap := range laps {
+    	//	// element is the element from someSlice for where we are
+	//	fmt.Printf("%d, %d, %s, %s \n", lap.RaceID, lap.LapNumber, lap.DiscoveryTime, lap.TagID)
+	//fmt.Printf("%#v", lap)
+    	//}
+        c.JSON(200, laps)
+}
 
 // Return list of all laps
 func GetListLaps(c *gin.Context) {

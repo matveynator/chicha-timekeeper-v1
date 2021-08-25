@@ -1,8 +1,19 @@
-version="0.1"
+version="0.2"
 
-for os in linux freebsd netbsd openbsd plan9;
+for os in linux freebsd netbsd openbsd;
 do
   for arch in "amd64" "386" "arm" "arm64" 
+  do
+    mkdir -p download/${os}/${arch}/${version}
+    echo "GOOS=${os} GOARCH=${arch} $opt go build -o download/${os}/${arch}/${version}/chicha chicha.go"
+    GOOS=${os} GOARCH=${arch} $opt go build -o download/${os}/${arch}/${version}/chicha chicha.go
+    cat .env.DEFAULT > download/${os}/${arch}/${version}/.env.DEFAULT
+  done
+done
+
+for os in plan9;
+do
+  for arch in "amd64" "386" "arm"
   do
     mkdir -p download/${os}/${arch}/${version}
     echo "GOOS=${os} GOARCH=${arch} $opt go build -o download/${os}/${arch}/${version}/chicha chicha.go"

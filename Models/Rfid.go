@@ -6,6 +6,7 @@ package Models
 */
 
 import (
+	"../Packages/Config" // our packages
 	"encoding/xml"
 	"encoding/csv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"log"
 	"net"
 	"fmt"
+	"../Packages/Proxy"
 )
 
 // Buffer for new RFID requests
@@ -31,13 +33,17 @@ var lapsSaveInterval int
 var rfidTimeoutMap map[string]time.Time
 
 // Mute timeout duration (stored in .env)
-var rfidListenTimeout int
+var rfidLapMinimalTime int
 
 // Check RFID mute timeout locker
 var rfidTimeoutLocker sync.Mutex
 
 // Start antenna listener
-func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSaveIntervalString string, TIME_ZONE string, RACE_TIMEOUT_SEC int64) {
+func StartAntennaListener(appAntennaListenerIp, rfidLapMinimalTimeString, lapsSaveIntervalString string, TIME_ZONE string, RACE_TIMEOUT_SEC int64) {
+
+	if Config.PROXY_ACTIVE=="true" {
+		fmt.Println("Started tcp proxy restream to", Config.PROXY_HOST,"and port:",Config.PROXY_PORT )
+	}
 
 	// Start buffer synchro with database
 	go startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC)
@@ -45,12 +51,12 @@ func StartAntennaListener(appAntennaListenerIp, rfidListenTimeoutString, lapsSav
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
 
-	// Prepare rfidListenTimeout
-	rfidTimeout, rfidTimeoutErr := strconv.Atoi(rfidListenTimeoutString)
+	// Prepare rfidLapMinimalTime
+	rfidTimeout, rfidTimeoutErr := strconv.Atoi(rfidLapMinimalTimeString)
 	if rfidTimeoutErr != nil {
-		log.Panicln("Incorrect RFID_LISTEN_TIMEOUT parameter in .env file")
+		log.Panicln("Incorrect MINIMAL_LAP_TIME parameter in .env file")
 	}
-	rfidListenTimeout = int(rfidTimeout)
+	rfidLapMinimalTime = int(rfidTimeout)
 
 	// Prepare lapsSaveInterval
 	lapsInterval, lapsIntervalErr := strconv.Atoi(lapsSaveIntervalString)
@@ -111,7 +117,7 @@ func startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC int64) {
 			}
 			lap.LapNumber=currentLapNumber
 			lap.RaceID=currentRaceID
-			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryTime.UnixNano()/int64(time.Millisecond), lap.Antenna)
 			if err := AddNewLap(&lap); err != nil {
 				fmt.Println("Error. Lap not added to database")
 			}
@@ -126,23 +132,10 @@ func startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC int64) {
 	}
 }
 
-func proxyDataToMotosponder(tagID string, unixTime int64, antennaNumber uint8) {
-
-	conn, err := net.Dial("tcp", "192.168.96.4:4000")
-	if err != nil {
-		fmt.Println("dial error:", err)
-		return
-	}
-	defer conn.Close()
-	//fmt.Fprintf(conn, tagID +", "+ unixTime + ", "+ antennaNumber +"\n")
-	fmt.Fprintf(conn, "%s, %d, %d\n", tagID, unixTime, antennaNumber)
-
-}
-
 // Add new lap to laps buffer (private func)
 func addNewLapToLapsBuffer(lap Lap) {
 
-	// Check RFID timeout (we save only first rfid data. timeout value stored in .env file as RFID_LISTEN_TIMEOUT parameter)
+	// Check minimal lap time (we save only laps grater than MINIMAL_LAP_TIME from .env file)
 
 	if expiredTime, ok := rfidTimeoutMap[lap.TagID]; !ok {
 
@@ -178,7 +171,7 @@ func addNewLapToLapsBuffer(lap Lap) {
 // Set new expired date for rfid Tag
 func setNewExpriredDataForRfidTag(tagID string) {
 
-	newExpiredTime := time.Now().Add(time.Duration(rfidListenTimeout) * time.Second)
+	newExpiredTime := time.Now().Add(time.Duration(rfidLapMinimalTime) * time.Second)
 	rfidTimeoutLocker.Lock()
 	rfidTimeoutMap[tagID] = newExpiredTime
 	rfidTimeoutLocker.Unlock()
@@ -215,33 +208,38 @@ func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 				}
 
 				// Prepare antenna position
-				antennaPosition, antennaErr := strconv.Atoi(CSV[2])
+				antennaPosition, antennaErr := strconv.Atoi(strings.TrimSpace(CSV[2]))
 				if antennaErr != nil {
 					fmt.Println("Recived incorrect Antenna position value:", antennaErr)
 					continue
 				}
 
 				// Prepare date
-				loc, _ := time.LoadLocation(TIME_ZONE)
-				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, CSV[1], loc)
-
-				if err != nil {
-					fmt.Println("Recived incorrect time from RFID reader:", err)
+				fmt.Println(Config.TIME_ZONE)
+				loc, loadLocErr := time.LoadLocation(Config.TIME_ZONE)
+				if loadLocErr != nil {
+					fmt.Println("time.LoadLocation(Config.TIME_ZONE) error:", loadLocErr)
 					continue
 				}
 
-				lap.DiscoveryTimePrepared = discoveryTime
-				lap.TagID = CSV[0]
+				xmlTimeFormat := `2006/01/02 15:04:05.000`
+				discoveryTime, parseTimeErr := time.ParseInLocation(xmlTimeFormat, strings.TrimSpace(CSV[1]), loc)
+				if parseTimeErr != nil {
+					fmt.Println("Recived incorrect time from RFID reader:", parseTimeErr)
+					continue
+				}
+
+				lap.DiscoveryTime = discoveryTime
+				lap.TagID = strings.TrimSpace(CSV[0])
 				lap.Antenna = uint8(antennaPosition)
 
 				// XML data processing
 			} else {
 
 				// Prepare date
-				loc, _ := time.LoadLocation(TIME_ZONE)
+				loc, _ := time.LoadLocation(Config.TIME_ZONE)
 				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryTime, loc)
+				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryUnixTime, loc)
 
 
 
@@ -251,17 +249,19 @@ func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 					continue
 				}
 
-				lap.DiscoveryTimePrepared = discoveryTime
+				lap.DiscoveryTime = discoveryTime
 			}
 
 			// Additional preparing for TagID
 			lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
 
 			//Debug all received data from RFID reader
-			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTime.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
-			go proxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
+			if Config.PROXY_ACTIVE=="true" {
+				go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTime.UnixNano()/int64(time.Millisecond), lap.Antenna )
+			}
 			// Add current Lap to Laps buffer
 			go addNewLapToLapsBuffer(lap)
 		}
