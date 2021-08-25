@@ -46,13 +46,18 @@ func main() {
 	}
 
 	// Start RFID listener
-	fmt.Println("Started RFID data listener at", Config.APP_ANTENNA_LISTENER_IP, "with laps save interval =", Config.LAPS_SAVE_INTERVAL, "and lap minimal duration =", Config.MINIMAL_LAP_TIME, "seconds")
 	go Models.StartAntennaListener(Config.APP_ANTENNA_LISTENER_IP, Config.MINIMAL_LAP_TIME, Config.LAPS_SAVE_INTERVAL, Config.TIME_ZONE, int64(Config.RTS8))
+	fmt.Println("Started RFID data listener at", Config.APP_ANTENNA_LISTENER_IP, "with laps save interval =", Config.LAPS_SAVE_INTERVAL, "and lap minimal duration =", Config.MINIMAL_LAP_TIME, "seconds")
 
 	// Routing
 	r := Models.SetupRouter()
-	fmt.Println("Started API server at", Config.API_SERVER_LISTENER_IP)
 
 	// Start API server
-	r.Run(Config.API_SERVER_LISTENER_IP)
+	err = r.Run(Config.API_SERVER_LISTENER_IP)
+
+	if err != nil {
+		fmt.Println("ERROR: API server start failed:", err)
+	} else {
+		fmt.Println("OK: Started API server at", Config.API_SERVER_LISTENER_IP)
+	}
 }
