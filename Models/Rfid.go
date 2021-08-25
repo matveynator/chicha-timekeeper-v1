@@ -39,34 +39,34 @@ var rfidLapMinimalTime int
 var rfidTimeoutLocker sync.Mutex
 
 // Start antenna listener
-func StartAntennaListener(appAntennaListenerIp, rfidLapMinimalTimeString, lapsSaveIntervalString string, TIME_ZONE string, RACE_TIMEOUT_SEC int64) {
+func StartAntennaListener() {
 
 	if Config.PROXY_ACTIVE=="true" {
 		fmt.Println("Started tcp proxy restream to", Config.PROXY_HOST,"and port:",Config.PROXY_PORT )
 	}
 
 	// Start buffer synchro with database
-	go startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC)
+	go startSaveLapsBufferToDatabase()
 
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
 
 	// Prepare rfidLapMinimalTime
-	rfidTimeout, rfidTimeoutErr := strconv.Atoi(rfidLapMinimalTimeString)
+	rfidTimeout, rfidTimeoutErr := strconv.Atoi(Config.MINIMAL_LAP_TIME)
 	if rfidTimeoutErr != nil {
 		log.Panicln("Incorrect MINIMAL_LAP_TIME parameter in .env file")
 	}
 	rfidLapMinimalTime = int(rfidTimeout)
 
 	// Prepare lapsSaveInterval
-	lapsInterval, lapsIntervalErr := strconv.Atoi(lapsSaveIntervalString)
+	lapsInterval, lapsIntervalErr := strconv.Atoi(Config.LAPS_SAVE_INTERVAL)
 	if lapsIntervalErr != nil {
 		log.Panicln("Incorrect LAPS_SAVE_INTERVAL parameter in .env file")
 	}
 	lapsSaveInterval = int(lapsInterval)
 
 	// Start listener
-	l, err := net.Listen("tcp", appAntennaListenerIp)
+	l, err := net.Listen("tcp", Config.APP_ANTENNA_LISTENER_IP)
 	if err != nil {
 		log.Panicln("Can't start the antenna listener", err)
 	}
@@ -79,12 +79,12 @@ func StartAntennaListener(appAntennaListenerIp, rfidLapMinimalTimeString, lapsSa
 			log.Panicln(err)
 		}
 
-		go newAntennaConnection(conn, TIME_ZONE)
+		go newAntennaConnection(conn)
 	}
 }
 
 // Save laps buffer to database
-func startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC int64) {
+func startSaveLapsBufferToDatabase() {
 	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
 		lapsLocker.Lock()
 		var lapStruct Lap
@@ -94,7 +94,8 @@ func startSaveLapsBufferToDatabase(RACE_TIMEOUT_SEC int64) {
 			currentRaceID = 1
 		} else {
 			currentRaceID = lastRaceID
-			if (time.Now().UnixNano()/int64(time.Millisecond)-(RACE_TIMEOUT_SEC*1000) > lastLapTime.UnixNano()/int64(time.Millisecond)) {
+			minimalLapTime, _ := strconv.Atoi(Config.MINIMAL_LAP_TIME)
+			if (time.Now().UnixNano()/int64(time.Millisecond)-(int64(minimalLapTime)*1000) > lastLapTime.UnixNano()/int64(time.Millisecond)) {
 				//last lap data was created more than 300 seconds ago
 				//RaceID++ (create new race)
 				currentRaceID = (lastRaceID+1)
@@ -179,7 +180,7 @@ func setNewExpriredDataForRfidTag(tagID string) {
 }
 
 // New antenna connection (private func)
-func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
+func newAntennaConnection(conn net.Conn) {
 
 	defer conn.Close()
 
@@ -215,14 +216,14 @@ func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 				}
 
 				// Prepare date
-				fmt.Println(Config.TIME_ZONE)
+				fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
 				loc, loadLocErr := time.LoadLocation(Config.TIME_ZONE)
 				if loadLocErr != nil {
 					fmt.Println("time.LoadLocation(Config.TIME_ZONE) error:", loadLocErr)
 					continue
 				}
 
-				xmlTimeFormat := `2006/01/02 15:04:05.000`
+				xmlTimeFormat := "2006/01/02 15:04:05.000"
 				discoveryTime, parseTimeErr := time.ParseInLocation(xmlTimeFormat, strings.TrimSpace(CSV[1]), loc)
 				if parseTimeErr != nil {
 					fmt.Println("Recived incorrect time from RFID reader:", parseTimeErr)
@@ -238,7 +239,7 @@ func newAntennaConnection(conn net.Conn, TIME_ZONE string) {
 
 				// Prepare date
 				loc, _ := time.LoadLocation(Config.TIME_ZONE)
-				xmlTimeFormat := `2006/01/02 15:04:05.000`
+				xmlTimeFormat := "2006/01/02 15:04:05.000"
 				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryUnixTime, loc)
 
 
