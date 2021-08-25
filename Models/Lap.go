@@ -1,9 +1,19 @@
 package Models
 
 import ( 
-	//"fmt"
 	"time" 
+	"strconv"
+	"../Packages/Race"
 )
+
+// Get laps by race ID
+func GetAllLapsByRaceId(u *[]LapSmall, raceid_string string) (err error) {
+	ChichaRace.FetchData()
+	raceid_int, _ := strconv.Atoi (raceid_string)
+	result := DB.Select("race_id", "lap_number", "discovery_time", "tag_id").Where("race_id = ?" , raceid_int).Order("discovery_time asc").Find(u)
+	//result := DB.Where("race_id = ?" , raceid_int).Order("discovery_time asc").Find(u)
+	return result.Error
+}
 
 // Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {
@@ -23,7 +33,7 @@ func GetLastLap(u *Lap) (err error) {
 func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	if DB.Order("discovery_time desc").First(u).Error == nil {
 		lastLapRaceID = u.RaceID
-		lastLapTime = u.DiscoveryTimePrepared
+		lastLapTime = u.DiscoveryTime
 	}
 	return
 }
