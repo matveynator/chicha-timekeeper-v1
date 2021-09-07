@@ -31,6 +31,7 @@ do
 antenna=`shuf -i 1-4 -n 1`
 time=`date +"%Y/%m/%d %T.%3N"`
 sleep_time=`shuf -i 1-15 -n 1`
+
 cat > ${spool}  <<EOF
 <Alien-RFID-Tag>
   <TagID>1000 0802 0200 0001 0000 079${racer}</TagID>
@@ -42,12 +43,17 @@ cat > ${spool}  <<EOF
 </Alien-RFID-Tag>
 EOF
 
+echo
 cat ${spool}
 cat ${spool} | nc -q 0 ${host} ${port}
-read -p "Continuing in ${sleep_time} seconds...." -t ${sleep_time}
+
+
+[ "${racer}" != "${competitors}" ] && read -p "Next rider in ${sleep_time} seconds...." -t ${sleep_time}
 
 done
-sleep ${minimal_lap_time_sec}
+
+[ "${lap}" != "${laps}" ] && read -p  "Next lap in ${minimal_lap_time_sec} seconds..." -t ${minimal_lap_time_sec}
+
 done
 }
 
