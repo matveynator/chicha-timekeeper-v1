@@ -1,7 +1,6 @@
 package Models
 
 import ( 
-	"time" 
 	"strconv"
 	"../Packages/Race"
 )
@@ -30,7 +29,7 @@ func GetLastLap(u *Lap) (err error) {
 }
 
 // Return last known lap
-func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
+func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime int64) {
 	if DB.Order("discovery_time desc").First(u).Error == nil {
 		lastLapRaceID = u.RaceID
 		lastLapTime = u.DiscoveryTime
