@@ -1,16 +1,28 @@
 #!/bin/bash
-
-port=5000
+# configuration options:
+# tested under Linux and Mac OS X.
+# TagStreamCustomFormat (Custom): %k, ${MSEC1}, %a
+##################################################
+port=4000
 host=localhost
 competitors=3
 laps=2
-minimal_lap_time_sec=15
-xml=1
+minimal_lap_time_sec=15 
+xml=1   #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
+##################################################
 
 LANG=C
 cmdname=`basename $0`
 newtmpdir=`mktemp -d /tmp/${cmdname}.XXXXXX`
 spool="$newtmpdir/spool"
+os=`uname`
+if [ "${os}" == "Linux" ]
+then 
+	netcat_args="-q 0"
+elif [ "${os}" == "Darwin" ]
+then
+	netcat_args="-w 0"
+fi
 
 test
 function cleanup () {
@@ -29,10 +41,18 @@ echo "LAP #${lap}"
 
 for racer in `seq 1 ${competitors}`; 
 do
-antenna=`shuf -i 1-4 -n 1`
-time=`date +"%Y/%m/%d %T.%3N"`
-unixtime=`date +%s%3N`
-sleep_time=`shuf -i 1-15 -n 1`
+antenna=$((RANDOM % 4))
+sleep_time=$((RANDOM % 10))
+
+if [ "${os}" == "Linux" ]
+then
+	time=`date +"%Y/%m/%d %T.%3N"`
+	unixtime=`date +%s%3N`
+elif [ "${os}" == "Darwin" ]
+then
+	time=`date +"%Y/%m/%d %T.000"`
+        unixtime=`date +%s000`
+fi
 
 if [ "${xml}" == "1" ]
 then
@@ -54,7 +74,7 @@ fi
 
 [ "${racer}" != "1" ] && echo
 cat ${spool}
-cat ${spool} | nc -q 0 ${host} ${port}
+cat ${spool} | nc ${netcat_args} ${host} ${port}
 
 
 [ "${racer}" != "${competitors}" ] && read -p "Next rider in ${sleep_time} seconds...." -t ${sleep_time}
