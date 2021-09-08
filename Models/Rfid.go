@@ -95,7 +95,7 @@ func startSaveLapsBufferToDatabase() {
 		} else {
 			currentRaceID = lastRaceID
 			raceTimeOut, _ := strconv.Atoi(Config.RACE_TIMEOUT_SEC)
-			if (time.Now().UnixNano()/int64(time.Millisecond)-(int64(raceTimeOut)*1000) > lastLapTime/int64(time.Millisecond)) {
+			if (time.Now().UnixNano()/int64(time.Millisecond)-(int64(raceTimeOut)*1000) > lastLapTime.UnixNano()/int64(time.Millisecond)) {
 				//last lap data was created more than RACE_TIMEOUT_SEC seconds ago
 				//RaceID++ (create new race)
 				currentRaceID = (lastRaceID+1)
@@ -109,7 +109,6 @@ func startSaveLapsBufferToDatabase() {
 
 		// Save laps to database
 		for _,lap := range laps {
-
 			lastLapNumber := GetLastLapNumberFromRaceByTagID(lap.TagID, currentRaceID)
 			if lastLapNumber == 0 {
 				currentLapNumber = 1
@@ -118,7 +117,7 @@ func startSaveLapsBufferToDatabase() {
 			}
 			lap.LapNumber=currentLapNumber
 			lap.RaceID=currentRaceID
-			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryTime/int64(time.Millisecond), lap.Antenna)
+			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 			if err := AddNewLap(&lap); err != nil {
 				fmt.Println("Error. Lap not added to database")
 			}
@@ -180,7 +179,7 @@ func setNewExpriredDataForRfidTag(tagID string) {
 }
 
 //string to time.Unix milli
-func msToTime(ms string) (time.Time, error) {
+func stringToUnixTime(ms string) (time.Time, error) {
   msInt, err := strconv.ParseInt(ms, 10, 64)
   if err != nil {
     return time.Time{}, err
@@ -188,6 +187,10 @@ func msToTime(ms string) (time.Time, error) {
 
   return time.Unix(0, msInt*int64(time.Millisecond)), nil
 } 
+
+func IsValidXML(data []byte) bool {
+	return xml.Unmarshal(data, new(interface{})) == nil
+}
 
 // New antenna connection (private func)
 func newAntennaConnection(conn net.Conn) {
@@ -204,12 +207,9 @@ func newAntennaConnection(conn net.Conn) {
 		} else {
 			data := buf[:size]
 			var lap Lap
-			err := xml.Unmarshal(data, &lap)
-
 			// CSV data processing
-			//fmt.Printf("%v", data)
-			if err != nil {
-				fmt.Println("Received data is not XML, trying CSV text...", err)
+			if !IsValidXML(data) {
+				//fmt.Println("Received data is not XML, trying CSV text...")
 				//received data of type TEXT (parse TEXT).
 				r := csv.NewReader(bytes.NewReader(data))
 				r.Comma = ','
@@ -227,18 +227,8 @@ func newAntennaConnection(conn net.Conn) {
 					continue
 				}
 
-				discoveryTime, parseTimeErr := msToTime(strings.TrimSpace(CSV[1]))
-				
-				fmt.Println("CSV1=", strings.TrimSpace(CSV[1]), "discoveryTime=", discoveryTime);
-				if parseTimeErr != nil {
-				fmt.Println("Recived incorrect time from RFID reader:", parseTimeErr)
-					continue
-				}
-
-				lap.DiscoveryTimePrepared = discoveryTime
-				
-				//discoveryTime8, _ := strconv.Atoi(strings.TrimSpace(CSV[1]))
-				//lap.DiscoveryTimePrepared = int64(discoveryTime)
+				lap.DiscoveryUnixTime = strings.TrimSpace(CSV[1]) 
+				lap.DiscoveryTimePrepared, _ = stringToUnixTime(strings.TrimSpace(CSV[1]))
 				lap.TagID = strings.TrimSpace(CSV[0])
 				lap.Antenna = uint8(antennaPosition)
 
@@ -246,32 +236,36 @@ func newAntennaConnection(conn net.Conn) {
 			} else {
 				// XML data processing
 				// Prepare date
-				fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
+				//fmt.Println("Received data is valid XML")
+				err := xml.Unmarshal(data, &lap)
+				if err != nil {
+					fmt.Println("xml.Unmarshal ERROR:", err)
+					continue
+				}
+				//fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
 				loc, err := time.LoadLocation(Config.TIME_ZONE)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
 				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				xmlDiscoveryTime := string(lap.DiscoveryTime)
-				xmlTime, err := time.ParseInLocation(xmlTimeFormat, xmlDiscoveryTime, loc)
+				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryTime, loc)
 				if err != nil {
-					fmt.Println(err)
+					fmt.Println("time.ParseInLocation ERROR:", err)
 					continue
 				}
-				lap.DiscoveryTime = xmlTime.UnixNano()
-				fmt.Println(lap.DiscoveryTime)
+				lap.DiscoveryTimePrepared = discoveryTime
 			}
 
 			// Additional preparing for TagID
 			lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
 
 			//Debug all received data from RFID reader
-			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTime/int64(time.Millisecond), lap.Antenna)
+			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
 
 			if Config.PROXY_ACTIVE=="true" {
-				go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTime/int64(time.Millisecond), lap.Antenna )
+				go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna )
 			}
 			// Add current Lap to Laps buffer
 			go addNewLapToLapsBuffer(lap)
