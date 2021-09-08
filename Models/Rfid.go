@@ -179,6 +179,16 @@ func setNewExpriredDataForRfidTag(tagID string) {
 
 }
 
+//string to time.Unix milli
+func msToTime(ms string) (time.Time, error) {
+  msInt, err := strconv.ParseInt(ms, 10, 64)
+  if err != nil {
+    return time.Time{}, err
+  }
+
+  return time.Unix(0, msInt*int64(time.Millisecond)), nil
+} 
+
 // New antenna connection (private func)
 func newAntennaConnection(conn net.Conn) {
 
@@ -197,7 +207,7 @@ func newAntennaConnection(conn net.Conn) {
 			err := xml.Unmarshal(data, &lap)
 
 			// CSV data processing
-			fmt.Printf("%v", lap)
+			//fmt.Printf("%v", data)
 			if err != nil {
 				fmt.Println("Received data is not XML, trying CSV text...", err)
 				//received data of type TEXT (parse TEXT).
@@ -217,31 +227,24 @@ func newAntennaConnection(conn net.Conn) {
 					continue
 				}
 
-				// Prepare date
-				/*fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
-				loc, loadLocErr := time.LoadLocation(Config.TIME_ZONE)
-				if loadLocErr != nil {
-					fmt.Println("time.LoadLocation(Config.TIME_ZONE) error:", loadLocErr)
-					continue
-				}
-
-				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				/discoveryTime, parseTimeErr := time.ParseInLocation(xmlTimeFormat, strings.TrimSpace(CSV[1]), loc)
+				discoveryTime, parseTimeErr := msToTime(strings.TrimSpace(CSV[1]))
+				
+				fmt.Println("CSV1=", strings.TrimSpace(CSV[1]), "discoveryTime=", discoveryTime);
 				if parseTimeErr != nil {
-					fmt.Println("Recived incorrect time from RFID reader:", parseTimeErr)
+				fmt.Println("Recived incorrect time from RFID reader:", parseTimeErr)
 					continue
 				}
 
-				lap.DiscoveryTime = discoveryTime
-				*/
-				discoveryTime8, _ := strconv.Atoi(strings.TrimSpace(CSV[1]))
-				lap.DiscoveryTime = int64(discoveryTime8)
+				lap.DiscoveryTimePrepared = discoveryTime
+				
+				//discoveryTime8, _ := strconv.Atoi(strings.TrimSpace(CSV[1]))
+				//lap.DiscoveryTimePrepared = int64(discoveryTime)
 				lap.TagID = strings.TrimSpace(CSV[0])
 				lap.Antenna = uint8(antennaPosition)
 
 				// XML data processing
 			} else {
-
+				// XML data processing
 				// Prepare date
 				fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
 				loc, err := time.LoadLocation(Config.TIME_ZONE)
