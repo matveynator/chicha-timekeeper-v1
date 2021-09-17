@@ -25,7 +25,7 @@ type Lap struct {
 	ID             		uint `gorm:"primaryKey" json:"id"`
 	OwnerID    		uint `gorm:"primaryKey" json:"owner_id"`
 	TagID          		string `gorm:"char(80);index" json:"tag_id" xml:"TagID"`
-	DiscoveryUnixTime  	string `gorm:"char(80);index" json:"discovery_unix_time"`
+	DiscoveryUnixTime  	int64 `gorm:"char(80);index" json:"discovery_unix_time"`
 	DiscoveryTime  		string `json:"-" xml:"DiscoveryTime"`
 	DiscoveryTimePrepared 	time.Time `json:"discovery_time"`
 	Antenna        		uint8 `gorm:"index" json:"antenna" xml:"Antenna"`
@@ -33,10 +33,12 @@ type Lap struct {
 	CreatedAt      		time.Time `json:"created_at"`
 	RaceID         		uint `gorm:"index" json:"race_id"`
 	CurrentRacePosition   	uint `gorm:"index" json:"current_race_postition"`
-	TimeBehindTheLeader 	string `gorm:"index" json:"time_behind_the_leader"`
+	TimeBehindTheLeader 	int64 `gorm:"index" json:"time_behind_the_leader"`
 	LapNumber      		uint `gorm:"index" json:"lap_number"`
-	LapTime        		string `gorm:"index" json:"lap_time"`
+	LapTime        		int64 `gorm:"index" json:"lap_time"`
 	LapPosition    		uint `gorm:"index" json:"lap_postition"`
+	RaceTotalTime           int64 `gorm:"index" json:"race_total_time"`
+	BetterOrWorseLapTime	int64 `gorm:"index" json:"better_or_worse_lap_time"`
 }
 
 // Laps time labels

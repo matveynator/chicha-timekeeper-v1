@@ -88,38 +88,43 @@ func startSaveLapsBufferToDatabase() {
 	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
 		lapsLocker.Lock()
 		var lapStruct Lap
-		var currentRaceID, currentLapNumber uint
+		var currentlapRaceID, currentlapLapNumber uint
 		lastRaceID, lastLapTime := GetLastRaceIDandTime(&lapStruct)
 		if lastRaceID == 0 {
-			currentRaceID = 1
+			currentlapRaceID = 1
 		} else {
-			currentRaceID = lastRaceID
+			currentlapRaceID = lastRaceID
 			raceTimeOut, _ := strconv.Atoi(Config.RACE_TIMEOUT_SEC)
 			if (time.Now().UnixNano()/int64(time.Millisecond)-(int64(raceTimeOut)*1000) > lastLapTime.UnixNano()/int64(time.Millisecond)) {
 				//last lap data was created more than RACE_TIMEOUT_SEC seconds ago
 				//RaceID++ (create new race)
-				currentRaceID = (lastRaceID+1)
+				currentlapRaceID = (lastRaceID+1)
 
 			} else {
 				//last lap data was created less than RACE_TIMEOUT_SEC seconds ago
-				currentRaceID = lastRaceID
+				currentlapRaceID = lastRaceID
 			}
 		}
 
 
 		// Save laps to database
 		for _,lap := range laps {
-			lastLapNumber := GetLastLapNumberFromRaceByTagID(lap.TagID, currentRaceID)
-			if lastLapNumber == 0 {
-				currentLapNumber = 1
+			lastlapLapNumber, lastlapLapTime, lastlapDiscoveryUnixTime, lastlapRaceTotalTime := GetLastLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
+			if lastlapLapNumber == 0 {
+				currentlapLapNumber = 1
 			} else {
-				currentLapNumber = lastLapNumber+1
+				currentlapLapNumber = lastlapLapNumber+1
 			}
-			lap.LapNumber=currentLapNumber
-			lap.RaceID=currentRaceID
-			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+			lap.LapNumber=currentlapLapNumber
+			lap.RaceID=currentlapRaceID
+			lap.DiscoveryUnixTime=lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond);
+			lap.LapTime = (lap.DiscoveryUnixTime-lastlapDiscoveryUnixTime)
+			lap.RaceTotalTime = (lastlapRaceTotalTime+lap.LapTime)
+			lap.BetterOrWorseLapTime = (lastlapLapTime-lap.LapTime)
+
+			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryUnixTime, lap.Antenna)
 			if err := AddNewLap(&lap); err != nil {
-				fmt.Println("Error. Lap not added to database")
+				fmt.Println("Error. Lap not added to database", err)
 			}
 		}
 
@@ -179,13 +184,13 @@ func setNewExpriredDataForRfidTag(tagID string) {
 }
 
 //string to time.Unix milli
-func stringToUnixTime(ms string) (time.Time, error) {
-  msInt, err := strconv.ParseInt(ms, 10, 64)
-  if err != nil {
-    return time.Time{}, err
-  }
+func timeFromUnixMillis(ms string) (time.Time, error) {
+	msInt, err := strconv.ParseInt(ms, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
 
-  return time.Unix(0, msInt*int64(time.Millisecond)), nil
+	return time.Unix(0, msInt*int64(time.Millisecond)), nil
 } 
 
 func IsValidXML(data []byte) bool {
@@ -221,14 +226,18 @@ func newAntennaConnection(conn net.Conn) {
 				}
 
 				// Prepare antenna position
-				antennaPosition, antennaErr := strconv.Atoi(strings.TrimSpace(CSV[2]))
-				if antennaErr != nil {
-					fmt.Println("Recived incorrect Antenna position value:", antennaErr)
+				antennaPosition, err := strconv.Atoi(strings.TrimSpace(CSV[2]))
+				if err != nil {
+					fmt.Println("Recived incorrect Antenna position CSV value:", err)
 					continue
 				}
-
-				lap.DiscoveryUnixTime = strings.TrimSpace(CSV[1]) 
-				lap.DiscoveryTimePrepared, _ = stringToUnixTime(strings.TrimSpace(CSV[1]))
+				_, err =  strconv.Atoi(strings.TrimSpace(CSV[1]))
+				if err != nil {
+					fmt.Println("Recived incorrect discovery unix time CSV value:", err)
+					continue
+				} else {
+					lap.DiscoveryTimePrepared, _ = timeFromUnixMillis(strings.TrimSpace(CSV[1]))
+				}
 				lap.TagID = strings.TrimSpace(CSV[0])
 				lap.Antenna = uint8(antennaPosition)
 
@@ -255,10 +264,9 @@ func newAntennaConnection(conn net.Conn) {
 					continue
 				}
 				lap.DiscoveryTimePrepared = discoveryTime
+				// Additional preparing for TagID
+				lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
 			}
-
-			// Additional preparing for TagID
-			lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
 
 			//Debug all received data from RFID reader
 			fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
