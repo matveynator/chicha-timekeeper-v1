@@ -1,4 +1,6 @@
-# CHICHA : Open RFID sport timing. 
+# CHICHA : Free timekeeper and chronograf software. 
+
+UFH-RFID compatible. 
 
 <img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
