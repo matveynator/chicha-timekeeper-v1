@@ -28,11 +28,10 @@ for os in darwin;
 do
   for arch in "amd64" 
   do
-    mkdir -p ../downloads/mac/${arch}/${version}
-    mkdir -p ../downloads/mac/${arch}/${version}
-    echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/mac/${arch}/${version}/chicha ../chicha.go"
-    GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/mac/${arch}/${version}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/mac/${arch}/${version}/.env.DEFAULT
+    mkdir -p ../downloads/${version}/mac/${arch}
+    echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/mac/${arch}/chicha ../chicha.go"
+    GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/mac/${arch}/chicha ../chicha.go
+    cat ../.env.DEFAULT > ../downloads/${version}/mac/${arch}/.env.DEFAULT
   done
 done
 
