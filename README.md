@@ -7,6 +7,7 @@ UFH-RFID compatible.
 Cистема хронометража для любого трека на базе RFID 905-912 MHZ.
 пока что в процессе разработки.
 
+[Скачать последнюю версию CHICHA!](https://github.com/matveynator/chicha/tree/main/downloads)
 
 ## поддерживаемые считыватели: 
 
