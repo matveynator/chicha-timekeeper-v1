@@ -5,10 +5,10 @@ for os in linux freebsd netbsd openbsd;
 do
   for arch in "amd64" "386" "arm" "arm64" 
   do
-    mkdir -p ../downloads/${os}/${arch}/${version}
-    echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${os}/${arch}/${version}/chicha ../chicha.go"
-    GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${os}/${arch}/${version}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${os}/${arch}/${version}/.env.DEFAULT
+    mkdir -p ../downloads/${version}/${os}/${arch}
+    echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
+    GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
+    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
   done
 done
 
@@ -16,10 +16,10 @@ for os in plan9;
 do
   for arch in "amd64" "386" "arm"
   do
-    mkdir -p ../downloads/${os}/${arch}/${version}
-    echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${os}/${arch}/${version}/chicha ../chicha.go"
-    GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${os}/${arch}/${version}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${os}/${arch}/${version}/.env.DEFAULT
+    mkdir -p ../downloads/${version}/${os}/${arch}
+    echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
+    GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
+    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
   done
 done
 
@@ -41,10 +41,10 @@ for os in dragonfly;
 do
   for arch in "amd64"
   do
-    mkdir -p ../downloads/${os}/${arch}/${version}
-    echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${os}/${arch}/${version}/chicha ../chicha.go"
-    GOOS=${os} GOARCH=${arch} go build -o ../downloads/${os}/${arch}/${version}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${os}/${arch}/${version}/.env.DEFAULT
+    mkdir -p ../downloads/${version}/${os}/${arch}
+    echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
+    GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
+    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
   done
 done
 
@@ -53,11 +53,10 @@ for os in windows;
 do
   for arch in "amd64" "386"
   do
-    mkdir -p ../downloads/${os}/${arch}/${version}
-    echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${os}/${arch}/${version}/chicha.exe ../chicha.go"
-    GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${os}/${arch}/${version}/chicha.exe ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${os}/${arch}/${version}/.env.DEFAULT
+    mkdir -p ../downloads/${version}/${os}/${arch}
+    echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/${os}/${arch}/chicha.exe ../chicha.go"
+    GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/${os}/${arch}/chicha.exe ../chicha.go
+    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
   done
 done
 
-#rsync -avP --delete ../downloads root@matveynator.ru:/home/chicha/public_html/
