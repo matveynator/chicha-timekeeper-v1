@@ -10,7 +10,7 @@ import (
 func GetAllLapsByRaceId(u *[]LapSmall, raceid_string string) (err error) {
 	ChichaRace.FetchData()
 	raceid_int, _ := strconv.Atoi (raceid_string)
-	result := DB.Select("race_id", "lap_number", "discovery_time", "tag_id").Where("race_id = ?" , raceid_int).Order("discovery_time asc").Find(u)
+	result := DB.Select("race_id", "lap_number", "discovery_time", "tag_id").Where("race_id = ?" , raceid_int).Order("discovery_unix_time asc").Find(u)
 	//result := DB.Where("race_id = ?" , raceid_int).Order("discovery_time asc").Find(u)
 	return result.Error
 }
@@ -40,7 +40,7 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 
 func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (lastlapLapNumber uint, lastlapLapTime, lastlapDiscoveryUnixTime, lastlapRaceTotalTime int64) {
 	var lapStructCopy Lap
-	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_time desc").First(&lapStructCopy).Error == nil {
+	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
 		lastlapLapNumber = lapStructCopy.LapNumber
 		lastlapLapTime = lapStructCopy.LapTime
 		lastlapDiscoveryUnixTime = lapStructCopy.DiscoveryUnixTime
@@ -56,14 +56,14 @@ func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (lastlapLapNumber 
 }
 
 func GetMyLastLapDataFromCurrentRace(u *Lap)  (err error) {
-	result := DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_time desc").First(u)
+	result := DB.Where("tag_id = ? AND race_id = ?", u.TagID, u.RaceID).Order("discovery_unix_time desc").First(u)
 	return result.Error
 }
 
 
 // Get laps by tag ID
 func GetAllLapsByTagId(u *[]Lap, tag_id string) (err error) {
-	result := DB.Where("tag_id = ?" , tag_id).Order("discovery_time desc").Find(u)
+	result := DB.Where("tag_id = ?" , tag_id).Order("discovery_unix_time desc").Find(u)
 	return result.Error
 }
 

@@ -113,14 +113,23 @@ func startSaveLapsBufferToDatabase() {
 			if lastlapLapNumber == 0 {
 				currentlapLapNumber = 1
 			} else {
-				currentlapLapNumber = lastlapLapNumber+1
+				currentlapLapNumber = lastlapLapNumber + 1
 			}
-			lap.LapNumber=currentlapLapNumber
-			lap.RaceID=currentlapRaceID
-			lap.DiscoveryUnixTime=lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond);
-			lap.LapTime = (lap.DiscoveryUnixTime-lastlapDiscoveryUnixTime)
-			lap.RaceTotalTime = (lastlapRaceTotalTime+lap.LapTime)
-			lap.BetterOrWorseLapTime = (lastlapLapTime-lap.LapTime)
+			lap.LapNumber = currentlapLapNumber
+			lap.RaceID = currentlapRaceID
+			lap.DiscoveryUnixTime = lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond);
+			if lastlapDiscoveryUnixTime == 0 {
+				lap.LapTime = 0
+			} else {
+				lap.LapTime = lap.DiscoveryUnixTime - lastlapDiscoveryUnixTime
+			}
+			lap.RaceTotalTime = lastlapRaceTotalTime + lap.LapTime
+			
+			if lastlapDiscoveryUnixTime == 0 {
+				lap.BetterOrWorseLapTime = 0
+			} else {
+				lap.BetterOrWorseLapTime = lastlapLapTime-lap.LapTime
+			}
 
 			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryUnixTime, lap.Antenna)
 			if err := AddNewLap(&lap); err != nil {
