@@ -18,20 +18,20 @@ func GetAllLapsByRaceId(u *[]LapSmall, raceid_string string) (err error) {
 // Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {
 
-	result := DB.Order("discovery_time desc").Find(u)
+	result := DB.Order("discovery_unix_time desc").Find(u)
 	return result.Error
 }
 
 // Return all laps in system order by date
 func GetLastLap(u *Lap) (err error) {
 
-	result := DB.Order("discovery_time desc").First(u)
+	result := DB.Order("discovery_unix_time desc").First(u)
 	return result.Error
 }
 
 // Return last known lap
 func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
-	if DB.Order("discovery_time desc").First(u).Error == nil {
+	if DB.Order("discovery_unix_time desc").First(u).Error == nil {
 		lastLapRaceID = u.RaceID
 		lastLapTime = u.DiscoveryTimePrepared
 	}

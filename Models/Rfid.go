@@ -93,12 +93,11 @@ func startSaveLapsBufferToDatabase() {
 		if lastRaceID == 0 {
 			currentlapRaceID = 1
 		} else {
-			currentlapRaceID = lastRaceID
 			raceTimeOut, _ := strconv.Atoi(Config.RACE_TIMEOUT_SEC)
 			if (time.Now().UnixNano()/int64(time.Millisecond)-(int64(raceTimeOut)*1000) > lastLapTime.UnixNano()/int64(time.Millisecond)) {
 				//last lap data was created more than RACE_TIMEOUT_SEC seconds ago
 				//RaceID++ (create new race)
-				currentlapRaceID = (lastRaceID+1)
+				currentlapRaceID = lastRaceID + 1
 
 			} else {
 				//last lap data was created less than RACE_TIMEOUT_SEC seconds ago
