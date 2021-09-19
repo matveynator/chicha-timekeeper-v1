@@ -3,17 +3,15 @@ package Models
 import ( 
 	"strconv"
 	"time"
-	"../Packages/Race"
 )
 
 // Get laps by race ID
-func GetAllLapsByRaceId(u *[]LapSmall, raceid_string string) (err error) {
-	ChichaRace.FetchData()
-	raceid_int, _ := strconv.Atoi (raceid_string)
-	result := DB.Select("race_id", "lap_number", "discovery_time", "tag_id").Where("race_id = ?" , raceid_int).Order("discovery_unix_time asc").Find(u)
-	//result := DB.Where("race_id = ?" , raceid_int).Order("discovery_time asc").Find(u)
+func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
+	race_id_int, _ := strconv.Atoi (race_id_string)
+	result := DB.Where("race_id = ?" , race_id_int).Order("lap_number desc").Order("race_total_time asc").Find(u)
 	return result.Error
 }
+
 
 // Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {
