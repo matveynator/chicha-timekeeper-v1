@@ -108,26 +108,31 @@ func startSaveLapsBufferToDatabase() {
 
 		// Save laps to database
 		for _,lap := range laps {
-			lastlapLapNumber, lastlapLapTime, lastlapDiscoveryUnixTime, lastlapRaceTotalTime := GetLastLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
-			if lastlapLapNumber == 0 {
+			previousLapID, previousLapNumber, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime := GetLastLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
+			if previousLapID != 0 {
+				//set lap.CurrentLap = 0 for previous lap
+				//set previos lap "non current"
+				fmt.Println("set previos lap non current");
+			}
+			if previousLapNumber == 0 {
 				currentlapLapNumber = 1
 			} else {
-				currentlapLapNumber = lastlapLapNumber + 1
+				currentlapLapNumber = previousLapNumber + 1
 			}
 			lap.LapNumber = currentlapLapNumber
 			lap.RaceID = currentlapRaceID
 			lap.DiscoveryUnixTime = lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond);
-			if lastlapDiscoveryUnixTime == 0 {
+			if previousDiscoveryUnixTime == 0 {
 				lap.LapTime = 0
 			} else {
-				lap.LapTime = lap.DiscoveryUnixTime - lastlapDiscoveryUnixTime
+				lap.LapTime = lap.DiscoveryUnixTime - previousDiscoveryUnixTime
 			}
-			lap.RaceTotalTime = lastlapRaceTotalTime + lap.LapTime
+			lap.RaceTotalTime = previousRaceTotalTime + lap.LapTime
 			
-			if lastlapDiscoveryUnixTime == 0 {
+			if previousDiscoveryUnixTime == 0 {
 				lap.BetterOrWorseLapTime = 0
 			} else {
-				lap.BetterOrWorseLapTime = lastlapLapTime-lap.LapTime
+				lap.BetterOrWorseLapTime = previousLapTime-lap.LapTime
 			}
 
 			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryUnixTime, lap.Antenna)
