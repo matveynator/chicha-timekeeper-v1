@@ -11,7 +11,7 @@ import(
 
 // Return list of all laps
 func GetLapsByRaceId(c *gin.Context) {
-        var laps []LapSmall
+        var laps []Lap
         race_id := c.Params.ByName("id")
         err := GetAllLapsByRaceId(&laps, race_id)
 	fmt.Println(err)
