@@ -16,7 +16,7 @@ func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
 // Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {
 
-	result := DB.Order("discovery_unix_time desc").Find(u)
+	result := DB.Order("race_id desc").Order("lap_number desc").Order("race_total_time asc").Find(u)
 	return result.Error
 }
 
