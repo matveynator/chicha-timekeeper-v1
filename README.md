@@ -1,4 +1,4 @@
-# Chicha timekeeper. 
+# Chicha timekeeper watchdog. 
 
 Free chronograf for motorcycle, cars, bycicle and other types of competitions. UHF-RFID compatible. 
 
