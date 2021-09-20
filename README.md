@@ -1,6 +1,6 @@
-# CHICHA : Free timekeeper and chronograf software. 
+# Chicha timekeeper. 
 
-UFH-RFID compatible. For motorcycle, cars, bycicle and other types of competitions.
+Free chronograf for motorcycle, cars, bycicle and other types of competitions. UHF-RFID compatible. 
 
 <img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
@@ -20,3 +20,5 @@ Alien ALR-F800;
 ```
 mt-263005/n (вытравливается на обычной печатной плате).
 ```
+
+Developed in collaboration with [Naikom Extreme Motocross](http://naikomextreme.ru) - one of the best MX tracks in Russia! 
