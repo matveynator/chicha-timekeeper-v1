@@ -36,7 +36,7 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	return
 }
 
-func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapID, previousLapNumber uint, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
+func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapID uint, previousLapNumber int, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
 	var lapStructCopy Lap
 	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
 		previousLapID = lapStructCopy.ID
@@ -47,7 +47,7 @@ func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapID, pr
 
 	} else {
 		previousLapID = 0
-		previousLapNumber = 0
+		previousLapNumber = -1
                 previousLapTime = 0
                 previousDiscoveryUnixTime = 0
                 previousRaceTotalTime = 0
