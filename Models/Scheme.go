@@ -34,7 +34,7 @@ type Lap struct {
 	RaceID         		uint `gorm:"index" json:"race_id"`
 	CurrentRacePosition   	uint `gorm:"index" json:"current_race_postition"`
 	TimeBehindTheLeader 	int64 `gorm:"index" json:"time_behind_the_leader"`
-	LapNumber      		uint `gorm:"index" json:"lap_number"`
+	LapNumber      		int `gorm:"index" json:"lap_number"`
 	LapTime        		int64 `gorm:"index" json:"lap_time"`
 	LapPosition    		uint `gorm:"index" json:"lap_postition"`
 	RaceTotalTime           int64 `gorm:"index" json:"race_total_time"`

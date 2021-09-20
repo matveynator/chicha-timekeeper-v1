@@ -88,7 +88,8 @@ func startSaveLapsBufferToDatabase() {
 	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
 		lapsLocker.Lock()
 		var lapStruct Lap
-		var currentlapRaceID, currentlapLapNumber uint
+		var currentlapRaceID uint 
+		var currentlapLapNumber int
 		lastRaceID, lastLapTime := GetLastRaceIDandTime(&lapStruct)
 		if lastRaceID == 0 {
 			currentlapRaceID = 1
@@ -114,8 +115,8 @@ func startSaveLapsBufferToDatabase() {
 				//set previos lap "non current"
 				fmt.Println("set previos lap non current");
 			}
-			if previousLapNumber == 0 {
-				currentlapLapNumber = 1
+			if previousLapNumber == -1 {
+				currentlapLapNumber = 0
 			} else {
 				currentlapLapNumber = previousLapNumber + 1
 			}
