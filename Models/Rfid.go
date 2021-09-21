@@ -109,17 +109,20 @@ func startSaveLapsBufferToDatabase() {
 
 		// Save laps to database
 		for _,lap := range laps {
-			previousLapID, previousLapNumber, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime := GetLastLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
-			if previousLapID != 0 {
-				//set lap.CurrentLap = 0 for previous lap
+			previousLapNumber, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime := GetLastLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
+			if previousLapNumber != -1 {
+				//set lap.LapIsCurrent = 0 for previous lap
 				//set previos lap "non current"
-				fmt.Println("set previos lap non current");
+				fmt.Println("Expireing my previos lap...")
+				ExpireMyPreviousLap(lap.TagID, currentlapRaceID)
 			}
 			if previousLapNumber == -1 {
 				currentlapLapNumber = 0
 			} else {
 				currentlapLapNumber = previousLapNumber + 1
 			}
+			//set this lap actual (current)
+			lap.LapIsCurrent = 1
 			lap.LapNumber = currentlapLapNumber
 			lap.RaceID = currentlapRaceID
 			lap.DiscoveryUnixTime = lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond);
