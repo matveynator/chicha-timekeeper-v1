@@ -5,9 +5,9 @@
 ##################################################
 port=4000
 host=localhost
-competitors=3
-laps=2
-minimal_lap_time_sec=15 
+competitors=10
+laps=10
+minimal_lap_time_sec=60
 xml=0   #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
 ##################################################
 
@@ -67,9 +67,7 @@ cat > ${spool}  <<EOF
 </Alien-RFID-Tag>
 EOF
 else
-cat > ${spool}  <<EOF
-10000802020000010000079${racer}, ${unixtime}, ${antenna}
-EOF
+echo "10000802020000010000079${racer}, ${unixtime}, ${antenna}" > ${spool}
 fi
 
 [ "${racer}" != "1" ] && echo

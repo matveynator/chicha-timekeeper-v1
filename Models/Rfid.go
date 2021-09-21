@@ -18,6 +18,7 @@ import (
 	"log"
 	"net"
 	"fmt"
+	"io"
 )
 
 // Buffer for new RFID requests
@@ -76,7 +77,9 @@ func StartAntennaListener() {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			log.Panicln(err)
+			if err != io.EOF {
+				log.Panicln("tcp connection error:", err)
+			}
 		}
 
 		go newAntennaConnection(conn)
@@ -113,7 +116,6 @@ func startSaveLapsBufferToDatabase() {
 			if previousLapNumber != -1 {
 				//set lap.LapIsCurrent = 0 for previous lap
 				//set previos lap "non current"
-				fmt.Println("Expireing my previos lap...")
 				ExpireMyPreviousLap(lap.TagID, currentlapRaceID)
 			}
 			if previousLapNumber == -1 {
@@ -222,9 +224,11 @@ func newAntennaConnection(conn net.Conn) {
 	// Read connection in lap
 	for {
 		buf := make([]byte, 8192)
-		size, bufferr := conn.Read(buf)
-		if bufferr != nil {
-			fmt.Println(bufferr)
+		size, err := conn.Read(buf)
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println("conn.Read error:", err)
+			}
 			continue
 		} else {
 			data := buf[:size]
