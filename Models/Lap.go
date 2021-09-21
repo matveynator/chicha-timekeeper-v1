@@ -13,6 +13,13 @@ func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
 	return result.Error
 }
 
+// Get results by race ID
+func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
+        race_id_int, _ := strconv.Atoi (race_id_string)
+        result := DB.Where("race_id = ?" , race_id_int).Where("lap_is_current = ?" , 1).Order("lap_number desc").Order("race_total_time asc").Find(u)
+        return result.Error
+}
+
 
 // Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {

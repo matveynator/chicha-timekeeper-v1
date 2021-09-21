@@ -19,12 +19,19 @@ func GetLapsByRaceId(c *gin.Context) {
 		c.JSON(404, err)
                 return
         }
+        c.JSON(200, laps)
+}
 
-	//for _, lap := range laps {
-    	//	// element is the element from someSlice for where we are
-	//	fmt.Printf("%d, %d, %s, %s \n", lap.RaceID, lap.LapNumber, lap.DiscoveryTime, lap.TagID)
-	//fmt.Printf("%#v", lap)
-    	//}
+// Return list of all laps
+func GetResultsByRaceId(c *gin.Context) {
+        var laps []Lap
+        race_id := c.Params.ByName("id")
+        err := GetAllResultsByRaceId(&laps, race_id)
+        fmt.Println(err)
+        if err != nil {
+                c.JSON(404, err)
+                return
+        }
         c.JSON(200, laps)
 }
 
