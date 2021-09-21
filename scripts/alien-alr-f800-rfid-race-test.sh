@@ -8,7 +8,7 @@ host=localhost
 competitors=10
 laps=10
 minimal_lap_time_sec=60
-xml=0   #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
+xml=1   #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
 ##################################################
 
 LANG=C

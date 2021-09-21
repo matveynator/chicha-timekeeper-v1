@@ -223,7 +223,7 @@ func newAntennaConnection(conn net.Conn) {
 
 	// Read connection in lap
 	for {
-		buf := make([]byte, 8192)
+		buf := make([]byte, 1024)
 		size, err := conn.Read(buf)
 		if err != nil {
 			if err != io.EOF {
