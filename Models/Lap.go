@@ -3,6 +3,7 @@ package Models
 import ( 
 	"strconv"
 	"time"
+	"fmt"
 )
 
 // Get laps by race ID
@@ -36,23 +37,31 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	return
 }
 
-func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapID uint, previousLapNumber int, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
+func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapNumber int, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
 	var lapStructCopy Lap
 	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
-		previousLapID = lapStructCopy.ID
 		previousLapNumber = lapStructCopy.LapNumber
 		previousLapTime = lapStructCopy.LapTime
 		previousDiscoveryUnixTime = lapStructCopy.DiscoveryUnixTime
 		previousRaceTotalTime = lapStructCopy.RaceTotalTime
 
 	} else {
-		previousLapID = 0
 		previousLapNumber = -1
                 previousLapTime = 0
                 previousDiscoveryUnixTime = 0
                 previousRaceTotalTime = 0
 	}
 	return
+}
+
+func ExpireMyPreviousLap(tagID string, raceID uint) {
+	var lapStructCopy Lap
+	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
+		//previos lap found - update lapStructCopy.LapIsCurrent = 0
+		if DB.Model(&lapStructCopy).UpdateColumn("LapIsCurrent", 0).Error != nil {
+			fmt.Println("Previous lap found but update LapIsCurrent = 0 failed")
+		}
+	}
 }
 
 func GetMyLastLapDataFromCurrentRace(u *Lap)  (err error) {
