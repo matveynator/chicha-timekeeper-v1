@@ -1,8 +1,5 @@
 package main
 /*
-NAIKOM arena timing - free to use by general public.
-based on Alien F800 RFID 912 MHZ.
-
 Work in progress.
 */
 
@@ -14,10 +11,16 @@ import (
 	"github.com/sethvargo/go-password/password" //password generator
 	"./Models" // Our package with database models
 	"fmt"
+
+	//profiling CPU:
+	//"github.com/pkg/profile"
 )
 
 
 func main() {
+	//profiling CPU: https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz
+	//defer profile.Start(profile.ProfilePath(".")).Stop()
+
 
 	//Database section
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Moscow", Config.DB_HOST, Config.DB_USER, Config.DB_PASSWORD, Config.DB_NAME, Config.DB_PORT)
