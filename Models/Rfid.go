@@ -229,7 +229,10 @@ func newAntennaConnection(conn net.Conn) {
 			if err != io.EOF {
 				fmt.Println("conn.Read error:", err)
 			}
-			continue
+			//if err == io.EOF {
+			//	fmt.Println("Message EOF detected - closing LAN connection.")
+			//}
+			break
 		} else {
 			data := buf[:size]
 			var lap Lap
