@@ -128,8 +128,19 @@ func startSaveLapsBufferToDatabase() {
 			lap.LapNumber = currentlapLapNumber
 			lap.RaceID = currentlapRaceID
 			lap.DiscoveryUnixTime = lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond);
-			if previousDiscoveryUnixTime == 0 {
-				lap.LapTime = 0
+			if previousLapNumber == -1 {
+				//if this is first lap results:
+				//#7 issue - first lap time
+				leaderFirstLapDiscoveryUnixTime := GetLeaderFirstLapDiscoveryUnixTime(currentlapRaceID)
+				if (leaderFirstLapDiscoveryUnixTime == 0) {
+					//you are the leader set LapTime=0;
+					lap.LapTime = 0
+					lap.LapPosition = 1
+				} else {
+					//you are not the leader of the first lap
+					//calculate against the leader
+					lap.LapTime = lap.DiscoveryUnixTime - leaderFirstLapDiscoveryUnixTime
+				}
 			} else {
 				lap.LapTime = lap.DiscoveryUnixTime - previousDiscoveryUnixTime
 			}
@@ -227,12 +238,13 @@ func newAntennaConnection(conn net.Conn) {
 		size, err := conn.Read(buf)
 		if err != nil {
 			if err != io.EOF {
-				fmt.Println("conn.Read error:", err)
+				fmt.Println("conn.Read(buf) error:", err)
+				continue
 			}
-			//if err == io.EOF {
-			//	fmt.Println("Message EOF detected - closing LAN connection.")
-			//}
-			break
+			if err == io.EOF {
+				//fmt.Println("Message EOF detected - closing LAN connection.")
+				break
+			}
 		} else {
 			data := buf[:size]
 			var lap Lap

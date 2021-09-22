@@ -20,6 +20,27 @@ func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
         return result.Error
 }
 
+// Return LeaderFirstLapDiscoveryUnixTime
+func GetLeaderFirstLapDiscoveryUnixTime(race_id_uint uint) (leaderFirstLapDiscoveryUnixTime int64) {
+	var u Lap
+	race_id_int := int(race_id_uint)
+	result := DB.Table("laps").Where("race_id = ?" , race_id_int).Where("lap_number = ?" , 0).Where("lap_time = ?" , 0).First(&u)
+	if result.Error != nil  {
+		//fmt.Println("Error: GetLeaderFirstLapDiscoveryUnixTime", result.Error)
+		leaderFirstLapDiscoveryUnixTime = 0
+	} else {
+		//fmt.Println("leaderFirstLapDiscoveryUnixTime =", u.DiscoveryUnixTime)	
+		leaderFirstLapDiscoveryUnixTime =  u.DiscoveryUnixTime
+	}
+	return leaderFirstLapDiscoveryUnixTime 
+}
+
+
+
+
+
+
+
 
 // Return all laps in system order by date
 func GetAllLaps(u *[]Lap) (err error) {
