@@ -14,7 +14,6 @@ func GetLapsByRaceId(c *gin.Context) {
         var laps []Lap
         race_id := c.Params.ByName("id")
         err := GetAllLapsByRaceId(&laps, race_id)
-	fmt.Println(err)
         if err != nil {
 		c.JSON(404, err)
                 return
@@ -27,7 +26,6 @@ func GetResultsByRaceId(c *gin.Context) {
         var laps []Lap
         race_id := c.Params.ByName("id")
         err := GetAllResultsByRaceId(&laps, race_id)
-        fmt.Println(err)
         if err != nil {
                 c.JSON(404, err)
                 return
@@ -38,40 +36,32 @@ func GetResultsByRaceId(c *gin.Context) {
 // Return list of all laps
 func GetListLaps(c *gin.Context) {
 	var laps []Lap
-
 	err := GetAllLaps(&laps)
 	if err != nil {
 		c.JSON(404, nil)
 		return
 	}
-
 	c.JSON(200, laps)
 }
 
 // Return list current raceid
 func GetLastLapData(c *gin.Context) {
 	var laps Lap
-
 	err := GetLastLap(&laps)
 	if err != nil {
 		c.JSON(404, nil)
 		return
 	}
-
 	c.JSON(200, laps)
 }
 
 func GetLap(c *gin.Context) {
-
 	var lap Lap
 	id := c.Params.ByName("id")
-
 	if err := GetOneLap(&lap, id); err != nil {
 		c.JSON(404, nil)
 		return
 	}
-
-
 	c.JSON(200, lap)
 }
 
@@ -79,13 +69,11 @@ func GetLap(c *gin.Context) {
 func GetLapsByTagId(c *gin.Context) {
 	var laps []Lap
 	id := c.Params.ByName("id")
-
 	err := GetAllLapsByTagId(&laps, id)
 	if err != nil {
 		c.JSON(404, nil)
 		return
 	}
-
 	c.JSON(200, laps)
 }
 
