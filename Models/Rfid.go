@@ -140,9 +140,11 @@ func startSaveLapsBufferToDatabase() {
 					//you are not the leader of the first lap
 					//calculate against the leader
 					lap.LapTime = lap.DiscoveryUnixTime - leaderFirstLapDiscoveryUnixTime
+					lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
 				}
 			} else {
 				lap.LapTime = lap.DiscoveryUnixTime - previousDiscoveryUnixTime
+				lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
 			}
 			lap.RaceTotalTime = previousRaceTotalTime + lap.LapTime
 			
