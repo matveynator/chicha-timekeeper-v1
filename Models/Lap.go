@@ -20,6 +20,42 @@ func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
         return result.Error
 }
 
+// Return lap position by tag_id
+func GetLapPosition(race_id uint, lap_number int, tag_id string) (lapPosition uint) {
+	//var lapCopy Lap
+	var lapCopy Lap
+	var lapsCopy []Lap
+	if  DB.Table("laps").Where("race_id = ?" , race_id).First(&lapCopy).Error == nil {
+		if DB.Table("laps").Where("race_id = ?" , race_id).Where("lap_number = ?" , lap_number).Order("lap_time asc").Find(&lapsCopy).Error == nil {
+			var position uint = 1
+			for _ , m := range lapsCopy {
+				if m.TagID == tag_id {
+					break
+				} else {
+					position = position + 1
+				}
+			}
+			lapPosition = position
+
+		} else {
+			//first lap, first result
+			lapPosition = 1
+		}
+	}  else  {
+		fmt.Println("lapPosition: race data empty.")
+		//no such race found (may be this is the first result).
+		if lap_number ==  0 {
+			fmt.Println("lapPosition: This is the first result.")
+			//no such race found (may be this is the first result).
+			lapPosition = 1
+		} else {
+			//no such race found, and not a 0 lap requested - return zero.
+			lapPosition = 0
+		}
+	}
+	return
+}
+
 // Return LeaderFirstLapDiscoveryUnixTime
 func GetLeaderFirstLapDiscoveryUnixTime(race_id_uint uint) (leaderFirstLapDiscoveryUnixTime int64) {
 	var u Lap
