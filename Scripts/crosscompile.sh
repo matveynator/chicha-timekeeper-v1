@@ -8,7 +8,7 @@ do
     mkdir -p ../downloads/${version}/${os}/${arch}
     echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
     GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
+    cat ../DEFAULT.env > ../downloads/${version}/${os}/${arch}/DEFAULT.env
   done
 done
 
@@ -19,7 +19,7 @@ do
     mkdir -p ../downloads/${version}/${os}/${arch}
     echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
     GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
+    cat ../DEFAULT.env > ../downloads/${version}/${os}/${arch}/DEFAULT.env
   done
 done
 
@@ -31,7 +31,7 @@ do
     mkdir -p ../downloads/${version}/mac/${arch}
     echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/mac/${arch}/chicha ../chicha.go"
     GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/mac/${arch}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${version}/mac/${arch}/.env.DEFAULT
+    cat ../DEFAULT.env > ../downloads/${version}/mac/${arch}/DEFAULT.env
   done
 done
 
@@ -43,7 +43,7 @@ do
     mkdir -p ../downloads/${version}/${os}/${arch}
     echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
     GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
+    cat ../DEFAULT.env > ../downloads/${version}/${os}/${arch}/DEFAULT.env
   done
 done
 
@@ -55,7 +55,7 @@ do
     mkdir -p ../downloads/${version}/${os}/${arch}
     echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/${os}/${arch}/chicha.exe ../chicha.go"
     GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/${os}/${arch}/chicha.exe ../chicha.go
-    cat ../.env.DEFAULT > ../downloads/${version}/${os}/${arch}/.env.DEFAULT
+    cat ../DEFAULT.env > ../downloads/${version}/${os}/${arch}/DEFAULT.env
   done
 done
 
