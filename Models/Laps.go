@@ -45,13 +45,13 @@ func GetListLaps(c *gin.Context) {
 
 // Return list current raceid
 func GetLastLapData(c *gin.Context) {
-	var laps Lap
-	err := GetLastLap(&laps)
+	var lap Lap
+	err := GetLastLap(&lap)
 	if err != nil {
 		c.JSON(404, nil)
 		return
 	}
-	c.JSON(200, laps)
+	c.JSON(200, lap)
 }
 
 func GetLap(c *gin.Context) {

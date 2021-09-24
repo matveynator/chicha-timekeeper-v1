@@ -20,7 +20,36 @@ func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
         return result.Error
 }
 
-// Return lap position by tag_id
+// Return current race position
+func GetCurrentRacePosition(race_id uint, tag_id string) (currentRacePosition uint) {
+        //var lapCopy Lap
+        var lapCopy Lap
+        var lapsCopy []Lap
+	if  DB.Table("laps").Where("race_id = ?" , race_id).First(&lapCopy).Error == nil {
+               if DB.Table("laps").Where("race_id = ?" , race_id).Where("lap_is_current = ?" , 1).Order("lap_number desc").Order("race_total_time asc").Find(&lapsCopy).Error == nil {
+                        var position uint = 1
+                        for _ , m := range lapsCopy {
+                                if m.TagID == tag_id {
+                                        break
+                                } else {
+                                        position = position + 1
+                                }
+                        }
+                        currentRacePosition = position
+
+                } else {
+                        //first lap, first result
+                        currentRacePosition = 1
+                }
+	} else {
+                //no such race found (may be this is the first result).
+                fmt.Println("curerntRacePosition: race data empty, is this the first result?")
+                //no such race found (may be this is the first result).
+                currentRacePosition = 1
+	}
+	return
+}
+// Return lap position 
 func GetLapPosition(race_id uint, lap_number int, tag_id string) (lapPosition uint) {
 	//var lapCopy Lap
 	var lapCopy Lap
@@ -85,10 +114,16 @@ func GetAllLaps(u *[]Lap) (err error) {
 	return result.Error
 }
 
-// Return all laps in system order by date
+// Return last lap
 func GetLastLap(u *Lap) (err error) {
 
 	result := DB.Order("discovery_unix_time desc").First(u)
+	return result.Error
+}
+
+// Return last lap data by race and tag
+func GetLastLapByRaceIdAndTagId(u *Lap, race_id uint, tag_id string) (err error) {
+	result := DB.Where("race_id = ?" , race_id).Where("tag_id = ?" , tag_id).Order("discovery_unix_time desc").First(u)
 	return result.Error
 }
 
@@ -101,7 +136,7 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	return
 }
 
-func GetLastLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapNumber int, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
+func GetPreviousLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapNumber int, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
 	var lapStructCopy Lap
 	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
 		previousLapNumber = lapStructCopy.LapNumber
@@ -158,6 +193,14 @@ func GetOneLap(u *Lap, lap_id string) (err error) {
 
 func PutOneLap(u *Lap) (err error) {
 	DB.Save(u)
+	return nil
+}
+
+
+func SaveLap(u *Lap) (err error) {
+	if err = DB.Save(u).Error; err != nil {
+		return err
+	}
 	return nil
 }
 

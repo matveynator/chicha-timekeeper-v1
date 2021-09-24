@@ -6,7 +6,7 @@ Free chronograf for motorcycle, cars, bycicle and other types of competitions. U
 
 Cистема хронометража для любого трека на базе RFID 905-912 MHZ.  Пока что в процессе разработки.
 
-[Скачать последнюю версию CHICHA / Download latest version of CHICHA](http://files.matveynator.ru/chicha/)
+[Скачать последнюю версию CHICHA / Download latest version of CHICHA](https://github.com/matveynator/chicha/tree/main/downloads)
 
 
 ## поддерживаемые считыватели: 
