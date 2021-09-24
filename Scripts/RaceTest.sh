@@ -9,7 +9,9 @@ competitors=10
 laps=10
 minimal_lap_time_sec=60
 xml=1   #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
+random=1 #0 = 1 2 3 4 5; #1 = 4 1 2 3 5
 ##################################################
+
 
 LANG=C
 cmdname=`basename $0`
@@ -41,6 +43,12 @@ echo "LAP #${lap}"
 
 for racer in `seq 1 ${competitors}`; 
 do
+
+if [ "$random" == "1" ] 
+ then 
+	racer=$((RANDOM % ${competitors}))
+fi
+ 
 antenna=$((RANDOM % 4))
 sleep_time=$((RANDOM % 10))
 
