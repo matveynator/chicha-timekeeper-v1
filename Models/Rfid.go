@@ -112,7 +112,7 @@ func startSaveLapsBufferToDatabase() {
 
 		// Save laps to database
 		for _,lap := range laps {
-			previousLapNumber, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime := GetLastLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
+			previousLapNumber, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime := GetPreviousLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
 			if previousLapNumber != -1 {
 				//set lap.LapIsCurrent = 0 for previous lap
 				//set previos lap "non current"
@@ -136,6 +136,7 @@ func startSaveLapsBufferToDatabase() {
 					//you are the leader set LapTime=0;
 					lap.LapTime = 0
 					lap.LapPosition = 1
+					lap.CurrentRacePosition = 1
 				} else {
 					//you are not the leader of the first lap
 					//calculate against the leader
@@ -147,17 +148,18 @@ func startSaveLapsBufferToDatabase() {
 				lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
 			}
 			lap.RaceTotalTime = previousRaceTotalTime + lap.LapTime
-			
 			if previousDiscoveryUnixTime == 0 {
 				lap.BetterOrWorseLapTime = 0
 			} else {
 				lap.BetterOrWorseLapTime = previousLapTime-lap.LapTime
 			}
-
-			fmt.Printf("Saved to db: %s, %d, %d\n", lap.TagID, lap.DiscoveryUnixTime, lap.Antenna)
 			if err := AddNewLap(&lap); err != nil {
 				fmt.Println("Error. Lap not added to database", err)
+			} else {
+			        currentRacePosition := GetCurrentRacePosition(currentlapRaceID, lap.TagID)
+				DB.Model(&lap).Update("CurrentRacePosition", currentRacePosition)
 			}
+			fmt.Printf("Saved! tag: %s, position: %d, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.CurrentRacePosition, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
 		}
 
 
