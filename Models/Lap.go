@@ -20,6 +20,19 @@ func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
         return result.Error
 }
 
+// Return leader race_total_time by race_id 
+func GetLeaderRaceTotalTimeByRaceIdAndLapNumber(race_id uint, lap_number int) (leaderRaceTotalTime int64) {
+  var lap Lap
+  if DB.Where("race_id = ?" , race_id).Where("lap_number = ?" , lap_number).Where("lap_position = ?" , 1).First(&lap).Error == nil {
+    //fmt.Println("lap found - time:", lap.RaceTotalTime)
+    leaderRaceTotalTime = lap.RaceTotalTime
+  } else {
+    //fmt.Println("lap not found", race_id, lap_number)
+    leaderRaceTotalTime = 0
+  }
+  return
+}
+
 // Return current race position
 func GetCurrentRacePosition(race_id uint, tag_id string) (currentRacePosition uint) {
         //var lapCopy Lap
