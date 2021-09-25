@@ -268,6 +268,8 @@ func newAntennaConnection(conn net.Conn) {
     } else {
       data := buf[:size]
       var lap Lap
+      lap.AntennaIP = fmt.Sprintf("%s", conn.RemoteAddr().(*net.TCPAddr).IP)
+      //fmt.Println("IP:", lap.AntennaIP)
       // CSV data processing
       if !IsValidXML(data) {
 	//fmt.Println("Received data is not XML, trying CSV text...")
