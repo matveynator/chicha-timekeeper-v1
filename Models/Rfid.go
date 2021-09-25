@@ -147,7 +147,19 @@ func startSaveLapsBufferToDatabase() {
 				lap.LapTime = lap.DiscoveryUnixTime - previousDiscoveryUnixTime
 				lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
 			}
+
+			//race total time
 			lap.RaceTotalTime = previousRaceTotalTime + lap.LapTime
+			//fmt.Println("race total time:", lap.RaceTotalTime, "lap time", lap.LapTime)
+			
+			leaderRaceTotalTime := GetLeaderRaceTotalTimeByRaceIdAndLapNumber(lap.RaceID, lap.LapNumber)
+			if leaderRaceTotalTime == 0 {
+			  //first lap
+			  //fmt.Println("leaderRaceTotalTime = 0 - first lap detected, TimeBehindTheLeader = lap.LapTime:", lap.LapTime)
+			  lap.TimeBehindTheLeader = lap.LapTime
+			} else {
+			  lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
+			}
 			if previousDiscoveryUnixTime == 0 {
 				lap.BetterOrWorseLapTime = 0
 			} else {
