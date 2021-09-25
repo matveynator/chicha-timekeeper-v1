@@ -59,4 +59,4 @@ do
   done
 done
 
-rsync -avP downloads/* root@files.matveynator.ru:/home/files/public_html/chicha/
+rsync -avP ../downloads/* root@files.matveynator.ru:/home/files/public_html/chicha/
