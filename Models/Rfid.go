@@ -162,11 +162,7 @@ func startSaveLapsBufferToDatabase() {
 	  lap.TimeBehindTheLeader = lap.LapTime
 	}
       } else {
-	if lap.LapPosition == 1 {
-	  lap.TimeBehindTheLeader = 0
-	} else {
-	  lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
-	}
+	lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
       }
       if previousDiscoveryUnixTime == 0 {
 	lap.BetterOrWorseLapTime = 0
