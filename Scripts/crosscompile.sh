@@ -1,6 +1,6 @@
 version="0.2-003"
 git_root_path=`git rev-parse --show-toplevel`
-cd ${git_root_path}/scripts
+cd ${git_root_path}/Scripts
 for os in linux freebsd netbsd openbsd;
 do
   for arch in "amd64" "386" "arm" "arm64" 
