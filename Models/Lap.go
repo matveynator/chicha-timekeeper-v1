@@ -152,7 +152,7 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 //best personal lap time
 func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64) {
         var lapStructCopy Lap
-        if DB.Table("laps").Where("lap_number != ? tag_id = ? AND race_id = ?", 0, tagID, raceID).Order("lap_time asc").First(&lapStructCopy).Error == nil {
+        if DB.Table("laps").Where("tag_id = ?", tagID).Where("race_id = ?", raceID).Where("lap_number != ?" , 0).Order("lap_time asc").First(&lapStructCopy).Error == nil {
                 bestLapTime = lapStructCopy.LapTime
 
         } else {
@@ -164,7 +164,7 @@ func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64
 //best race lap time
 func GetBestLapTimeFromRace(raceID uint) (bestLapTime int64) {
         var lapStructCopy Lap
-        if DB.Table("laps").Where("lap_number != ? race_id = ?", 0, raceID).Order("lap_time asc").First(&lapStructCopy).Error == nil {
+        if DB.Table("laps").Where("race_id = ?", raceID).Where("lap_number != ?" , 0).Order("lap_time asc").First(&lapStructCopy).Error == nil {
                 bestLapTime = lapStructCopy.LapTime
 
         } else {
