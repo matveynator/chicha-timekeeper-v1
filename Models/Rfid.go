@@ -172,7 +172,11 @@ func startSaveLapsBufferToDatabase() {
         lap.BetterOrWorseLapTime = 0
       } else {
         mybestLapTime := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
-	lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
+	if mybestLapTime == 0 {
+		lap.BetterOrWorseLapTime = 0
+	} else {
+		lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
+	}
       }
       if err := AddNewLap(&lap); err != nil {
 	fmt.Println("Error. Lap not added to database", err)
