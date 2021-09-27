@@ -168,6 +168,8 @@ func startSaveLapsBufferToDatabase() {
       //best lap times:
       if lap.LapNumber == 0 {
 	lap.BetterOrWorseLapTime = 0
+      } else if lap.LapNumber == 1 {
+        lap.BetterOrWorseLapTime = 0
       } else {
         mybestLapTime := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
 	lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
