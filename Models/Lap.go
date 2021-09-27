@@ -149,17 +149,52 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	return
 }
 
-func GetPreviousLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapNumber int, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
+//best personal lap time
+func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64) {
+        var lapStructCopy Lap
+        if DB.Table("laps").Where("lap_number != ? tag_id = ? AND race_id = ?", 0, tagID, raceID).Order("lap_time asc").First(&lapStructCopy).Error == nil {
+                bestLapTime = lapStructCopy.LapTime
+
+        } else {
+                bestLapTime = 0
+        }
+        return
+}
+
+//best race lap time
+func GetBestLapTimeFromRace(raceID uint) (bestLapTime int64) {
+        var lapStructCopy Lap
+        if DB.Table("laps").Where("lap_number != ? race_id = ?", 0, raceID).Order("lap_time asc").First(&lapStructCopy).Error == nil {
+                bestLapTime = lapStructCopy.LapTime
+
+        } else {
+                bestLapTime = 0
+        }
+        return
+}
+
+//best track lap time from all time all types
+func GetBestLapTimeFromAllTime() (bestLapTime int64) {
+        var lapStructCopy Lap
+        if DB.Table("laps").Where("lap_number != ?", 0).Order("lap_time asc").First(&lapStructCopy).Error == nil {
+                bestLapTime = lapStructCopy.LapTime
+
+        } else {
+                bestLapTime = 0
+        }
+        return
+}
+
+
+func GetPreviousLapDataFromRaceByTagID(tagID string, raceID uint) (previousLapNumber int, previousDiscoveryUnixTime, previousRaceTotalTime int64) {
 	var lapStructCopy Lap
 	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
 		previousLapNumber = lapStructCopy.LapNumber
-		previousLapTime = lapStructCopy.LapTime
 		previousDiscoveryUnixTime = lapStructCopy.DiscoveryUnixTime
 		previousRaceTotalTime = lapStructCopy.RaceTotalTime
 
 	} else {
 		previousLapNumber = -1
-                previousLapTime = 0
                 previousDiscoveryUnixTime = 0
                 previousRaceTotalTime = 0
 	}
