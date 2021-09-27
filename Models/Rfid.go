@@ -112,7 +112,7 @@ func startSaveLapsBufferToDatabase() {
 
     // Save laps to database
     for _,lap := range laps {
-      previousLapNumber, previousLapTime, previousDiscoveryUnixTime, previousRaceTotalTime := GetPreviousLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
+      previousLapNumber, previousDiscoveryUnixTime, previousRaceTotalTime := GetPreviousLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
       if previousLapNumber != -1 {
 	//set lap.LapIsCurrent = 0 for previous lap
 	//set previos lap "non current"
@@ -164,10 +164,13 @@ func startSaveLapsBufferToDatabase() {
       } else {
 	lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
       }
-      if previousDiscoveryUnixTime == 0 {
+
+      //best lap times:
+      if lap.LapNumber == 0 {
 	lap.BetterOrWorseLapTime = 0
       } else {
-	lap.BetterOrWorseLapTime = previousLapTime-lap.LapTime
+        mybestLapTime := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
+	lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
       }
       if err := AddNewLap(&lap); err != nil {
 	fmt.Println("Error. Lap not added to database", err)
