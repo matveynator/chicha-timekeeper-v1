@@ -29,6 +29,7 @@ func main() {
 			Logger: logger.Default.LogMode(logger.Silent),
 		}); err != nil {
 			fmt.Println("ERROR: Connect to database failed at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER, err)
+			 panic(err)
 		} else {
 			Models.DB = db
 			fmt.Println("Connected to database at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER)
@@ -40,6 +41,8 @@ func main() {
                         Logger: logger.Default.LogMode(logger.Silent),
                 }); err != nil {
                         fmt.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
+			panic(err)
+
                 } else {
                         Models.DB = db
                         fmt.Println("Connected to local SQLite database at", dsn)
