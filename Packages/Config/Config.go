@@ -13,9 +13,9 @@ func init()  {
 	// Init ConfigMap here
 	// Load enviroment
 	// PROXY settings
-	fmt.Println("Load enviroment")
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(".env file not found")
+	fmt.Println("Loading enviroment")
+	if err := godotenv.Load("chicha.conf"); err != nil {
+		log.Fatal("Configuration file chicha.conf not found", err)
 	}
 
 	// PROXY settings
