@@ -6,11 +6,18 @@ do
   for arch in "amd64" "386" "arm" "arm64" 
   do
     mkdir -p ../downloads/${version}/${os}/${arch}
-    if [[ "${os}" == "linux" && "${arch}" == "arm" ]] || [[ "${os}" == "linux" && "${arch}" == "arm64" ]]
+    if [[ "${os}" == "linux" && "${arch}" == "arm" ]]
 	then
 		#apt-get install gccgo-arm-linux-gnueabi #arm compiler CGO
 		echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
     		GOOS=${os} GOARCH=${arch} CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
+
+	elif [[ "${os}" == "linux" && "${arch}" == "arm64" ]] 
+	then
+                #apt-get install gccgo-arm-linux-gnueabi #arm compiler CGO
+                echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=1 CC=aarch64-linux-gnu-gcc go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
+                GOOS=${os} GOARCH=${arch} CGO_ENABLED=1 CC=aarch64-linux-gnu-gcc go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
+
     	else 
 		echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
                 GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
