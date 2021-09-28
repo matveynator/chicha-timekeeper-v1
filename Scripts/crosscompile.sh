@@ -1,4 +1,4 @@
-version="0.2-007"
+version="0.2-008"
 git_root_path=`git rev-parse --show-toplevel`
 cd ${git_root_path}/Scripts
 for os in linux freebsd netbsd openbsd;
