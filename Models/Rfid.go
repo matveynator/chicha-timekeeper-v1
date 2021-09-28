@@ -182,7 +182,10 @@ func startSaveLapsBufferToDatabase() {
 	fmt.Println("Error. Lap not added to database", err)
       } else {
 	currentRacePosition := GetCurrentRacePosition(currentlapRaceID, lap.TagID)
-	DB.Model(&lap).Update("CurrentRacePosition", currentRacePosition)
+	err := DB.Model(&lap).Update("CurrentRacePosition", currentRacePosition).Error
+	if err != nil {
+		fmt.Println("DB.Model(&lap).Update error:", err)
+	}
       }
       fmt.Printf("Saved! tag: %s, position: %d, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.CurrentRacePosition, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
     }
