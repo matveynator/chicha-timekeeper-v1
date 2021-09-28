@@ -205,9 +205,9 @@ func ExpireMyPreviousLap(tagID string, raceID uint) {
 	var lapStructCopy Lap
 	if DB.Table("laps").Where("tag_id = ? AND race_id = ?", tagID, raceID).Order("discovery_unix_time desc").First(&lapStructCopy).Error == nil {
 		//previos lap found - update lapStructCopy.LapIsCurrent = 0
-		result := DB.Model(&lapStructCopy).Where("id = ?", lapStructCopy.ID).UpdateColumn("LapIsCurrent", 0)
-		if result.Error != nil {
-			fmt.Println("Previous lap found but update LapIsCurrent = 0 failed:", result.Error)
+		err := DB.Model(&lapStructCopy).Update("LapIsCurrent", 0).Error
+		if err != nil {
+			fmt.Println("Previous lap found but update LapIsCurrent = 0 failed:", err)
 		}
 	}
 }
