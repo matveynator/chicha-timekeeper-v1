@@ -20,6 +20,35 @@ func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
         return result.Error
 }
 
+// Update current results by race ID
+func UpdateCurrentResultsByRaceId(race_id uint) (err error) {
+  var laps []Lap
+  err = DB.Where("race_id = ?" , race_id).Where("lap_is_current = ?" , 1).Order("lap_number desc").Order("race_total_time asc").Find(&laps).Error
+  if err == nil {
+    var position uint = 1
+    var LeaderDiscoveryUnixTime int64
+    for _ , lap := range laps {
+      if position == 1 {
+	LeaderDiscoveryUnixTime = lap.DiscoveryUnixTime
+      }
+      if lap.TimeBehindTheLeader == 0 {
+      	//update previous leader results
+      	lap.TimeBehindTheLeader = LeaderDiscoveryUnixTime - lap.DiscoveryUnixTime
+      }
+      lap.CurrentRacePosition = position
+      err := DB.Save(lap).Error
+      if err != nil {
+	fmt.Println("UpdateCurrentResultsByRaceId Error:", err)
+      } else {
+	fmt.Printf("lap: %d, rider: %s, position: %d, gap: %d \n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.TimeBehindTheLeader)
+      } 
+      position = position + 1
+    }
+  }
+  return
+}
+
+
 // Return leader race_total_time by race_id 
 func GetLeaderRaceTotalTimeByRaceIdAndLapNumber(race_id uint, lap_number int) (leaderRaceTotalTime int64) {
   var lap Lap
