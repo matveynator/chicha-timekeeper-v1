@@ -11,7 +11,7 @@ var DB *gorm.DB
 // Races details
 type Race struct {
   //gorm.Model
-  ID        	  uint   `gorm:"primaryKey" json:"id"`
+  ID        	  uint   `gorm:"primaryKey"`
   Name            string `gorm:"varchar(255)" json:"name" form:"name" binding:"required"`
   Description     string `gorm:"text" json:"description" form:"description"`
   IsActive        bool   `gorm:"not null;default:false" json:"is_active"`
@@ -24,7 +24,7 @@ type Race struct {
 // Laps main data of the race
 type Lap struct {
   //gorm.Model
-  ID        		uint    	`gorm:"primaryKey" json:"id"`
+  ID        		uint    	`gorm:"primaryKey"`
   OwnerID    		uint 		`gorm:"index" json:"owner_id"`
   TagID          	string 		`gorm:"char(80);index" json:"tag_id" xml:"TagID"`
   DiscoveryUnixTime  	int64 		`gorm:"char(80);index" json:"discovery_unix_time"`
@@ -48,7 +48,7 @@ type Lap struct {
 // Users
 type User struct {
   //gorm.Model
-  ID          uint   `gorm:"primaryKey" json:"id"`
+  ID          uint   `gorm:"primaryKey"`
   FirstName   string `gorm:"varchar(255);index" json:"first_name" form:"first_name"`
   LastName    string `gorm:"varchar(255)" json:"last_name" form:"last_name"`
   MiddleName  string `gorm:"varchar(255)" json:"middle_name" form:"middle_name"`
@@ -63,7 +63,7 @@ type User struct {
 // Check-in (registration users on race)
 type Checkin struct {
   //gorm.Model
-  ID          uint   `gorm:"primaryKey" json:"id"`
+  ID          uint   `gorm:"primaryKey"`
   Number      string `gorm:"varchar(30)" json:"number" form:"number"` // Bib number of user
   TagID       string `gorm:"char(36);index" json:"tag_id" form:"tag_id"`
   UserId      uint `gorm:"index"`
@@ -77,7 +77,7 @@ type Checkin struct {
 // System administators
 type Admin struct {
   //gorm.Model
-  ID          uint   `gorm:"primaryKey" json:"id"`
+  ID          uint   `gorm:"primaryKey"`
   Login	   string `gorm:varchar(100);index" json:"login"`
   Password   string `gorm:varchar(100);index" json:"login"`
   CreatedAt  time.Time `json:"created_at"`
