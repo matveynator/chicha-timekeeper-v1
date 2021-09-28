@@ -109,7 +109,6 @@ func startSaveLapsBufferToDatabase() {
       }
     }
 
-
     // Save laps to database
     for _,lap := range laps {
       previousLapNumber, previousDiscoveryUnixTime, previousRaceTotalTime := GetPreviousLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
@@ -169,26 +168,25 @@ func startSaveLapsBufferToDatabase() {
       if lap.LapNumber == 0 {
 	lap.BetterOrWorseLapTime = 0
       } else if lap.LapNumber == 1 {
-        lap.BetterOrWorseLapTime = 0
+	lap.BetterOrWorseLapTime = 0
       } else {
-        mybestLapTime := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
+	mybestLapTime := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
 	if mybestLapTime == 0 {
-		lap.BetterOrWorseLapTime = 0
+	  lap.BetterOrWorseLapTime = 0
 	} else {
-		lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
+	  lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
 	}
       }
-      if err := AddNewLap(&lap); err != nil {
+      err := DB.Create(&lap).Error;
+      if err != nil {
 	fmt.Println("Error. Lap not added to database", err)
       } else {
-	//currentRacePosition := GetCurrentRacePosition(currentlapRaceID, lap.TagID)
-	//err := DB.Model(&lap).Update("CurrentRacePosition", currentRacePosition).Error
+	fmt.Printf("Saved! tag: %s, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
 	err := UpdateCurrentResultsByRaceId(currentlapRaceID)
 	if err != nil {
-		fmt.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", err)
+	  fmt.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", err)
 	}
       }
-      fmt.Printf("Saved! tag: %s, position: %d, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.CurrentRacePosition, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
     }
 
 
@@ -340,7 +338,7 @@ func newAntennaConnection(conn net.Conn) {
       }
 
       //Debug all received data from RFID reader
-      fmt.Printf("%s, %d, %d\n", lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+      fmt.Printf("NEW DATA from IP %s - %s, %d, %d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
 
       if Config.PROXY_ACTIVE=="true" {
