@@ -5,7 +5,7 @@ UHF-RFID compatible.
 
 <img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
-Бесплатная программа хронометража для любого трека на базе UHF-RFID 905-912 MHZ. 
+Бесплатная программа хронометража для любого трека на базе UHF-RFID 860-960 MHz. 
 
 - ## [↓ Download latest version of CHICHA.](http://files.matveynator.ru/chicha/) 
 - ## [↓ Скачать последнюю версию CHICHA.](http://files.matveynator.ru/chicha/)
