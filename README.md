@@ -1,4 +1,4 @@
-### Chicha timekeeper. 
+### Chicha: the competition timekeeper (chronograph).
 
 Free chronograf for motorcycle, cars, bycicle and other types of competitions. 
 UHF-RFID compatible. 
