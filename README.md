@@ -11,12 +11,12 @@ Free chronograf for motorcycle, cars, bycicle and other types of competitions. U
 
 ##  supported readers / поддерживаемые считыватели: 
 
-- Alien ALR-F800;
+- [Alien ALR-F800](https://www.alientechnology.com/products/readers/alr-f800/)
 
 
 ## supported antennas / поддерживаемые антенны:
 
-- [MT-263005/N](https://www.arcantenna.com/products/mt-263005-n-902-928-mhz-fcc-13-dbi-dbi-linear-v-h-polarity-directional-antenna-with-n-female-termination): 902-928 MHz FCC 13 dBi  UHF-RFID antenna (MTI) 12++ meter range
-- CZS258 -  860-960 MHz 9dBi UHF-RFID antenna [aliexpress](https://aliexpress.ru/item/32891562027.html) 12 meter range
+- [MT-263005/N](https://www.arcantenna.com/products/mt-263005-n-902-928-mhz-fcc-13-dbi-dbi-linear-v-h-polarity-directional-antenna-with-n-female-termination): 902-928 MHz FCC 13 dBi UHF-RFID antenna (MTI) 12++ meter range
+- [CZS258](https://aliexpress.ru/item/32891562027.html) -  860-960 MHz 9dBi UHF-RFID antenna (aliexpress) 12 meter range
 
 Developed in collaboration with [Naikom Extreme Motocross](http://naikomextreme.ru) and OMSK MX Club "Ermak". 
