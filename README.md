@@ -10,6 +10,10 @@ UHF-RFID compatible.
 - ## [↓ Download latest version of CHICHA.](http://files.matveynator.ru/chicha/) 
 - ## [↓ Скачать последнюю версию CHICHA.](http://files.matveynator.ru/chicha/)
 
+Supported OS: Mac, Linix, FreeBSD, DragonflyBSD, OpenBSD, NetBSD, Plan9, Windows
+Supported architectures: x86-32, x86-64, ARM, ARM64. 
+Supported databases: PostgreSQL (all platforms), SQLite (x86-32, x86-64 only).
+
 ###  supported readers / поддерживаемые считыватели: 
 
 - [Alien ALR-F800](https://www.alientechnology.com/products/readers/alr-f800/)
