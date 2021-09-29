@@ -4,19 +4,17 @@ Free chronograf for motorcycle, cars, bycicle and other types of competitions. U
 
 <img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
-Cистема хронометража для любого трека на базе RFID 905-912 MHZ.  Пока что в процессе разработки.
+Бесплатная программа хронометража для любого трека на базе UHF-RFID 905-912 MHZ. 
 
-[Скачать последнюю версию CHICHA / Download latest version of CHICHA](http://files.matveynator.ru/chicha/)
-
+- [Download latest version of CHICHA](http://files.matveynator.ru/chicha/)
+- [Скачать последнюю версию CHICHA](http://files.matveynator.ru/chicha/)
 
 ##  supported readers / поддерживаемые считыватели: 
-
 ```
 - Alien ALR-F800;
 ```
 
 ## supported antennas / поддерживаемые антенны:
-
 ```
 - mt-263005/n (вытравливается на обычной печатной плате).
 - QRFID-503 9dBi antenna
