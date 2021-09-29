@@ -1,6 +1,7 @@
 ### Chicha timekeeper. 
 
-Free chronograf for motorcycle, cars, bycicle and other types of competitions. UHF-RFID compatible. 
+Free chronograf for motorcycle, cars, bycicle and other types of competitions. 
+UHF-RFID compatible. 
 
 <img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
