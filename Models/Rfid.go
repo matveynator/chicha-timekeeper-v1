@@ -130,17 +130,17 @@ func startSaveLapsBufferToDatabase() {
       if previousLapNumber == -1 {
 	//if this is first lap results:
 	//#7 issue - first lap time
-	leaderFirstLapDiscoveryUnixTime := GetLeaderFirstLapDiscoveryUnixTime(currentlapRaceID)
-	if (leaderFirstLapDiscoveryUnixTime == 0) {
-	  //you are the leader set LapTime=0;
-	  lap.LapTime = 0
-	  lap.LapPosition = 1
-	  lap.CurrentRacePosition = 1
-	} else {
+	leaderFirstLapDiscoveryUnixTime, err := GetLeaderFirstLapDiscoveryUnixTime(currentlapRaceID)
+	if err == nil  {
 	  //you are not the leader of the first lap
 	  //calculate against the leader
 	  lap.LapTime = lap.DiscoveryUnixTime - leaderFirstLapDiscoveryUnixTime
 	  lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
+	} else {
+	  //you are the leader set LapTime=0;
+	  lap.LapTime = 0
+	  lap.LapPosition = 1
+	  lap.CurrentRacePosition = 1
 	}
       } else {
 	lap.LapTime = lap.DiscoveryUnixTime - previousDiscoveryUnixTime
@@ -164,27 +164,35 @@ func startSaveLapsBufferToDatabase() {
 	lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
       }
 
-      //best lap times:
-      if lap.LapNumber == 0 {
+      //best lap times and :
+      if lap.LapNumber == 0  {
+	lap.BestLapTime = lap.LapTime
 	lap.BetterOrWorseLapTime = 0
       } else if lap.LapNumber == 1 {
+	lap.BestLapTime = lap.LapTime
 	lap.BetterOrWorseLapTime = 0
       } else {
-	mybestLapTime := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
-	if mybestLapTime == 0 {
-	  lap.BetterOrWorseLapTime = 0
+	previousBestLapTime, _ := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
+	if lap.LapTime > previousBestLapTime {
+	  lap.BestLapTime = previousBestLapTime
 	} else {
-	  lap.BetterOrWorseLapTime = mybestLapTime-lap.LapTime
+	  lap.BestLapTime = lap.LapTime
 	}
+	lap.BetterOrWorseLapTime = lap.BestLapTime-lap.LapTime
       }
+
       err := DB.Create(&lap).Error;
       if err != nil {
 	fmt.Println("Error. Lap not added to database", err)
       } else {
 	fmt.Printf("Saved! tag: %s, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
-	err := UpdateCurrentResultsByRaceId(currentlapRaceID)
-	if err != nil {
-	  fmt.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", err)
+	spErr := UpdateCurrentStartPositionsByRaceId(currentlapRaceID)
+	if spErr != nil {
+	  fmt.Println("UpdateCurrentStartPositionsByRaceId(currentlapRaceID) Error", spErr)
+	}
+	upErr := UpdateCurrentResultsByRaceId(currentlapRaceID)
+	if upErr != nil {
+	  fmt.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", upErr)
 	}
       }
     }
