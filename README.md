@@ -96,3 +96,26 @@ lap: 3, tag: 100008020200000100000792, position: 10, time: 464000, gap: 148000, 
 ```
 [{"ID":69,"owner_id":0,"tag_id":"100008020200000100000792","discovery_unix_time":1632925602493,"discovery_time":"2021-09-29T17:26:42.493+03:00","antenna":2,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:26:43.860395+03:00","race_id":1,"current_race_postition":1,"time_behind_the_leader":0,"lap_number":8,"lap_time":105286,"lap_postition":1,"lap_is_current":1,"best_lap_time":84187,"best_lap_postition":5,"race_total_time":948606,"better_or_worse_lap_time":-21099},{"ID":61,"owner_id":0,"tag_id":"100008020200000100000799","discovery_unix_time":1632925492178,"discovery_time":"2021-09-29T17:24:52.178+03:00","antenna":2,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:24:53.201111+03:00","race_id":1,"current_race_postition":2,"time_behind_the_leader":110315,"lap_number":7,"lap_time":121365,"lap_postition":1,"lap_is_current":1,"best_lap_time":80163,"best_lap_postition":4,"race_total_time":838291,"better_or_worse_lap_time":-41202},{"ID":65,"owner_id":0,"tag_id":"100008020200000100000793","discovery_unix_time":1632925590346,"discovery_time":"2021-09-29T17:26:30.346+03:00","antenna":2,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:26:31.224135+03:00","race_id":1,"current_race_postition":3,"time_behind_the_leader":98168,"lap_number":7,"lap_time":66035,"lap_postition":3,"lap_is_current":1,"best_lap_time":34160,"best_lap_postition":1,"race_total_time":936459,"better_or_worse_lap_time":-31875},{"ID":66,"owner_id":0,"tag_id":"100008020200000100000794","discovery_unix_time":1632925592376,"discovery_time":"2021-09-29T17:26:32.376+03:00","antenna":3,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:26:33.220601+03:00","race_id":1,"current_race_postition":4,"time_behind_the_leader":100198,"lap_number":7,"lap_time":321863,"lap_postition":4,"lap_is_current":1,"best_lap_time":86166,"best_lap_postition":7,"race_total_time":938489,"better_or_worse_lap_time":-235697},{"ID":67,"owner_id":0,"tag_id":"100008020200000100000790","discovery_unix_time":1632925600436,"discovery_time":"2021-09-29T17:26:40.436+03:00","antenna":2,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:26:41.203934+03:00","race_id":1,"current_race_postition":5,"time_behind_the_leader":108258,"lap_number":7,"lap_time":124346,"lap_postition":5,"lap_is_current":1,"best_lap_time":86176,"best_lap_postition":8,"race_total_time":946549,"better_or_worse_lap_time":-38170},{"ID":60,"owner_id":0,"tag_id":"100008020200000100000796","discovery_unix_time":1632925485148,"discovery_time":"2021-09-29T17:24:45.148+03:00","antenna":1,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:24:46.204145+03:00","race_id":1,"current_race_postition":6,"time_behind_the_leader":214635,"lap_number":6,"lap_time":88227,"lap_postition":5,"lap_is_current":1,"best_lap_time":88227,"best_lap_postition":9,"race_total_time":831261,"better_or_worse_lap_time":0},{"ID":57,"owner_id":0,"tag_id":"100008020200000100000797","discovery_unix_time":1632925475059,"discovery_time":"2021-09-29T17:24:35.059+03:00","antenna":1,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:24:35.661412+03:00","race_id":1,"current_race_postition":7,"time_behind_the_leader":298796,"lap_number":5,"lap_time":73083,"lap_postition":7,"lap_is_current":1,"best_lap_time":68091,"best_lap_postition":2,"race_total_time":821172,"better_or_worse_lap_time":-4992},{"ID":54,"owner_id":0,"tag_id":"100008020200000100000791","discovery_unix_time":1632925399951,"discovery_time":"2021-09-29T17:23:19.951+03:00","antenna":0,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:23:20.202635+03:00","race_id":1,"current_race_postition":8,"time_behind_the_leader":342986,"lap_number":4,"lap_time":105221,"lap_postition":7,"lap_is_current":1,"best_lap_time":85176,"best_lap_postition":6,"race_total_time":746064,"better_or_worse_lap_time":-20045},{"ID":63,"owner_id":0,"tag_id":"100008020200000100000798","discovery_unix_time":1632925506228,"discovery_time":"2021-09-29T17:25:06.228+03:00","antenna":2,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:25:07.202575+03:00","race_id":1,"current_race_postition":9,"time_behind_the_leader":449263,"lap_number":4,"lap_time":100227,"lap_postition":9,"lap_is_current":1,"best_lap_time":75142,"best_lap_postition":3,"race_total_time":852341,"better_or_worse_lap_time":-25085},{"ID":68,"owner_id":0,"tag_id":"100008020200000100000795","discovery_unix_time":1632925602464,"discovery_time":"2021-09-29T17:26:42.464+03:00","antenna":2,"antenna_ip":"192.168.96.15","created_at":"2021-09-29T17:26:43.204096+03:00","race_id":1,"current_race_postition":10,"time_behind_the_leader":545499,"lap_number":4,"lap_time":124344,"lap_postition":10,"lap_is_current":1,"best_lap_time":97264,"best_lap_postition":10,"race_total_time":948577,"better_or_worse_lap_time":-27080}]
 ```
+
+#download chicha:
+```
+cd ~
+git clone https://github.com/matveynator/chicha.git
+export GOPATH=~/chicha/GOPATH
+echo "export GOPATH=~/chicha/GOPATH" >> ~/.bash_profile
+cd ~/chicha
+```
+
+```
+#run chicha:  
+cd ~/chicha
+go run chicha.go
+```
+
+```
+#compile chicha:
+cd ~/chicha
+sh  Scripts/crosscompile.sh
+ls ~/chicha/Downloads
+```
+
