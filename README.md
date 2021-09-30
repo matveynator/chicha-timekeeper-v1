@@ -107,7 +107,7 @@ echo "export GOPATH=~/chicha/GOPATH" >> ~/.bash_profile
 cd ~/chicha
 ```
 
-### Test run chicha:
+### Run chicha (test):
 ``` 
 cd ~/chicha
 go run chicha.go
@@ -119,4 +119,11 @@ cd ~/chicha
 sh  Scripts/crosscompile.sh
 ls ~/chicha/downloads
 ```
+
+### Run race test (edit options inside: Scripts/RaceTest.sh)/
+```
+cd ~/chicha
+sh Scripts/RaceTest.sh
+```
+ 
 
