@@ -59,7 +59,7 @@ func UpdateCurrentResultsByRaceId(race_id uint) (err error) {
       if err != nil {
 	fmt.Println("UpdateCurrentResultsByRaceId Error:", err)
       } else {
-	fmt.Printf("lap: %d, tag: %s, position: %d, time: %d, gap: %d, best lap: %d, start#: %d \n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.BestLapPosition)
+	fmt.Printf("lap: %d, tag: %s, position: %d, time: %d, gap: %d, best lap: %d, start#: %d strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.BestLapPosition, lap.LapIsStrange)
       } 
       position = position + 1
     }
