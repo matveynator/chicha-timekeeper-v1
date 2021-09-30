@@ -116,6 +116,6 @@ go run chicha.go
 #compile chicha:
 cd ~/chicha
 sh  Scripts/crosscompile.sh
-ls ~/chicha/Downloads
+ls ~/chicha/downloads
 ```
 
