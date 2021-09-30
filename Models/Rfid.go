@@ -19,6 +19,7 @@ import (
   "net"
   "fmt"
   "io"
+  "math"
 )
 
 // Buffer for new RFID requests
@@ -168,9 +169,11 @@ func startSaveLapsBufferToDatabase() {
       if lap.LapNumber == 0  {
 	lap.BestLapTime = lap.LapTime
 	lap.BetterOrWorseLapTime = 0
+	lap.LapIsStrange = 0
       } else if lap.LapNumber == 1 {
 	lap.BestLapTime = lap.LapTime
 	lap.BetterOrWorseLapTime = 0
+	lap.LapIsStrange = 0
       } else {
 	previousBestLapTime, _ := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
 	if lap.LapTime > previousBestLapTime {
@@ -179,6 +182,13 @@ func startSaveLapsBufferToDatabase() {
 	  lap.BestLapTime = lap.LapTime
 	}
 	lap.BetterOrWorseLapTime = lap.BestLapTime-lap.LapTime
+	//calculate if lap is 2 3 or more times long (could be not readed by RFID antenna).
+	lapIsStrange := int(math.Round(float64(lap.LapTime)/float64(lap.BestLapTime)))
+	if lapIsStrange >= 2 {
+	  lap.LapIsStrange = 1
+	} else {
+	  lap.LapIsStrange = 0
+	}
       }
 
       err := DB.Create(&lap).Error;

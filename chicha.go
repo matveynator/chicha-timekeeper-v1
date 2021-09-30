@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/driver/postgres" // Gorm Postgres driver package
 	"gorm.io/driver/sqlite" //gorm sqlite driver
-	"github.com/sethvargo/go-password/password" //password generator
+	//"github.com/sethvargo/go-password/password" //password generator
 	"./Models" // Our package with database models
 	"fmt"
 
@@ -56,13 +56,13 @@ func main() {
 
 	// Create new system administator if them not exists
 
-	adminPass, err := password.Generate(8, 1, 3, true, true)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Creating system administrator account if not exists with name =", Config.ADMIN_LOGIN, "and password =", adminPass)
-		Models.CreateDefaultAdmin(Config.ADMIN_LOGIN, adminPass)
-	}
+	//adminPass, err := password.Generate(8, 1, 3, true, true)
+	//if err != nil {
+	//	fmt.Println(err)
+	//} else {
+	//	fmt.Println("Creating system administrator account if not exists with name =", Config.ADMIN_LOGIN, "and password =", adminPass)
+	//	Models.CreateDefaultAdmin(Config.ADMIN_LOGIN, adminPass)
+	//}
 
 	// Start RFID listener
 	go Models.StartAntennaListener()
@@ -72,11 +72,9 @@ func main() {
 	r := Models.SetupRouter()
 
 	// Start API server
-	err = r.Run(Config.API_SERVER_LISTENER_IP)
-
-	if err != nil {
-		fmt.Println("ERROR: API server start failed:", err)
-	} else {
-		fmt.Println("OK: Started API server at", Config.API_SERVER_LISTENER_IP)
+	fmt.Println("Starting API server at:", Config.API_SERVER_LISTENER_IP)
+	errAPI := r.Run(Config.API_SERVER_LISTENER_IP)
+	if errAPI != nil {
+		fmt.Println("ERROR: API server start failed:", errAPI)
 	}
 }

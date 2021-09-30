@@ -27,11 +27,11 @@ type Lap struct {
   ID        		uint    	`gorm:"primaryKey"`
   OwnerID    		uint 		`gorm:"index" json:"owner_id"`
   TagID          	string 		`gorm:"char(80);index" json:"tag_id" xml:"TagID"`
-  DiscoveryUnixTime  	int64 		`gorm:"char(80);index" json:"discovery_unix_time"`
+  DiscoveryUnixTime  	int64 		`gorm:"index" json:"discovery_unix_time"`
   DiscoveryTime  	string 		`json:"-" xml:"DiscoveryTime"`
   DiscoveryTimePrepared time.Time 	`json:"discovery_time"`
   Antenna        	uint8 		`gorm:"index" json:"antenna" xml:"Antenna"`
-  AntennaIP      	string 		`gorm:"char(80);index" json:"antenna_ip"`
+  AntennaIP      	string 		`gorm:"char(128);index" json:"antenna_ip"`
   CreatedAt      	time.Time 	`json:"created_at"`
   RaceID         	uint 		`gorm:"index" json:"race_id"`
   CurrentRacePosition   uint 		`gorm:"index" json:"current_race_postition"`
@@ -40,6 +40,7 @@ type Lap struct {
   LapTime        	int64 		`gorm:"index" json:"lap_time"`
   LapPosition    	uint 		`gorm:"index" json:"lap_postition"`
   LapIsCurrent		int 		`gorm:"index" json:"lap_is_current"`
+  LapIsStrange          int             `gorm:"index" json:"lap_is_strange"`
   BestLapTime           int64           `gorm:"index" json:"best_lap_time"`
   BestLapPosition	uint            `gorm:"index" json:"best_lap_postition"`
   RaceTotalTime         int64 		`gorm:"index" json:"race_total_time"`

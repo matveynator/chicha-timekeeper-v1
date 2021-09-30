@@ -13,7 +13,9 @@ func init()  {
 	// Init ConfigMap here
 	// Load enviroment
 	// PROXY settings
-	fmt.Println("Loading enviroment")
+	fmt.Println("Welcome to CHICHA, the competition timekeeper (chronograph)!")
+	fmt.Println("https://github.com/matveynator/chicha")
+	fmt.Println("Loading chicha.conf configuration...")
 	if err := godotenv.Load("chicha.conf"); err != nil {
 		log.Fatal("Configuration file chicha.conf not found", err)
 	}
