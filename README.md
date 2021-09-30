@@ -80,16 +80,16 @@ nc -l 0.0.0.0 4000
 
 ### chicha example log:
 ```
-lap: 9, tag: 100008020200000100000793, position: 1, time: 1013000, gap: 0, best lap: 41000, start#: 1 
-lap: 7, tag: 100008020200000100000794, position: 2, time: 978000, gap: 84000, best lap: 61000, start#: 3 
-lap: 6, tag: 100008020200000100000797, position: 3, time: 804000, gap: 92000, best lap: 45000, start#: 2 
-lap: 6, tag: 100008020200000100000791, position: 4, time: 883000, gap: 171000, best lap: 84000, start#: 6 
-lap: 6, tag: 100008020200000100000798, position: 5, time: 983000, gap: 271000, best lap: 98000, start#: 7 
-lap: 6, tag: 100008020200000100000795, position: 6, time: 1002000, gap: 290000, best lap: 104000, start#: 8 
-lap: 6, tag: 100008020200000100000799, position: 7, time: 1004000, gap: 292000, best lap: 81000, start#: 5 
-lap: 5, tag: 100008020200000100000790, position: 8, time: 900000, gap: 340000, best lap: 119000, start#: 10 
-lap: 4, tag: 100008020200000100000796, position: 9, time: 986000, gap: 543000, best lap: 117000, start#: 9 
-lap: 3, tag: 100008020200000100000792, position: 10, time: 464000, gap: 148000, best lap: 71000, start#: 4 
+lap: 9, tag: 100008020200000100000792, position: 1, start#: 3, time: 938648, gap: 0, best lap: 35230, strange?: 0
+lap: 8, tag: 100008020200000100000794, position: 2, start#: 5, time: 931595, gap: 28177, best lap: 79082, strange?: 1
+lap: 7, tag: 100008020200000100000799, position: 3, start#: 4, time: 831356, gap: 24200, best lap: 68058, strange?: 1
+lap: 7, tag: 100008020200000100000795, position: 4, start#: 2, time: 911476, gap: 104320, best lap: 32212, strange?: 1
+lap: 6, tag: 100008020200000100000798, position: 5, start#: 1, time: 918507, gap: 206614, best lap: 32156, strange?: 1
+lap: 6, tag: 100008020200000100000790, position: 6, start#: 7, time: 933623, gap: 221730, best lap: 87276, strange?: 0
+lap: 5, tag: 100008020200000100000797, position: 7, start#: 6, time: 717957, gap: 98328, best lap: 86216, strange?: 0
+lap: 4, tag: 100008020200000100000793, position: 8, start#: 9, time: 715926, gap: 197571, best lap: 108324, strange?: 1
+lap: 4, tag: 100008020200000100000791, position: 9, start#: 8, time: 812243, gap: 293888, best lap: 90269, strange?: 1
+lap: 2, tag: 100008020200000100000796, position: 10, start#: 10, time: 929565, gap: 723989, best lap: 190444, strange?: 0
 ```
 
 ### chicha example json (/api/laps/results/byraceid/1):
