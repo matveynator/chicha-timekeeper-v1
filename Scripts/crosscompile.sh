@@ -1,61 +1,23 @@
 version="0.2-010"
 git_root_path=`git rev-parse --show-toplevel`
+execution_file=chicha
 cd ${git_root_path}/Scripts
-for os in linux freebsd netbsd openbsd;
+for os in linux freebsd netbsd openbsd aix android illumos ios solaris plan9 darwin dragonfly js windows ;
 do
-	for arch in "amd64" "386" "arm" "arm64" 
+	for arch in "amd64" "386" "arm" "arm64" "mips64" "mips64le" "mips" "mipsle" "ppc64" "ppc64le" "riscv64" "s390x" "wasm"  
 	do
 		mkdir -p ../downloads/${version}/${os}/${arch}
-		echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
-		GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
-		cat ../chicha.conf > ../downloads/${version}/${os}/${arch}/chicha.conf
-	done
-done
-
-for os in plan9;
-do
-	for arch in "amd64" "386" "arm"
-	do
-		mkdir -p ../downloads/${version}/${os}/${arch}
-		echo "GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
-		GOOS=${os} GOARCH=${arch} $opt go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
-		cat ../chicha.conf > ../downloads/${version}/${os}/${arch}/chicha.conf
-	done
-done
-
-#mac
-for os in darwin;
-do
-	for arch in "amd64" 
-	do
-		mkdir -p ../downloads/${version}/mac/${arch}
-		echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/mac/${arch}/chicha ../chicha.go"
-		GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/mac/${arch}/chicha ../chicha.go
-		cat ../chicha.conf > ../downloads/${version}/mac/${arch}/chicha.conf
-	done
-done
-
-#dragonfly
-for os in dragonfly;
-do
-	for arch in "amd64"
-	do
-		mkdir -p ../downloads/${version}/${os}/${arch}
-		echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go"
-		GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/chicha ../chicha.go
-		cat ../chicha.conf > ../downloads/${version}/${os}/${arch}/chicha.conf
-	done
-done
-
-#windows
-for os in windows;
-do
-	for arch in "amd64" "386"
-	do
-		mkdir -p ../downloads/${version}/${os}/${arch}
-		echo "GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/${os}/${arch}/chicha.exe ../chicha.go"
-		GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 go build -o ../downloads/${version}/${os}/${arch}/chicha.exe ../chicha.go
-		cat ../chicha.conf > ../downloads/${version}/${os}/${arch}/chicha.conf
+		[ "$os" == "windows" ] && execution_file="chicha.exe"
+		[ "$os" == "js" ] && execution_file="chicha.js"
+		GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/${execution_file} ../chicha.go &> /dev/null
+		if [ "$?" != "0" ] 
+		#if compilation failed - remove folders - else copy config file.
+		then 
+		  rm -rf ../downloads/${version}/${os}/${arch}
+		else
+		  echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/${execution_file} ../chicha.go"
+		  cat ../chicha.conf > ../downloads/${version}/${os}/${arch}/chicha.conf
+		fi
 	done
 done
 
