@@ -1,6 +1,6 @@
 
 <p align="left">
-    <img src="chicha.jpg" width="50%">
+    <img src="chicha.jpg" width="75%">
 </p>
 
 # Chicha - the competition timekeeper (chronograph).
