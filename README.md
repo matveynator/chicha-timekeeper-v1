@@ -10,9 +10,11 @@ UHF-RFID compatible.
 - ## [↓ Download latest version of CHICHA.](http://files.matveynator.ru/chicha/) 
 - ## [↓ Скачать последнюю версию CHICHA.](http://files.matveynator.ru/chicha/)
 
-Supported OS: Mac, Linix, FreeBSD, DragonflyBSD, OpenBSD, NetBSD, Plan9, Windows
-Supported architectures: x86-32, x86-64, ARM, ARM64. 
-Supported databases: PostgreSQL (all platforms), SQLite (x86-32, x86-64 only).
+- Supported OS: Linix, Windows, Android, Mac, IOS, FreeBSD, DragonflyBSD, OpenBSD, NetBSD, Plan9, AIX, Solaris, Illumos, WASM(JS)
+
+- Supported architectures: x86-32, x86-64, ARM, ARM64, MIPS64, MIPS64le, MIPS, MIPSLE, PPC64, PPC64le, RISCv64, s390x, WASM(JS)  
+
+- Supported databases: PostgreSQL (all platforms), SQLite (x86-32, x86-64 only).
 
 ###  supported readers / поддерживаемые считыватели: 
 
