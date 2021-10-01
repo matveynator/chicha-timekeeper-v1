@@ -1,35 +1,37 @@
 package main
+
 /*
 Work in progress.
 */
 
 import (
-	"./Packages/Config"
-	"gorm.io/gorm" // Database ORM package
-	"gorm.io/gorm/logger"
-	"gorm.io/driver/postgres" // Gorm Postgres driver package
-	"gorm.io/driver/sqlite" //gorm sqlite driver
-	//"github.com/sethvargo/go-password/password" //password generator
-	"./Models" // Our package with database models
 	"fmt"
 
+	"gorm.io/driver/postgres" // Gorm Postgres driver package
+	"gorm.io/driver/sqlite"   //gorm sqlite driver
+	"gorm.io/gorm"            // Database ORM package
+	"gorm.io/gorm/logger"
+
+	//"github.com/sethvargo/go-password/password" //password generator
 	//profiling CPU:
 	//"github.com/pkg/profile"
-)
 
+	"chicha/Models" // Our package with database models
+	"chicha/Packages/Config"
+)
 
 func main() {
 	//profiling CPU: https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz
 	//defer profile.Start(profile.ProfilePath(".")).Stop()
 
-	if Config.DB_TYPE ==  "postgres" {
+	if Config.DB_TYPE == "postgres" {
 		//Database section
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Moscow", Config.DB_HOST, Config.DB_USER, Config.DB_PASSWORD, Config.DB_NAME, Config.DB_PORT)
 		if db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent),
 		}); err != nil {
 			fmt.Println("ERROR: Connect to database failed at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER, err)
-			 panic(err)
+			panic(err)
 		} else {
 			Models.DB = db
 			fmt.Println("Connected to database at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER)
@@ -38,17 +40,16 @@ func main() {
 		//DEFAULT: if Config.DB_TYPE == "sqlite"
 		dsn := "chicha.sqlite"
 		if db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
-                        Logger: logger.Default.LogMode(logger.Silent),
-                }); err != nil {
-                        fmt.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
+			Logger: logger.Default.LogMode(logger.Silent),
+		}); err != nil {
+			fmt.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
 			panic(err)
 
-                } else {
-                        Models.DB = db
-                        fmt.Println("Connected to local SQLite database at", dsn)
-                }
+		} else {
+			Models.DB = db
+			fmt.Println("Connected to local SQLite database at", dsn)
+		}
 	}
-
 
 	// Database Migrations
 	fmt.Println("Creating or changing database structures (applying migrations)...")
