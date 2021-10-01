@@ -1,9 +1,13 @@
-### Chicha: the competition timekeeper (chronograph).
 
-Free chronograf for motorcycle, cars, bycicle and other types of competitions. 
+<p align="left">
+    <img src="chicha.jpg" width="50%">
+</p>
+
+# Chicha - the competition timekeeper (chronograph).
+
+Free chronograf for runners, bycicles, motorcycles, carts, cars, trucks, atv and other types of race competitions. 
 UHF-RFID compatible. 
 
-<img src="https://raw.githubusercontent.com/matveynator/chicha/main/chicha.jpg" width="600">
 
 Бесплатная программа хронометража для любого трека на базе UHF-RFID 860-960 MHz. 
 
@@ -27,7 +31,7 @@ UHF-RFID compatible.
 - [CZS258](https://aliexpress.ru/item/32891562027.html) -  860-960 MHz 9dBi UHF-RFID antenna (aliexpress) 12 meter range
 
 
-## Alien ALR-F800 RFID Reader settings:
+### Alien ALR-F800 RFID Reader settings:
 
 ```
 http://IP/auth/tagstream.html
