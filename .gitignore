@@ -1,3 +1,5 @@
 .idea
 *.sqlite
 downloads
+tmp
+download

@@ -19,7 +19,7 @@ newtmpdir=`mktemp -d /tmp/${cmdname}.XXXXXX`
 spool="$newtmpdir/spool"
 os=`uname`
 if [ "${os}" == "Linux" ]
-then 
+then
 	netcat_args="-q 0"
 elif [ "${os}" == "Darwin" ]
 then
@@ -41,14 +41,14 @@ do
 [ "${lap}" != "1" ] && echo
 echo "LAP #${lap}"
 
-for racer in `seq 1 ${competitors}`; 
+for racer in `seq 1 ${competitors}`;
 do
 
-if [ "$random" == "1" ] 
- then 
+if [ "$random" == "1" ]
+ then
 	racer=$((RANDOM % ${competitors}))
 fi
- 
+
 antenna=$((RANDOM % 4))
 sleep_time=$((RANDOM % 10))
 
@@ -58,8 +58,11 @@ then
 	unixtime=`date +%s%3N`
 elif [ "${os}" == "Darwin" ]
 then
-	time=`date +"%Y/%m/%d %T.000"`
-        unixtime=`date +%s000`
+  time=`date +"%Y/%m/%d %T.000"`
+  unixtime=`date +%s000`
+else
+  time=`date +"%Y/%m/%d %T.%3N"`
+  unixtime=`date +%s%3N`
 fi
 
 if [ "${xml}" == "1" ]
