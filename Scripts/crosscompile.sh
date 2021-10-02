@@ -1,4 +1,4 @@
-version="0.2-010"
+version="0.2-011"
 git_root_path=`git rev-parse --show-toplevel`
 execution_file=chicha
 cd ${git_root_path}/Scripts
@@ -6,17 +6,20 @@ for os in linux freebsd netbsd openbsd aix android illumos ios solaris plan9 dar
 do
 	for arch in "amd64" "386" "arm" "arm64" "mips64" "mips64le" "mips" "mipsle" "ppc64" "ppc64le" "riscv64" "s390x" "wasm"
 	do
-		mkdir -p ../downloads/${version}/${os}/${arch}
+		target_os_name=${os}
 		[ "$os" == "windows" ] && execution_file="chicha.exe"
 		[ "$os" == "js" ] && execution_file="chicha.js"
-		GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/${execution_file} ../chicha.go &> /dev/null
+		[ "$os" == "darwin" ] && target_os_name="mac"
+		
+		mkdir -p ../downloads/${version}/${target_os_name}/${arch}
+		GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go &> /dev/null
 		if [ "$?" != "0" ]
 		#if compilation failed - remove folders - else copy config file.
 		then
-		  rm -rf ../downloads/${version}/${os}/${arch}
+		  rm -rf ../downloads/${version}/${target_os_name}/${arch}
 		else
-		  echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${os}/${arch}/${execution_file} ../chicha.go"
-		  cat ../chicha.conf > ../downloads/${version}/${os}/${arch}/chicha.conf
+		  echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go"
+		  cat ../chicha.conf > ../downloads/${version}/${target_os_name}/${arch}/chicha.conf
 		fi
 	done
 done

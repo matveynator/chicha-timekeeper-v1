@@ -195,7 +195,6 @@ func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64
   if err == nil {
     bestLapTime = lap.LapTime
   }
-  fmt.Println("bestLapTime:", bestLapTime, err)
   return
 }
 
