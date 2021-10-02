@@ -275,91 +275,105 @@ func IsValidXML(data []byte) bool {
 
 // New antenna connection (private func)
 func newAntennaConnection(conn net.Conn) {
-
 	defer conn.Close()
+	var tempDelay time.Duration // how long to sleep on accept failure
 
 	// Read connection in lap
 	for {
 		buf := make([]byte, 1024)
 		size, err := conn.Read(buf)
 		if err != nil {
-			if err != io.EOF {
-				fmt.Println("conn.Read(buf) error:", err)
-				continue
-			}
 			if err == io.EOF {
+				fmt.Println("conn.Read(buf) error:", err)
 				//fmt.Println("Message EOF detected - closing LAN connection.")
 				break
 			}
-		} else {
-			data := buf[:size]
-			var lap Lap
-			lap.AntennaIP = fmt.Sprintf("%s", conn.RemoteAddr().(*net.TCPAddr).IP)
-			//fmt.Println("IP:", lap.AntennaIP)
-			// CSV data processing
-			if !IsValidXML(data) {
-				//fmt.Println("Received data is not XML, trying CSV text...")
-				//received data of type TEXT (parse TEXT).
-				r := csv.NewReader(bytes.NewReader(data))
-				r.Comma = ','
-				r.FieldsPerRecord = 3
-				CSV, err := r.Read()
-				if err != nil {
-					fmt.Println("Recived incorrect CSV data", err)
-					continue
-				}
 
-				// Prepare antenna position
-				antennaPosition, err := strconv.Atoi(strings.TrimSpace(CSV[2]))
-				if err != nil {
-					fmt.Println("Recived incorrect Antenna position CSV value:", err)
-					continue
-				}
-				_, err = strconv.Atoi(strings.TrimSpace(CSV[1]))
-				if err != nil {
-					fmt.Println("Recived incorrect discovery unix time CSV value:", err)
-					continue
+			if ne, ok := err.(*net.OpError); ok && ne.Temporary() {
+				if tempDelay == 0 {
+					tempDelay = 5 * time.Millisecond
 				} else {
-					lap.DiscoveryTimePrepared, _ = timeFromUnixMillis(strings.TrimSpace(CSV[1]))
+					tempDelay *= 2
 				}
-				lap.TagID = strings.TrimSpace(CSV[0])
-				lap.Antenna = uint8(antennaPosition)
-
-				// XML data processing
-			} else {
-				// XML data processing
-				// Prepare date
-				//fmt.Println("Received data is valid XML")
-				err := xml.Unmarshal(data, &lap)
-				if err != nil {
-					fmt.Println("xml.Unmarshal ERROR:", err)
-					continue
+				if max := 1 * time.Second; tempDelay > max {
+					tempDelay = max
 				}
-				//fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
-				loc, err := time.LoadLocation(Config.TIME_ZONE)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				xmlTimeFormat := `2006/01/02 15:04:05.000`
-				discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryTime, loc)
-				if err != nil {
-					fmt.Println("time.ParseInLocation ERROR:", err)
-					continue
-				}
-				lap.DiscoveryTimePrepared = discoveryTime
-				// Additional preparing for TagID
-				lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
+				log.Printf("http: Accept error: %v; retrying in %v", err, tempDelay)
+				time.Sleep(tempDelay)
+				continue
 			}
 
-			//Debug all received data from RFID reader
-			fmt.Printf("NEW DATA from IP %s - %s, %d, %d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
-
-			if Config.PROXY_ACTIVE == "true" {
-				go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
-			}
-			// Add current Lap to Laps buffer
-			go addNewLapToLapsBuffer(lap)
+			break
 		}
+		tempDelay = 0
+
+		data := buf[:size]
+		var lap Lap
+		lap.AntennaIP = fmt.Sprintf("%s", conn.RemoteAddr().(*net.TCPAddr).IP)
+		//fmt.Println("IP:", lap.AntennaIP)
+		// CSV data processing
+		if !IsValidXML(data) {
+			//fmt.Println("Received data is not XML, trying CSV text...")
+			//received data of type TEXT (parse TEXT).
+			r := csv.NewReader(bytes.NewReader(data))
+			r.Comma = ','
+			r.FieldsPerRecord = 3
+			CSV, err := r.Read()
+			if err != nil {
+				fmt.Println("Recived incorrect CSV data", err)
+				continue
+			}
+
+			// Prepare antenna position
+			antennaPosition, err := strconv.Atoi(strings.TrimSpace(CSV[2]))
+			if err != nil {
+				fmt.Println("Recived incorrect Antenna position CSV value:", err)
+				continue
+			}
+			_, err = strconv.Atoi(strings.TrimSpace(CSV[1]))
+			if err != nil {
+				fmt.Println("Recived incorrect discovery unix time CSV value:", err)
+				continue
+			} else {
+				lap.DiscoveryTimePrepared, _ = timeFromUnixMillis(strings.TrimSpace(CSV[1]))
+			}
+			lap.TagID = strings.TrimSpace(CSV[0])
+			lap.Antenna = uint8(antennaPosition)
+
+			// XML data processing
+		} else {
+			// XML data processing
+			// Prepare date
+			//fmt.Println("Received data is valid XML")
+			err := xml.Unmarshal(data, &lap)
+			if err != nil {
+				fmt.Println("xml.Unmarshal ERROR:", err)
+				continue
+			}
+			//fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
+			loc, err := time.LoadLocation(Config.TIME_ZONE)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			xmlTimeFormat := `2006/01/02 15:04:05.000`
+			discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryTime, loc)
+			if err != nil {
+				fmt.Println("time.ParseInLocation ERROR:", err)
+				continue
+			}
+			lap.DiscoveryTimePrepared = discoveryTime
+			// Additional preparing for TagID
+			lap.TagID = strings.ReplaceAll(lap.TagID, " ", "")
+		}
+
+		//Debug all received data from RFID reader
+		fmt.Printf("NEW DATA from IP %s - %s, %d, %d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+
+		if Config.PROXY_ACTIVE == "true" {
+			go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+		}
+		// Add current Lap to Laps buffer
+		go addNewLapToLapsBuffer(lap)
 	}
 }

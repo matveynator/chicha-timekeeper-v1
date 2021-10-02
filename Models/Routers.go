@@ -5,7 +5,6 @@ package Models
  */
 
 import (
-	"chicha/Packages/view"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,11 +53,6 @@ func SetupRouter() *gin.Engine {
 		//v1.DELETE("admins/:id", DeleteAdmin)
 		//v1.POST("admins/login", LoginAdmin)
 
-	}
-
-	v := view.New()
-	{
-		r.GET("/", v.Homepage)
 	}
 
 	return r

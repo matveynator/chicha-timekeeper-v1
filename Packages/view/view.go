@@ -2,23 +2,24 @@ package view
 
 import (
 	"embed"
-	"github.com/gin-gonic/gin"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"chicha/Models"
 )
 
 //go:embed templates/*
 var templates embed.FS
 
-type View struct {
-	//box *rice.Box
-}
+type View struct{}
 
 // loadTemplate loads templates embedded
 func loadTemplate() *template.Template {
-	var files = []string{"index.tmpl"}
+	var files = []string{"templates/index.tmpl"}
 
 	t := template.New("")
 
@@ -43,13 +44,26 @@ func loadTemplate() *template.Template {
 }
 
 func New(r *gin.Engine) *View {
-	templates := loadTemplate()
+	v := new(View)
+	r.SetHTMLTemplate(loadTemplate())
 
-	r.SetHTMLTemplate(templates)
+	// endpoints
+	{
+		r.GET("/", v.Homepage)
+	}
 
-	return &View{}
+	return v
 }
 
 func (v *View) Homepage(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.tmpl", nil)
+	laps := new([]Models.Lap)
+	if err := Models.GetAllLaps(laps); err != nil {
+		c.Error(err)
+		log.Println(err)
+		return
+	}
+
+	log.Println("all races: ", laps)
+
+	c.HTML(http.StatusOK, "templates/index.tmpl", laps)
 }

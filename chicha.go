@@ -5,6 +5,7 @@ Work in progress.
 */
 
 import (
+	"chicha/Packages/view"
 	"fmt"
 
 	"gorm.io/driver/postgres" // Gorm Postgres driver package
@@ -71,6 +72,8 @@ func main() {
 
 	// Routing
 	r := Models.SetupRouter()
+	// view
+	view.New(r)
 
 	// Start API server
 	fmt.Println("Starting API server at:", Config.API_SERVER_LISTENER_IP)
