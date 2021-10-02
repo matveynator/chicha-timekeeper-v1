@@ -63,7 +63,5 @@ func (v *View) Homepage(c *gin.Context) {
 		return
 	}
 
-	log.Println("all races: ", laps)
-
 	c.HTML(http.StatusOK, "templates/index.tmpl", laps)
 }
