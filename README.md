@@ -1,6 +1,6 @@
 
 <p align="left">
-    <img property="og:image" src="chicha.jpg" width="75%">
+    <img property="og:image" src="https://repository-images.githubusercontent.com/368199185/536e5897-5dc4-41fc-ba32-66cb4bf55a7b" width="75%">
 </p>
 
 # Chicha - the competition timekeeper (chronograph).
