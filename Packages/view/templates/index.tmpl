@@ -22,8 +22,7 @@
             padding: 1em 2em;
         }
 
-        .events {
-        }
+        .events {}
     </style>
 
     <title>chicha</title>
@@ -38,12 +37,8 @@
         <div class="pure-g">
             <div class="pure-u-1 pure-u-md-2-5">
                 <div class="l-box events">
-                    Номер гонки, Дата
-                    {{range .}}
-                        <div>
-                            <a class="pure-button" href="/race/{{.RaceID}}"> {{.RaceID}} - {{.DiscoveryTime}} </a>
-                        </div>
-                    {{end}}
+                    <h6>Номер гонки, Дата</h6>
+                    <div class="events-wrap"></div>
                 </div>
             </div>
 
@@ -54,13 +49,36 @@
     </section>
 </main>
 
+<template id="buttonrace">
+    <div>
+        <a href="#" class="pure-button"></a>
+    </div>
+</template>
+
 <script>
+    function updateEventList(arr) {
+        console.log(arr)
+
+        const eventsparent = document.querySelector('.events-wrap')
+        eventsparent.innerHTML = ""
+        const template = document.querySelector('#buttonrace')
+
+        arr.forEach((e) => {
+            const clone = template.content.cloneNode(true)
+            const a = clone.querySelector('a')
+            a.href = `/race/${e.id}`
+            a.textContent = `${e.id}: ${e.startDate.toTimeString()}`
+
+            eventsparent.appendChild(clone)
+        })
+    }
+
     const events = [
         {{range .}}
         {
             id: {{.RaceID}},
-            name: 'GOOGLE IO',
-            location: 'Sanfrrancisco',
+            name: 'Название',
+            location: 'Локация',
             startDate: new Date({{.DiscoveryUnixTime}}),
             endDate: new Date({{.DiscoveryUnixTime}}),
         },
@@ -69,8 +87,10 @@
 
     new Calendar(document.querySelector('.calendar'), {
         language: 'ru',
-        dataSource: events
+        dataSource: events,
+        clickDay: (e) => updateEventList(e.events)
     })
+
 </script>
 
 </body>
