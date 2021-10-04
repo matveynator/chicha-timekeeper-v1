@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css"
+          integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/grids-responsive-min.css"/>
+
+    <style>
+        main {
+            padding: 1em 2em;
+        }
+    </style>
+
+    <title>chicha</title>
+</head>
+<body>
+
+<main class="pure-g">
+    <section class="content pure-u-1">
+        <h3>Гонка {{.RaceID}} </h3>
+
+                <h3>Круги:</h3>
+
+                <table class="pure-table pure-table-horizontal">
+                    <thead>
+                    <tr>
+                        <th>TagID</th>
+                        <th>DiscoveryTime</th>
+                        <th>Antenna</th>
+                        <th>AntennaIP</th>
+                        <th>Позиция</th>
+                        <th>TimeBehindTheLeader</th>
+                        <th>Номер круга</th>
+                        <th>LapTime</th>
+                        <th>Позиция в круге</th>
+                        <th>Текущий</th>
+                        <th>LapIsStrange</th>
+                        <th>BestLapTime</th>
+                        <th>BestLapPosition</th>
+                        <th>RaceTotalTime</th>
+                        <th>BetterOrWorseLapTime</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {{range .Laps}}
+                        <tr>
+                            <td>{{.TagID}}</td>
+                            <td>{{.DiscoveryTime}}</td>
+                            <td>{{.Antenna}}</td>
+                            <td>{{.AntennaIP}}</td>
+                            <td>{{.CurrentRacePosition}}</td>
+                            <td>{{.TimeBehindTheLeader}}</td>
+                            <td>{{.LapNumber}}</td>
+                            <td>{{.LapTime}}</td>
+                            <td>{{.LapPosition}}</td>
+                            <td>{{.LapIsCurrent}}</td>
+                            <td>{{.LapIsStrange}}</td>
+                            <td>{{.BestLapTime}}</td>
+                            <td>{{.BestLapPosition}}</td>
+                            <td>{{.RaceTotalTime}}</td>
+                            <td>{{.BetterOrWorseLapTime}}</td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+
+    </section>
+</main>
+
+</body>
+</html>
