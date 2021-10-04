@@ -4,6 +4,7 @@ import (
 	"embed"
 	"html/template"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 
@@ -12,7 +13,7 @@ import (
 	"chicha/Models"
 )
 
-//go:embed templates/*
+//go:embed templates
 var templates embed.FS
 
 type View struct{}
@@ -43,12 +44,23 @@ func loadTemplate() *template.Template {
 	return t
 }
 
+func getFileSystem() http.FileSystem {
+	fsys, err := fs.Sub(templates, "templates/assets")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return http.FS(fsys)
+}
+
 func New(r *gin.Engine) *View {
 	v := new(View)
 	r.SetHTMLTemplate(loadTemplate())
 
 	// endpoints
 	{
+		// static files
+		r.StaticFS("/assets/", getFileSystem())
+
 		r.GET("/", v.Homepage)
 		r.GET("/race/:id", v.RaceView)
 	}
