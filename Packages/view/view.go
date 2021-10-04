@@ -7,7 +7,9 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 
 	"chicha/Models"
@@ -17,9 +19,26 @@ type View struct {
 	static embed.FS
 }
 
+func createMyRender() multitemplate.Renderer {
+	f := template.FuncMap{
+		"timestampRender": timestampRender,
+	}
+
+	r := multitemplate.NewRenderer()
+
+	r.AddFromFilesFuncs("index", f, "static/templates/index.tmpl")
+	r.AddFromFilesFuncs("race", f, "static/templates/race.tmpl", "static/templates/race_table.tmpl")
+	r.AddFromFilesFuncs("race_table", f, "static/templates/race_table.tmpl")
+	return r
+}
+
 // loadTemplate loads templates embedded
 func (v *View) loadTemplate() *template.Template {
-	var files = []string{"static/templates/index.tmpl", "static/templates/race.tmpl"}
+	var files = []string{
+		"static/templates/index.tmpl",
+		"static/templates/race.tmpl",
+		"static/templates/race_table.tmpl",
+	}
 
 	t := template.New("")
 
@@ -43,6 +62,7 @@ func (v *View) loadTemplate() *template.Template {
 	return t
 }
 
+// return fs for serve static files
 func (v *View) getFileSystem() http.FileSystem {
 	fsys, err := fs.Sub(v.static, "static/assets")
 	if err != nil {
@@ -53,7 +73,8 @@ func (v *View) getFileSystem() http.FileSystem {
 
 func New(r *gin.Engine, static embed.FS) *View {
 	v := &View{static: static}
-	r.SetHTMLTemplate(v.loadTemplate())
+	r.HTMLRender = createMyRender()
+	//r.SetHTMLTemplate(v.loadTemplate())
 
 	// endpoints
 	{
@@ -86,24 +107,36 @@ func (v *View) Homepage(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "static/templates/index.tmpl", laps)
+	c.HTML(http.StatusOK, "index", laps)
 }
 
 func (v *View) RaceView(c *gin.Context) {
 	raceID := c.Params.ByName("id")
 	laps := new([]Models.Lap)
 
-	if err := Models.GetAllLapsByRaceId(laps, raceID); err != nil {
+	if err := Models.GetAllResultsByRaceId(laps, raceID); err != nil {
 		c.Error(err)
 		log.Println(err)
 		return
 	}
 
-	c.HTML(http.StatusOK, "static/templates/race.tmpl", struct {
-		RaceID string
-		Laps   *[]Models.Lap
-	}{
-		raceID,
-		laps,
-	})
+	for _, v := range *laps {
+		timestampRender(v.LapTime)
+	}
+
+	reslt := gin.H{
+		"RaceID": raceID,
+		"Laps":   laps,
+	}
+	log.Printf("\n %+v \n", laps)
+
+	if c.Query("updtable") == "true" {
+		c.HTML(http.StatusOK, "race_table", reslt)
+		return
+	}
+	c.HTML(http.StatusOK, "race", reslt)
+}
+
+func timestampRender(ts int64) string {
+	return time.UnixMilli(ts).UTC().Format("15:04:05.000")
 }
