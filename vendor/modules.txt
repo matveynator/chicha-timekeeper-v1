@@ -1,3 +1,6 @@
+# github.com/gin-contrib/multitemplate v0.0.0-20211002122701-e9e3201b87a0
+## explicit; go 1.13
+github.com/gin-contrib/multitemplate
 # github.com/gin-contrib/sse v0.1.0
 ## explicit; go 1.12
 github.com/gin-contrib/sse

@@ -1,52 +1,29 @@
-<main class="pure-g">
-    <section class="content pure-u-1">
-        <h3>Гонка {{.RaceID}} </h3>
+{{define "race_table.tmpl"}}
+<table class="pure-table pure-table-horizontal">
+    <thead>
+    <tr>
+        <th>Pos</th>
+        <th>Competitor</th>
+        <th>Total time</th>
+        <th>Diff</th>
+        <th>Best time</th>
+        <th>Laps</th>
+        <th>Last time</th>
+    </tr>
+    </thead>
 
-                <h3>Круги:</h3>
-
-                <table class="pure-table pure-table-horizontal">
-                    <thead>
-                    <tr>
-                        <th>TagID</th>
-                        <th>DiscoveryTime</th>
-                        <th>Antenna</th>
-                        <th>AntennaIP</th>
-                        <th>Позиция</th>
-                        <th>TimeBehindTheLeader</th>
-                        <th>Номер круга</th>
-                        <th>LapTime</th>
-                        <th>Позиция в круге</th>
-                        <th>Текущий</th>
-                        <th>LapIsStrange</th>
-                        <th>BestLapTime</th>
-                        <th>BestLapPosition</th>
-                        <th>RaceTotalTime</th>
-                        <th>BetterOrWorseLapTime</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {{range .Laps}}
-                        <tr>
-                            <td>{{.TagID}}</td>
-                            <td>{{.DiscoveryTime}}</td>
-                            <td>{{.Antenna}}</td>
-                            <td>{{.AntennaIP}}</td>
-                            <td>{{.CurrentRacePosition}}</td>
-                            <td>{{.TimeBehindTheLeader}}</td>
-                            <td>{{.LapNumber}}</td>
-                            <td>{{.LapTime}}</td>
-                            <td>{{.LapPosition}}</td>
-                            <td>{{.LapIsCurrent}}</td>
-                            <td>{{.LapIsStrange}}</td>
-                            <td>{{.BestLapTime}}</td>
-                            <td>{{.BestLapPosition}}</td>
-                            <td>{{.RaceTotalTime}}</td>
-                            <td>{{.BetterOrWorseLapTime}}</td>
-                        </tr>
-                    {{end}}
-                    </tbody>
-                </table>
-
-    </section>
-</main>
+    <tbody>
+    {{range .Laps}}
+        <tr>
+            <td>{{.CurrentRacePosition}}</td>
+            <td>{{.TagID}}</td>
+            <td>{{timestampRender .RaceTotalTime}}</td>
+            <td>{{timestampRender .BetterOrWorseLapTime}}</td>
+            <td>{{timestampRender .BestLapTime}}</td>
+            <td>{{.LapNumber}}</td>
+            <td>{{timestampRender .TimeBehindTheLeader}}</td>
+        </tr>
+    {{end}}
+    </tbody>
+</table>
+{{end}}
