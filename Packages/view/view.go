@@ -13,19 +13,18 @@ import (
 	"chicha/Models"
 )
 
-//go:embed templates
-var templates embed.FS
-
-type View struct{}
+type View struct {
+	static embed.FS
+}
 
 // loadTemplate loads templates embedded
-func loadTemplate() *template.Template {
-	var files = []string{"templates/index.tmpl", "templates/race.tmpl"}
+func (v *View) loadTemplate() *template.Template {
+	var files = []string{"static/templates/index.tmpl", "static/templates/race.tmpl"}
 
 	t := template.New("")
 
 	for _, filePath := range files {
-		file, err := templates.Open(filePath)
+		file, err := v.static.Open(filePath)
 		if err != nil {
 			log.Panicln("file load error: ", err)
 		}
@@ -44,22 +43,22 @@ func loadTemplate() *template.Template {
 	return t
 }
 
-func getFileSystem() http.FileSystem {
-	fsys, err := fs.Sub(templates, "templates/assets")
+func (v *View) getFileSystem() http.FileSystem {
+	fsys, err := fs.Sub(v.static, "static/assets")
 	if err != nil {
 		log.Fatal(err)
 	}
 	return http.FS(fsys)
 }
 
-func New(r *gin.Engine) *View {
-	v := new(View)
-	r.SetHTMLTemplate(loadTemplate())
+func New(r *gin.Engine, static embed.FS) *View {
+	v := &View{static: static}
+	r.SetHTMLTemplate(v.loadTemplate())
 
 	// endpoints
 	{
 		// static files
-		r.StaticFS("/assets/", getFileSystem())
+		r.StaticFS("/static/assets/", v.getFileSystem())
 
 		r.GET("/", v.Homepage)
 		r.GET("/race/:id", v.RaceView)
@@ -87,7 +86,7 @@ func (v *View) Homepage(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "templates/index.tmpl", laps)
+	c.HTML(http.StatusOK, "static/templates/index.tmpl", laps)
 }
 
 func (v *View) RaceView(c *gin.Context) {
@@ -100,7 +99,7 @@ func (v *View) RaceView(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "templates/race.tmpl", struct {
+	c.HTML(http.StatusOK, "static/templates/race.tmpl", struct {
 		RaceID string
 		Laps   *[]Models.Lap
 	}{
