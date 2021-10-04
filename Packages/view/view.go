@@ -3,7 +3,6 @@ package view
 import (
 	"embed"
 	"html/template"
-	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -19,48 +18,48 @@ type View struct {
 	static embed.FS
 }
 
-func createMyRender() multitemplate.Renderer {
+func (v *View) setupRenderer() multitemplate.Renderer {
 	f := template.FuncMap{
 		"timestampRender": timestampRender,
 	}
 
 	r := multitemplate.NewRenderer()
 
-	r.AddFromFilesFuncs("index", f, "static/templates/index.tmpl")
-	r.AddFromFilesFuncs("race", f, "static/templates/race.tmpl", "static/templates/race_table.tmpl")
-	r.AddFromFilesFuncs("race_table", f, "static/templates/race_table.tmpl")
+	index, _ := v.static.ReadFile("static/templates/index.tmpl")
+	race, _ := v.static.ReadFile("static/templates/race.tmpl")
+	raceTable, _ := v.static.ReadFile("static/templates/race_table.tmpl")
+	raceTableView, _ := v.static.ReadFile("static/templates/race_table_view.tmpl")
+
+	r.AddFromStringsFuncs("index", f, string(index))
+	r.AddFromStringsFuncs("race", f, string(race), string(raceTable))
+	r.AddFromStringsFuncs("race_table_view", f, string(raceTableView), string(raceTable))
+
 	return r
 }
 
-// loadTemplate loads templates embedded
-func (v *View) loadTemplate() *template.Template {
-	var files = []string{
-		"static/templates/index.tmpl",
-		"static/templates/race.tmpl",
-		"static/templates/race_table.tmpl",
-	}
-
-	t := template.New("")
-
-	for _, filePath := range files {
-		file, err := v.static.Open(filePath)
-		if err != nil {
-			log.Panicln("file load error: ", err)
-		}
-
-		h, err := io.ReadAll(file)
-		if err != nil {
-			log.Panicln("file read error:", err)
-		}
-
-		t, err = t.New(filePath).Parse(string(h))
-		if err != nil {
-			log.Panicln("template parce error:", t, err)
-		}
-	}
-
-	return t
-}
+//// loadTemplate loads templates embedded
+//func (v *View) loadTemplate() *template.Template {
+//	t := template.New("")
+//
+//	for _, filePath := range files {
+//		file, err := v.static.Open(filePath)
+//		if err != nil {
+//			log.Panicln("file load error: ", err)
+//		}
+//
+//		h, err := io.ReadAll(file)
+//		if err != nil {
+//			log.Panicln("file read error:", err)
+//		}
+//
+//		t, err = t.New(filePath).Parse(string(h))
+//		if err != nil {
+//			log.Panicln("template parce error:", t, err)
+//		}
+//	}
+//
+//	return t
+//}
 
 // return fs for serve static files
 func (v *View) getFileSystem() http.FileSystem {
@@ -73,8 +72,7 @@ func (v *View) getFileSystem() http.FileSystem {
 
 func New(r *gin.Engine, static embed.FS) *View {
 	v := &View{static: static}
-	r.HTMLRender = createMyRender()
-	//r.SetHTMLTemplate(v.loadTemplate())
+	r.HTMLRender = v.setupRenderer()
 
 	// endpoints
 	{
@@ -130,7 +128,7 @@ func (v *View) RaceView(c *gin.Context) {
 	}
 
 	if c.Query("updtable") == "true" {
-		c.HTML(http.StatusOK, "race_table", reslt)
+		c.HTML(http.StatusOK, "race_table_view", reslt)
 		return
 	}
 	c.HTML(http.StatusOK, "race", reslt)
