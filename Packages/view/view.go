@@ -6,9 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 
 	"chicha/Models"
@@ -76,9 +74,6 @@ func New(r *gin.Engine, static embed.FS) *View {
 
 	// endpoints
 	{
-		// static files
-		r.StaticFS("/static/assets/", v.getFileSystem())
-
 		r.GET("/", v.Homepage)
 		r.GET("/race/:id", v.RaceView)
 	}
@@ -105,14 +100,14 @@ func (v *View) Homepage(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "index", laps)
+	c.HTML(http.StatusOK, "templates/index.tmpl", laps)
 }
 
 func (v *View) RaceView(c *gin.Context) {
 	raceID := c.Params.ByName("id")
 	laps := new([]Models.Lap)
 
-	if err := Models.GetAllResultsByRaceId(laps, raceID); err != nil {
+	if err := Models.GetAllLapsByRaceId(laps, raceID); err != nil {
 		c.Error(err)
 		log.Println(err)
 		return
