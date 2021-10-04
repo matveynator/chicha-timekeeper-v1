@@ -128,7 +128,6 @@ func (v *View) RaceView(c *gin.Context) {
 		"RaceID": raceID,
 		"Laps":   laps,
 	}
-	log.Printf("\n %+v \n", laps)
 
 	if c.Query("updtable") == "true" {
 		c.HTML(http.StatusOK, "race_table", reslt)
