@@ -1,5 +1,6 @@
 .idea
 *.sqlite
+*.sqlite-journal
 downloads
 tmp
 download

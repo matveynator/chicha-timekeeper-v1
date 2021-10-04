@@ -6,6 +6,7 @@ Work in progress.
 
 import (
 	"chicha/Packages/view"
+	"embed"
 	"fmt"
 
 	"gorm.io/driver/postgres" // Gorm Postgres driver package
@@ -20,6 +21,9 @@ import (
 	"chicha/Models" // Our package with database models
 	"chicha/Packages/Config"
 )
+
+//go:embed static
+var static embed.FS
 
 func main() {
 	//profiling CPU: https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz
@@ -73,7 +77,7 @@ func main() {
 	// Routing
 	r := Models.SetupRouter()
 	// view
-	view.New(r)
+	view.New(r, static)
 
 	// Start API server
 	fmt.Println("Starting API server at:", Config.API_SERVER_LISTENER_IP)
