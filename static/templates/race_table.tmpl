@@ -1,0 +1,29 @@
+{{define "race_table.tmpl"}}
+<table class="pure-table pure-table-horizontal">
+    <thead>
+    <tr>
+        <th>Pos</th>
+        <th>Competitor</th>
+        <th>Total time</th>
+        <th>Diff</th>
+        <th>Best time</th>
+        <th>Laps</th>
+        <th>Last time</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {{range .Laps}}
+        <tr>
+            <td>{{.CurrentRacePosition}}</td>
+            <td>{{.TagID}}</td>
+            <td>{{timestampRender .RaceTotalTime}}</td>
+            <td>{{timestampRender .BetterOrWorseLapTime}}</td>
+            <td>{{timestampRender .BestLapTime}}</td>
+            <td>{{.LapNumber}}</td>
+            <td>{{timestampRender .TimeBehindTheLeader}}</td>
+        </tr>
+    {{end}}
+    </tbody>
+</table>
+{{end}}

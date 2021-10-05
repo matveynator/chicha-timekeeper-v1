@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" type="text/css" href="/static/assets/pure-min.css">
+    <link rel="stylesheet" type="text/css" href="/static/assets/grids-responsive-min.css"/>
+
+    {{/*    htmx*/}}
+    <script src="/static/assets/htmx.min.js"></script>
+
+    <style>
+        main {
+            padding: 1em 2em;
+        }
+    </style>
+
+    <title>chicha</title>
+</head>
+<body>
+
+<main class="pure-g">
+    <section class="content pure-u-1">
+        <h3>Race {{.RaceID}} </h3>
+        <div class="parent_table" hx-get="/race/{{.RaceID}}?updtable=true" hx-trigger="every 3s">
+            {{template "race_table.tmpl" .}}
+        </div>
+    </section>
+</main>
+
+</body>
+</html>
