@@ -42,6 +42,7 @@ type Lap struct {
 	LapPosition           uint      `gorm:"index" json:"lap_postition"`
 	LapIsCurrent          int       `gorm:"index" json:"lap_is_current"`
 	LapIsStrange          int       `gorm:"index" json:"lap_is_strange"`
+	StageFinished	      int       `gorm:"index" json:"stage_finished"`
 	BestLapTime           int64     `gorm:"index" json:"best_lap_time"`
 	BestLapPosition       uint      `gorm:"index" json:"best_lap_postition"`
 	RaceTotalTime         int64     `gorm:"index" json:"race_total_time"`
