@@ -1,4 +1,4 @@
-version="0.2-012"
+version="0.2-013"
 git_root_path=`git rev-parse --show-toplevel`
 execution_file=chicha
 cd ${git_root_path}/Scripts
@@ -12,13 +12,13 @@ do
 		[ "$os" == "darwin" ] && target_os_name="mac"
 		
 		mkdir -p ../downloads/${version}/${target_os_name}/${arch}
-		GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go &> /dev/null
+		GOOS=${os} GOARCH=${arch} go build -ldflags "-X chicha/Packages/Config.VERSION=${version}" -o ../downloads/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go &> /dev/null
 		if [ "$?" != "0" ]
 		#if compilation failed - remove folders - else copy config file.
 		then
 		  rm -rf ../downloads/${version}/${target_os_name}/${arch}
 		else
-		  echo "GOOS=${os} GOARCH=${arch} go build -o ../downloads/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go"
+		  echo "GOOS=${os} GOARCH=${arch} go build -ldflags "-X chicha/Packages/Config.VERSION=${version}" -o ../downloads/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go"
 		  cat ../chicha.conf > ../downloads/${version}/${target_os_name}/${arch}/chicha.conf
 		fi
 	done

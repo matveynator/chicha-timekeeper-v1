@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var APP_ANTENNA_LISTENER_IP,API_SERVER_LISTENER_IP,TIME_ZONE,RACE_TIMEOUT_SEC,DB_TYPE,DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,DB_PORT,ADMIN_LOGIN,ADMIN_PASSWORD,MINIMAL_LAP_TIME,LAPS_SAVE_INTERVAL,PROXY_ACTIVE,PROXY_HOST,PROXY_PORT string
+var APP_ANTENNA_LISTENER_IP,API_SERVER_LISTENER_IP,TIME_ZONE,RACE_TIMEOUT_SEC,DB_TYPE,DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,DB_PORT,ADMIN_LOGIN,ADMIN_PASSWORD,MINIMAL_LAP_TIME,LAPS_SAVE_INTERVAL,PROXY_ACTIVE,PROXY_HOST,PROXY_PORT,VERSION string
 
 func init()  {
 	// Init ConfigMap here
@@ -15,6 +15,7 @@ func init()  {
 	// PROXY settings
 	fmt.Println("Welcome to CHICHA, the competition timekeeper (chronograph)!")
 	fmt.Println("https://github.com/matveynator/chicha")
+	fmt.Println("Version:", VERSION)
 	fmt.Println("Loading chicha.conf configuration...")
 	if err := godotenv.Load("chicha.conf"); err != nil {
 		log.Fatal("Configuration file chicha.conf not found", err)
