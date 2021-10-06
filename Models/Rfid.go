@@ -164,35 +164,59 @@ func startSaveLapsBufferToDatabase() {
 				}
 			} else {
 				lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
-			}
+			      }
 
-			//best lap times and :
-			if lap.LapNumber == 0 {
+			      //START: лучшее время и возможные пропуски в учете на воротах RFID (lap.LapIsStrange):
+			      if lap.LapNumber == 0 {
+			      //едем нулевой круг 
 				lap.BestLapTime = lap.LapTime
 				lap.BetterOrWorseLapTime = 0
-				lap.LapIsStrange = 0
-			} else if lap.LapNumber == 1 {
-				lap.BestLapTime = lap.LapTime
-				lap.BetterOrWorseLapTime = 0
-				lap.LapIsStrange = 0
-			} else {
-				previousBestLapTime, _ := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
-				if lap.LapTime > previousBestLapTime {
-					lap.BestLapTime = previousBestLapTime
+				_, err := GetBestLapTimeFromRace(currentlapRaceID)
+				if err == nil {
+				  //если кто то проехал уже 2 круга а мы едем только нулевой
+				  //не нормально - помечаем что круг странный (возможно не считалась метка)
+				  lap.LapIsStrange = 1
 				} else {
-					lap.BestLapTime = lap.LapTime
+				  //нормально - еще нет проехавших второй круг
+				  lap.LapIsStrange = 0
+				}
+			      } else if lap.LapNumber == 1 {
+			      //едем первый полный круг
+				lap.BestLapTime = lap.LapTime
+				lap.BetterOrWorseLapTime = 0
+				//узнаем лучшее время круга у других участников:
+				currentRaceBestLapTime, _ := GetBestLapTimeFromRace(currentlapRaceID)
+				lapIsStrange := int(math.Round(float64(lap.LapTime) / float64(currentRaceBestLapTime)))
+				if lapIsStrange >= 2 {
+                                //если наше время в 2 или более раз долльше лучего времени этого круга у других участников
+				//отметим что круг странный (возможно не считалась метка)
+				  lap.LapIsStrange = 1
+				} else {
+				//нормально - наше время не очень долгое (вероятно правильно считалось)
+				  lap.LapIsStrange = 0
+				}
+			      } else {
+			       //едем второй полный круг и все последующие
+			       //запросим свое предыдущее лучшее время круга:
+				myPreviousBestLapTime, _ := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
+				if lap.LapTime > myPreviousBestLapTime {
+				  lap.BestLapTime = myPreviousBestLapTime
+				} else {
+				  lap.BestLapTime = lap.LapTime
 				}
 				lap.BetterOrWorseLapTime = lap.BestLapTime - lap.LapTime
-				//calculate if lap is 2 3 or more times long (could be not readed by RFID antenna).
 				lapIsStrange := int(math.Round(float64(lap.LapTime) / float64(lap.BestLapTime)))
 				if lapIsStrange >= 2 {
-					lap.LapIsStrange = 1
+				//если наше время в 2 и более раз дольше чем наше лучшее время круга
+				//отметим что круг странный (метка возможно просто не считалась)
+				  lap.LapIsStrange = 1
 				} else {
-					lap.LapIsStrange = 0
+				  lap.LapIsStrange = 0
 				}
-			}
+			      }
+			      //END: лучшее время и возможные пропуски в учете на воротах RFID (lap.LapIsStrange):
 
-			err := DB.Create(&lap).Error
+			      err := DB.Create(&lap).Error
 			if err != nil {
 				fmt.Println("Error. Lap not added to database", err)
 			} else {

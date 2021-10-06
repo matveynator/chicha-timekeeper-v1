@@ -188,22 +188,22 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
   return
 }
 
-//best personal lap time
-func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64, err error) {
+//best lap time
+func GetBestLapTimeFromRace(raceID uint) (bestLapTime int64, err error) {
   var lap Lap
-  err = DB.Table("laps").Where("tag_id = ?", tagID).Where("race_id = ?", raceID).Where("lap_number != ?" , 0).Order("lap_time asc").First(&lap).Error 
+  err = DB.Table("laps").Where("race_id = ?", raceID).Where("lap_number != ?" , 0).Order("lap_time asc").First(&lap).Error
   if err == nil {
     bestLapTime = lap.LapTime
   }
   return
 }
 
-//best race lap time
-func GetBestLapTimeFromRace(raceID uint) (bestLapTime int64, err error) {
-  var lapStructCopy Lap
-  err = DB.Table("laps").Where("race_id = ?", raceID).Where("lap_number != ?" , 0).Order("lap_time asc").First(&lapStructCopy).Error 
+//best personal lap time
+func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64, err error) {
+  var lap Lap
+  err = DB.Table("laps").Where("tag_id = ?", tagID).Where("race_id = ?", raceID).Where("lap_number != ?" , 0).Order("lap_time asc").First(&lap).Error 
   if err == nil {
-    bestLapTime = lapStructCopy.LapTime
+    bestLapTime = lap.LapTime
   }
   return
 }
