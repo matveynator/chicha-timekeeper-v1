@@ -21,6 +21,7 @@ type View struct {
 func (v *View) setupRenderer() multitemplate.Renderer {
 	f := template.FuncMap{
 		"timestampRender": timestampRender,
+		"millisRender": millisRender,
 	}
 
 	r := multitemplate.NewRenderer()
@@ -137,3 +138,8 @@ func (v *View) RaceView(c *gin.Context) {
 func timestampRender(ts int64) string {
 	return time.UnixMilli(ts).UTC().Format("15:04:05.000")
 }
+
+func millisRender(ts int64) float64 {
+        return float64(ts)/1000
+}
+
