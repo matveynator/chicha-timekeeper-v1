@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -139,8 +140,14 @@ func timestampRender(ts int64) string {
 	return time.UnixMilli(ts).UTC().Format("15:04:05.000")
 }
 
-func millisDurationRender(ts int64) time.Duration {
+func millisDurationRender(ts int64) string {
         //return float64(ts)/1000
-	return time.Duration(ts) * time.Millisecond
+	//return time.Duration(ts) * time.Millisecond
+	duration := time.Duration(ts) * time.Millisecond
+	if ts > 0 {
+		return fmt.Sprintf("+%s", duration.String())
+	} else {
+		return duration.String()
+	}
 }
 
