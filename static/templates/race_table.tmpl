@@ -17,11 +17,11 @@
     {{range .Laps}}
         <tr>
             <td>{{.CurrentRacePosition}}</td>
-	    <td>{{timestampRender .RaceTotalTime}} ( +{{millisRender .TimeBehindTheLeader}} )</td>
+	    <td>{{timestampRender .RaceTotalTime}} ( +{{millisDurationRender .TimeBehindTheLeader}} )</td>
             <td>{{.LapNumber}}</td>
             <td>{{.TagID}}</td>
             <td>( #{{.BestLapPosition}} ) {{timestampRender .BestLapTime}}</td>
-	    <td>{{timestampRender .LapTime}} ( {{millisRender .BetterOrWorseLapTime}} )</td>
+	    <td>{{timestampRender .LapTime}} ( {{millisDurationRender .BetterOrWorseLapTime}} )</td>
             <td>{{.StageFinished}}</td>
             <td>{{.LapIsStrange}}</td>
         </tr>
