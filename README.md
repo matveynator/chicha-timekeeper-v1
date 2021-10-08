@@ -1,12 +1,14 @@
 
+# Chicha - the competition timekeeper (chronograph).
+
+Free chronograf for runners, bycicles, motorcycles, carts, cars, trucks, atv and other types of race competitions. 
+UHF-RFID compatible.
+
 <p align="left">
     <img property="og:image" src="https://repository-images.githubusercontent.com/368199185/536e5897-5dc4-41fc-ba32-66cb4bf55a7b" width="75%">
 </p>
 
-# Chicha - the competition timekeeper (chronograph).
-
-Free chronograf for runners, bycicles, motorcycles, carts, cars, trucks, atv and other types of race competitions. 
-UHF-RFID compatible. 
+## Demo: http://chicha.naikomextreme.ru
 
 
 Бесплатная программа хронометража для любого трека на базе UHF-RFID 860-960 MHz. 
