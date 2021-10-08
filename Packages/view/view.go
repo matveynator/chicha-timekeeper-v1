@@ -2,10 +2,10 @@ package view
 
 import (
 	"embed"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,7 +21,7 @@ type View struct {
 
 func (v *View) setupRenderer() multitemplate.Renderer {
 	f := template.FuncMap{
-		"timestampRender": timestampRender,
+		"timestampRender":      timestampRender,
 		"millisDurationRender": millisDurationRender,
 	}
 
@@ -38,30 +38,6 @@ func (v *View) setupRenderer() multitemplate.Renderer {
 
 	return r
 }
-
-//// loadTemplate loads templates embedded
-//func (v *View) loadTemplate() *template.Template {
-//	t := template.New("")
-//
-//	for _, filePath := range files {
-//		file, err := v.static.Open(filePath)
-//		if err != nil {
-//			log.Panicln("file load error: ", err)
-//		}
-//
-//		h, err := io.ReadAll(file)
-//		if err != nil {
-//			log.Panicln("file read error:", err)
-//		}
-//
-//		t, err = t.New(filePath).Parse(string(h))
-//		if err != nil {
-//			log.Panicln("template parce error:", t, err)
-//		}
-//	}
-//
-//	return t
-//}
 
 // return fs for serve static files
 func (v *View) getFileSystem() http.FileSystem {
@@ -141,7 +117,7 @@ func timestampRender(ts int64) string {
 }
 
 func millisDurationRender(ts int64) string {
-        //return float64(ts)/1000
+	//return float64(ts)/1000
 	//return time.Duration(ts) * time.Millisecond
 	duration := time.Duration(ts) * time.Millisecond
 	if ts > 0 {
@@ -150,4 +126,3 @@ func millisDurationRender(ts int64) string {
 		return duration.String()
 	}
 }
-
