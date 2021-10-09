@@ -1,11 +1,12 @@
 package view
 
 import (
+	"chicha/Packages/view/sse"
 	"embed"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,7 +22,7 @@ type View struct {
 
 func (v *View) setupRenderer() multitemplate.Renderer {
 	f := template.FuncMap{
-		"timestampRender": timestampRender,
+		"timestampRender":      timestampRender,
 		"millisDurationRender": millisDurationRender,
 	}
 
@@ -39,30 +40,6 @@ func (v *View) setupRenderer() multitemplate.Renderer {
 	return r
 }
 
-//// loadTemplate loads templates embedded
-//func (v *View) loadTemplate() *template.Template {
-//	t := template.New("")
-//
-//	for _, filePath := range files {
-//		file, err := v.static.Open(filePath)
-//		if err != nil {
-//			log.Panicln("file load error: ", err)
-//		}
-//
-//		h, err := io.ReadAll(file)
-//		if err != nil {
-//			log.Panicln("file read error:", err)
-//		}
-//
-//		t, err = t.New(filePath).Parse(string(h))
-//		if err != nil {
-//			log.Panicln("template parce error:", t, err)
-//		}
-//	}
-//
-//	return t
-//}
-
 // return fs for serve static files
 func (v *View) getFileSystem() http.FileSystem {
 	fsys, err := fs.Sub(v.static, "static/assets")
@@ -72,7 +49,7 @@ func (v *View) getFileSystem() http.FileSystem {
 	return http.FS(fsys)
 }
 
-func New(r *gin.Engine, static embed.FS) *View {
+func New(r *gin.Engine, static embed.FS, ch <-chan struct{}) *View {
 	v := &View{static: static}
 	r.HTMLRender = v.setupRenderer()
 
@@ -83,6 +60,10 @@ func New(r *gin.Engine, static embed.FS) *View {
 
 		r.GET("/", v.Homepage)
 		r.GET("/race/:id", v.RaceView)
+
+		rStream := r.Group("/race-stream")
+		sse.Setup(rStream, ch)
+
 	}
 
 	return v
@@ -91,14 +72,16 @@ func New(r *gin.Engine, static embed.FS) *View {
 func (v *View) Homepage(c *gin.Context) {
 	laps := new([]Models.Lap)
 
-	//sqlsr
+	//language=SQL
 	s := `
-		SELECT 
-		       race_id, 
-		       MIN(discovery_unix_time) as discovery_unix_time, 
-		       MIN(discovery_time) as discovery_time
-		FROM laps 
+		SELECT
+			race_id, 
+		    MIN(discovery_unix_time) as discovery_unix_time, 
+		    MIN(discovery_time) as discovery_time,
+			MAX(lap_is_current) as lap_is_current
+		FROM laps
 		GROUP BY race_id
+		ORDER BY race_id
 	`
 
 	if err := Models.DB.Raw(s).Find(laps).Error; err != nil {
@@ -107,7 +90,10 @@ func (v *View) Homepage(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "index", laps)
+	c.HTML(http.StatusOK, "index", gin.H{
+		"currentRace": (*laps)[len(*laps)-1],
+		"raceList":    laps,
+	})
 }
 
 func (v *View) RaceView(c *gin.Context) {
@@ -141,7 +127,7 @@ func timestampRender(ts int64) string {
 }
 
 func millisDurationRender(ts int64) string {
-        //return float64(ts)/1000
+	//return float64(ts)/1000
 	//return time.Duration(ts) * time.Millisecond
 	duration := time.Duration(ts) * time.Millisecond
 	if ts > 0 {
@@ -150,4 +136,3 @@ func millisDurationRender(ts int64) string {
 		return duration.String()
 	}
 }
-

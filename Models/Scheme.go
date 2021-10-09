@@ -42,7 +42,7 @@ type Lap struct {
 	LapPosition           uint      `gorm:"index" json:"lap_postition"`
 	LapIsCurrent          int       `gorm:"index" json:"lap_is_current"`
 	LapIsStrange          int       `gorm:"index" json:"lap_is_strange"`
-	StageFinished	      int       `gorm:"index" json:"stage_finished"`
+	StageFinished         int       `gorm:"index" json:"stage_finished"`
 	BestLapTime           int64     `gorm:"index" json:"best_lap_time"`
 	BestLapPosition       uint      `gorm:"index" json:"best_lap_postition"`
 	RaceTotalTime         int64     `gorm:"index" json:"race_total_time"`
@@ -82,8 +82,8 @@ type Checkin struct {
 type Admin struct {
 	//gorm.Model
 	ID        uint      `gorm:"primaryKey"`
-	Login     string    `gorm:varchar(100);index" json:"login"`
-	Password  string    `gorm:varchar(100);index" json:"login"`
+	Login     string    `gorm:"varchar(100);index" json:"login"`
+	Password  string    `gorm:"varchar(100);index" json:"password"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

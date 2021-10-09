@@ -70,6 +70,9 @@ func main() {
 	//	Models.CreateDefaultAdmin(Config.ADMIN_LOGIN, adminPass)
 	//}
 
+	updCh := make(chan struct{}, 1)
+	Models.UpdateChan = updCh
+
 	// Start RFID listener
 	go Models.StartAntennaListener()
 	fmt.Println("Started RFID data listener at", Config.APP_ANTENNA_LISTENER_IP, "with laps save interval =", Config.LAPS_SAVE_INTERVAL, "and lap minimal duration =", Config.MINIMAL_LAP_TIME, "seconds")
@@ -77,7 +80,7 @@ func main() {
 	// Routing
 	r := Models.SetupRouter()
 	// view
-	view.New(r, static)
+	view.New(r, static, updCh)
 
 	// Start API server
 	fmt.Println("Starting API server at:", Config.API_SERVER_LISTENER_IP)
