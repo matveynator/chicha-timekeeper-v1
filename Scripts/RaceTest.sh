@@ -5,10 +5,11 @@
 ##################################################
 port=4000
 host=localhost
-competitors=10
-laps=10
+competitors=10 #riders
+results=10 #results from one rider
+laps=5 #laps
 minimal_lap_time_sec=60
-xml=1   #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
+xml=1  #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
 random=1 #0 = 1 2 3 4 5; #1 = 4 1 2 3 5
 ##################################################
 
@@ -28,7 +29,7 @@ fi
 
 test
 function cleanup () {
-  rm -rf "${newtmpdir}"
+	rm -rf "${newtmpdir}"
 }
 
 trap 'cleanup' EXIT
@@ -36,63 +37,77 @@ trap 'cleanup' SIGTERM
 
 
 function raceXML() {
-for lap in `seq 1 ${laps}`;
-do
-[ "${lap}" != "1" ] && echo
-echo "LAP #${lap}"
+	for lap in `seq 1 ${laps}`;
+	do
+		[ "${lap}" != "1" ] && echo
+		echo "LAP #${lap}"
 
-for racer in `seq 1 ${competitors}`;
-do
+		for racer in `seq 1 ${competitors}`;
+		do
 
-if [ "$random" == "1" ]
- then
-	racer=$((RANDOM % ${competitors}))
-fi
+			#random race id:
+      if [ "$random" == "1" ]
+      then
+        racer=$((RANDOM % ${competitors}))
+      fi
 
-antenna=$((RANDOM % 4))
-sleep_time=$((RANDOM % 10))
+			#random ammount of data from antenna
+			if [ "$random" == "1" ]
+			then
+				iterations=$((RANDOM % ${results}))
+			else
+				iterations=${results}
+			fi
 
-if [ "${os}" == "Linux" ]
-then
-	time=`date +"%Y/%m/%d %T.%3N"`
-	unixtime=`date +%s%3N`
-elif [ "${os}" == "Darwin" ]
-then
-  time=`date +"%Y/%m/%d %T.000"`
-  unixtime=`date +%s000`
-else
-  time=`date +"%Y/%m/%d %T.%3N"`
-  unixtime=`date +%s%3N`
-fi
+			for result in `seq 1 ${iterations}`;
+			do
 
-if [ "${xml}" == "1" ]
-then
-cat > ${spool}  <<EOF
+				antenna=$((RANDOM % 4))
+				sleep_time=$((RANDOM % 10))
+
+				if [ "${os}" == "Linux" ]
+				then
+					time=`date +"%Y/%m/%d %T.%3N"`
+					unixtime=`date +%s%3N`
+				elif [ "${os}" == "Darwin" ]
+				then
+					time=`date +"%Y/%m/%d %T.000"`
+					unixtime=`date +%s000`
+				else
+					time=`date +"%Y/%m/%d %T.%3N"`
+					unixtime=`date +%s%3N`
+				fi
+
+				if [ "${xml}" == "1" ]
+				then
+					cat > ${spool}  <<EOF
 <Alien-RFID-Tag>
-  <TagID>1000 0802 0200 0001 0000 079${racer}</TagID>
-  <DiscoveryTime>${time}</DiscoveryTime>
-  <LastSeenTime>${time}</LastSeenTime>
-  <Antenna>${antenna}</Antenna>
-  <ReadCount>1</ReadCount>
-  <Protocol>2</Protocol>
+	<TagID>1000 0802 0200 0001 0000 079${racer}</TagID>
+	<DiscoveryTime>${time}</DiscoveryTime>
+	<LastSeenTime>${time}</LastSeenTime>
+	<Antenna>${antenna}</Antenna>
+	<ReadCount>1</ReadCount>
+	<Protocol>2</Protocol>
 </Alien-RFID-Tag>
 EOF
 else
-echo "10000802020000010000079${racer}, ${unixtime}, ${antenna}" > ${spool}
-fi
+	echo "10000802020000010000079${racer}, ${unixtime}, ${antenna}" > ${spool}
+				fi
 
-[ "${racer}" != "1" ] && echo
-cat ${spool}
-cat ${spool} | nc ${netcat_args} ${host} ${port}
+				#[ "${racer}" != "1" ] 
+				cat ${spool}
+				cat ${spool} | nc ${netcat_args} ${host} ${port}
+			done
 
+			[ "${racer}" != "${competitors}" ] && read -p "Next rider in ${sleep_time} seconds...." -t ${sleep_time}
 
-[ "${racer}" != "${competitors}" ] && read -p "Next rider in ${sleep_time} seconds...." -t ${sleep_time}
+		done
 
-done
+		[ "${lap}" != "${laps}" ] && echo ""; echo ""; read -p  "Next lap in ${minimal_lap_time_sec} seconds..." -t ${minimal_lap_time_sec}
 
-[ "${lap}" != "${laps}" ] && read -p  "Next lap in ${minimal_lap_time_sec} seconds..." -t ${minimal_lap_time_sec}
-
-done
+	done
+	echo ""
+	echo "${cmdname} finished."
 }
 
 raceXML
