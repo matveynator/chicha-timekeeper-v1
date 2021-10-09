@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Get laps by race ID
@@ -308,5 +310,12 @@ func SaveLap(u *Lap) (err error) {
 
 func DeleteOneLap(u *Lap, lap_id string) (err error) {
 	DB.Where("id = ?", lap_id).Delete(u)
+	return nil
+}
+
+var UpdateChan chan struct{}
+
+func (u *Lap) AfterCreate(tx *gorm.DB) error {
+	UpdateChan <- struct{}{}
 	return nil
 }

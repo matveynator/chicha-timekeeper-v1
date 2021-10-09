@@ -1,6 +1,7 @@
 package view
 
 import (
+	"chicha/Packages/view/sse"
 	"embed"
 	"fmt"
 	"html/template"
@@ -48,7 +49,7 @@ func (v *View) getFileSystem() http.FileSystem {
 	return http.FS(fsys)
 }
 
-func New(r *gin.Engine, static embed.FS) *View {
+func New(r *gin.Engine, static embed.FS, ch <-chan struct{}) *View {
 	v := &View{static: static}
 	r.HTMLRender = v.setupRenderer()
 
@@ -59,6 +60,10 @@ func New(r *gin.Engine, static embed.FS) *View {
 
 		r.GET("/", v.Homepage)
 		r.GET("/race/:id", v.RaceView)
+
+		rStream := r.Group("/race-stream")
+		sse.Setup(rStream, ch)
+
 	}
 
 	return v
