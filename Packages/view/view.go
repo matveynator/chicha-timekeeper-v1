@@ -67,14 +67,16 @@ func New(r *gin.Engine, static embed.FS) *View {
 func (v *View) Homepage(c *gin.Context) {
 	laps := new([]Models.Lap)
 
-	//sqlsr
+	//language=SQL
 	s := `
-		SELECT 
-		       race_id, 
-		       MIN(discovery_unix_time) as discovery_unix_time, 
-		       MIN(discovery_time) as discovery_time
-		FROM laps 
+		SELECT
+			race_id, 
+		    MIN(discovery_unix_time) as discovery_unix_time, 
+		    MIN(discovery_time) as discovery_time,
+			MAX(lap_is_current) as lap_is_current
+		FROM laps
 		GROUP BY race_id
+		ORDER BY race_id
 	`
 
 	if err := Models.DB.Raw(s).Find(laps).Error; err != nil {
@@ -83,7 +85,10 @@ func (v *View) Homepage(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "index", laps)
+	c.HTML(http.StatusOK, "index", gin.H{
+		"currentRace": (*laps)[len(*laps)-1],
+		"raceList":    laps,
+	})
 }
 
 func (v *View) RaceView(c *gin.Context) {
