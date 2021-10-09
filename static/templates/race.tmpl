@@ -25,6 +25,7 @@
 <main class="pure-g">
     <section class="content pure-u-1">
         <h3>Race {{.RaceID}} </h3>
+        <a href="/" class="pure-button pure-button-primary"><< Back</a>
         <div class="parent_table" hx-get="/race/{{.RaceID}}?updtable=true" hx-trigger="every 3s">
             {{template "race_table.tmpl" .}}
         </div>
