@@ -16,7 +16,7 @@ func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
 // Get results by race ID
 func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
 	race_id_int, _ := strconv.ParseInt(race_id_string, 10, 64)
-	result := DB.Where("race_id = ?", race_id_int).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Find(u)
+	result := DB.Where("race_id = ?", race_id_int).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(u)
 	return result.Error
 }
 
@@ -57,7 +57,7 @@ func UpdateCurrentStartPositionsByRaceId(race_id uint) (err error) {
 // Update current results by race ID
 func UpdateCurrentResultsByRaceId(race_id uint) (err error) {
 	var laps []Lap
-	err = DB.Where("race_id = ?", race_id).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Find(&laps).Error
+	err = DB.Where("race_id = ?", race_id).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(&laps).Error
 	if err == nil {
 		var position uint = 1
 		var LeaderDiscoveryUnixTime int64
@@ -83,10 +83,10 @@ func UpdateCurrentResultsByRaceId(race_id uint) (err error) {
 //Print Current Results
 func PrintCurrentResultsByRaceId(race_id uint) (err error) {
 	var laps []Lap
-	err = DB.Where("race_id = ?", race_id).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Find(&laps).Error
+	err = DB.Where("race_id = ?", race_id).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(&laps).Error
 	if err == nil {
 		for _, lap := range laps {
-			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, finish?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
+			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
 		}
 	}
 	return
