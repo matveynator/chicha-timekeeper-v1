@@ -1,7 +1,7 @@
 {{define "race_table.tmpl"}}
-<table class="pure-table pure-table-horizontal">
+<table class="pure-table pure-table-bordered">
 <thead>
-<tr>
+<tr class="table-header">
 <th>Pos #</th>
 <th>Competitor</th>
 <th>Lap #</th>
@@ -16,16 +16,22 @@
 
 <tbody>
 {{range .Laps}}
-<tr>
-<td align="center">{{.CurrentRacePosition}}</td>
-<td>{{.TagID}}</td>
-<td align="center">{{.LapNumber}}</td>
-<td>{{timestampRender .RaceTotalTime}} ( {{millisDurationRender .TimeBehindTheLeader}} )</td>
-<td>{{timestampRender .LapTime}} ( {{millisDurationRender .BetterOrWorseLapTime}} )</td>
-<td>{{timestampRender .BestLapTime}}</td>
-<td align="center">{{.BestLapPosition}}</td>
-<td align="center">{{.StageFinished}}</td>
-<td align="center">{{.LapIsStrange}}</td>
+<tr id="{{.Lap.TagID}}" class="{{.Style}}">
+<td align="center">{{.Lap.CurrentRacePosition}}</td>
+<td>{{.Lap.TagID}}</td>
+<td align="center">{{.Lap.LapNumber}}</td>
+<td>
+	<div>{{timestampRender .Lap.RaceTotalTime}}</div>
+	<div>( {{millisDurationRender .Lap.TimeBehindTheLeader}} )</div>
+</td>
+<td>
+	<div>{{timestampRender .Lap.LapTime}}</div>
+	<div>( {{millisDurationRender .Lap.BetterOrWorseLapTime}} )</div>
+</td>
+<td>{{timestampRender .Lap.BestLapTime}}</td>
+<td align="center">{{.Lap.BestLapPosition}}</td>
+<td align="center">{{.Lap.StageFinished}}</td>
+<td align="center">{{.Lap.LapIsStrange}}</td>
 </tr>
 {{end}}
 </tbody>
