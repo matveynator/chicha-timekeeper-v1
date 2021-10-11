@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -71,17 +70,17 @@ func New(r *gin.Engine, static embed.FS, ch <-chan struct{}) *View {
 
 func (v *View) Homepage(c *gin.Context) {
 	laps := new([]Models.Lap)
-
+	lap := new(Models.Lap)
 	//language=SQL
 	s := `
-		SELECT
-			race_id, 
-		    MIN(discovery_unix_time) as discovery_unix_time, 
-		    MIN(discovery_time) as discovery_time,
-			MAX(lap_is_current) as lap_is_current
-		FROM laps
-		GROUP BY race_id
-		ORDER BY race_id
+	SELECT
+	race_id, 
+	MIN(discovery_unix_time) as discovery_unix_time, 
+	MIN(discovery_time) as discovery_time,
+	MAX(lap_is_current) as lap_is_current
+	FROM laps
+	GROUP BY race_id
+	ORDER BY race_id desc
 	`
 
 	if err := Models.DB.Raw(s).Find(laps).Error; err != nil {
@@ -89,9 +88,14 @@ func (v *View) Homepage(c *gin.Context) {
 		log.Println(err)
 		return
 	}
+	if err := Models.DB.Raw(s).First(lap).Error; err != nil {
+		c.Error(err)
+		log.Println(err)
+		return
+	}
 
 	c.HTML(http.StatusOK, "index", gin.H{
-		"currentRace": (*laps)[len(*laps)-1],
+		"currentRace": lap,
 		"raceList":    laps,
 	})
 }
@@ -124,12 +128,14 @@ func (v *View) RaceView(c *gin.Context) {
 	var sLaps []gin.H
 	for _, v := range *laps {
 
-		d := rand.Intn(20)
+		//d := rand.Intn(20)
 		var stl string
-		if d >= 10 {
-			stl = "red"
-		} else {
-			stl = "blue"
+		if v.BetterOrWorseLapTime > 0 {
+			stl = "orange"
+		} else if v.BetterOrWorseLapTime < 0 {
+			stl = "green"
+		} else if v.BestLapPosition == 1 {
+			stl = "violet"
 		}
 
 		sLaps = append(sLaps, gin.H{
