@@ -6,10 +6,10 @@
 port=4000
 host=localhost
 competitors=10 #riders
-results=10 #results from one rider
+results=30 #results from one rider
 laps=5 #laps
 minimal_lap_time_sec=60
-xml=1  #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
+xml=0  #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
 random=1 #0 = 1 2 3 4 5; #1 = 4 1 2 3 5
 ##################################################
 
