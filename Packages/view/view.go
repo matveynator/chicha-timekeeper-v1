@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -63,7 +64,6 @@ func New(r *gin.Engine, static embed.FS, ch <-chan struct{}) *View {
 
 		rStream := r.Group("/race-stream")
 		sse.Setup(rStream, ch)
-
 	}
 
 	return v
@@ -106,13 +106,41 @@ func (v *View) RaceView(c *gin.Context) {
 		return
 	}
 
+	// if leader race_total_time by race_id
+	// gold
+	//Models.GetLeaderRaceTotalTimeByRaceIdAndLapNumber()
+
+	// if better then prev
+	// green
+
+	// if worse then prev
+	// orange
+
+	// if best current lap
+	// purple
+
+	//Models.
+
+	var sLaps []gin.H
 	for _, v := range *laps {
-		timestampRender(v.LapTime)
+
+		d := rand.Intn(20)
+		var stl string
+		if d >= 10 {
+			stl = "red"
+		} else {
+			stl = "blue"
+		}
+
+		sLaps = append(sLaps, gin.H{
+			"Lap":   v,
+			"Style": stl,
+		})
 	}
 
 	reslt := gin.H{
 		"RaceID": raceID,
-		"Laps":   laps,
+		"Laps":   sLaps,
 	}
 
 	if c.Query("updtable") == "true" {

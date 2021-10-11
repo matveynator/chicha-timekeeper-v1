@@ -1,45 +1,62 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta charset="UTF-8">
+	<meta name="viewport"
+				content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <link rel="stylesheet" type="text/css" href="/static/assets/pure-min.css">
-    <link rel="stylesheet" type="text/css" href="/static/assets/grids-responsive-min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/assets/pure-min.css">
+	<link rel="stylesheet" type="text/css" href="/static/assets/grids-responsive-min.css"/>
 
-    {{/*    htmx*/}}
-    <script src="/static/assets/htmx.min.js"></script>
+	<script src="/static/assets/htmx.min.js"></script>
 
-    <style>
-        main {
-            padding: 1em 2em;
-        }
-    </style>
+	<script>
+		htmx.logAll()
+	</script>
 
-    <title>chicha</title>
+	<style>
+		main {
+			padding: 1em 2em;
+		}
+
+		.table-header th {
+			writing-mode: vertical-rl;
+			vertical-align: middle;
+		}
+
+		.red {
+			background-color: red;
+			transition: all ease-in 5s;
+		}
+
+		.blue {
+			background-color: blue;
+			transition: all ease-in 5s;
+		}
+
+	</style>
+
+	<title>chicha</title>
 </head>
 <body>
 
 <main class="pure-g">
-    <section class="content pure-u-1">
-        <a href="/" class="pure-button pure-button-primary"><< Back</a>
-    </section>
+	<section class="content pure-u-1">
+		<a href="/" class="pure-button pure-button-primary"><< Back</a>
+		<a
+			hx-get="/race/{{.RaceID}}?updtable=true"
+			hx-target=".parent_table"
+			class="pure-button pure-button-primary"
+		>Update</a>
+	</section>
 
-    {{/*    <section class="content pure-u-1">*/}}
-    {{/*        <h3>Race {{.RaceID}} </h3>*/}}
-    {{/*        <div class="parent_table" hx-get="/race/{{.RaceID}}?updtable=true" hx-trigger="every 5s">*/}}
-    {{/*            {{template "race_table.tmpl" .}}*/}}
-    {{/*        </div>*/}}
-    {{/*    </section>*/}}
-
-    <section hx-sse="connect:/race-stream/{{.RaceID}}" class="content pure-u-1">
-        <h3>Race {{.RaceID}} </h3>
-        <div class="parent_table" hx-get="/race/{{.RaceID}}?updtable=true" hx-trigger="sse:update">
-            {{template "race_table.tmpl" .}}
-        </div>
-    </section>
+	<section hx-sse="connect:/race-stream/{{.RaceID}}" class="content pure-u-1">
+		<h3>Race {{.RaceID}} </h3>
+		<div class="parent_table" hx-get="/race/{{.RaceID}}?updtable=true" hx-trigger="sse:update">
+        {{template "race_table.tmpl" .}}
+		</div>
+	</section>
 </main>
 
 </body>

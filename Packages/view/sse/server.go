@@ -1,88 +1,99 @@
 package sse
 
 import (
+	"io"
 	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
-// ClientChan New event messages are broadcast to all registered client connection channels
-type ClientChan chan string
-
-// Event It keeps a list of clients those are currently attached
+// Broker It keeps a list of clients those are currently attached
 //and broadcasting events to those clients.
-type Event struct {
+type Broker struct {
 	// Events are pushed to this channel by the main events-gathering routine
-	Message chan string
+	Notifier <-chan struct{}
 
 	// New client connections
-	NewClients chan chan string
+	newClients chan chan struct{}
 
 	// Closed client connections
-	ClosedClients chan chan string
+	closingClients chan chan struct{}
 
 	// Total client connections
-	TotalClients map[chan string]bool
+	clients map[chan struct{}]struct{}
 }
 
 // NewServer Initialize event and Start procnteessing requests
-func NewServer() (event *Event) {
+func NewServer() (b *Broker) {
 
-	event = &Event{
-		Message:       make(chan string),
-		NewClients:    make(chan chan string),
-		ClosedClients: make(chan chan string),
-		TotalClients:  make(map[chan string]bool),
+	b = &Broker{
+		newClients:     make(chan chan struct{}),
+		closingClients: make(chan chan struct{}),
+		clients:        make(map[chan struct{}]struct{}),
 	}
 
-	go event.listen()
+	go b.listen()
 
 	return
 }
 
 //It Listens all incoming requests from clients.
 //Handles addition and removal of clients and broadcast messages to clients.
-func (stream *Event) listen() {
+func (b *Broker) listen() {
 	for {
 		select {
-		// Add new available client
-		case client := <-stream.NewClients:
-			stream.TotalClients[client] = true
-			log.Printf("SSE Client added. %d registered clients", len(stream.TotalClients))
+		case client := <-b.newClients:
+			// Add new available client
+			b.clients[client] = struct{}{}
+			log.Printf("SSE Client added. %d registered clients", len(b.clients))
 
-		// Remove closed client
-		case client := <-stream.ClosedClients:
-			delete(stream.TotalClients, client)
-			log.Printf("SSE Removed client. %d registered clients", len(stream.TotalClients))
+		case client := <-b.closingClients:
+			// Remove closed client
+			delete(b.clients, client)
+			log.Printf("SSE Removed client. %d registered clients", len(b.clients))
 
-		// Broadcast message to client
-		case eventMsg := <-stream.Message:
-			for clientMessageChan := range stream.TotalClients {
+		case eventMsg := <-b.Notifier:
+			// Broadcast message to client
+			for clientMessageChan := range b.clients {
 				clientMessageChan <- eventMsg
 			}
 		}
 	}
 }
 
-func (stream *Event) serveHTTP() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Initialize client channel
-		clientChan := make(ClientChan)
+func (b *Broker) serveHTTP(c *gin.Context) {
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("Transfer-Encoding", "chunked")
 
-		// Send new connection to event server
-		stream.NewClients <- clientChan
+	// Initialize client channel
+	messageChan := make(chan struct{})
 
-		defer func() {
-			// Send closed connection to event server
-			stream.ClosedClients <- clientChan
-		}()
+	// Send new connection to event server
+	b.newClients <- messageChan
 
-		go func() {
-			// Send connection that is closed by client to event server
-			<-c.Done()
-			stream.ClosedClients <- clientChan
-		}()
+	defer func() {
+		b.closingClients <- messageChan
+	}()
 
-		c.Next()
-	}
+	notify := c.Request.Context().Done()
+	go func() {
+		<-notify
+		b.closingClients <- messageChan
+	}()
+
+	defer func() {
+		// Send closed connection to event server
+		b.closingClients <- messageChan
+	}()
+
+	c.Stream(func(w io.Writer) bool {
+		// Stream message to client from message channel
+		if msg, ok := <-messageChan; ok {
+			c.SSEvent("update", msg)
+			return true
+		}
+		return false
+	})
 }

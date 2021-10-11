@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Get laps by race ID
@@ -91,6 +89,9 @@ func PrintCurrentResultsByRaceId(race_id uint) (err error) {
 			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
 		}
 	}
+
+	UpdateChan <- struct{}{}
+
 	return
 }
 
@@ -314,8 +315,3 @@ func DeleteOneLap(u *Lap, lap_id string) (err error) {
 }
 
 var UpdateChan chan struct{}
-
-func (u *Lap) AfterCreate(tx *gorm.DB) error {
-	UpdateChan <- struct{}{}
-	return nil
-}
