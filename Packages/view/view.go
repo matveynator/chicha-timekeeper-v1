@@ -85,13 +85,13 @@ func (v *View) Homepage(c *gin.Context) {
 
 	if err := Models.DB.Raw(s).Find(laps).Error; err != nil {
 		c.Error(err)
-		log.Println(err)
-		return
+		log.Println("",err)
+		//return
 	}
 	if err := Models.DB.Raw(s).First(lap).Error; err != nil {
 		c.Error(err)
 		log.Println(err)
-		return
+		//return
 	}
 
 	c.HTML(http.StatusOK, "index", gin.H{
@@ -107,7 +107,7 @@ func (v *View) RaceView(c *gin.Context) {
 	if err := Models.GetAllResultsByRaceId(laps, raceID); err != nil {
 		c.Error(err)
 		log.Println(err)
-		return
+		//return
 	}
 
 	// if leader race_total_time by race_id
