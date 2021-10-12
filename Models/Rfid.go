@@ -26,8 +26,8 @@ import (
 // Buffer for new RFID requests
 var laps []Lap
 
-// Laps locker
-var lapsLocker sync.Mutex
+// Laps locker channgel
+var lapsChannelLocker = make(chan int, 1)
 
 // Laps save into DB interval
 var lapsSaveInterval int
@@ -45,11 +45,12 @@ var rfidTimeoutLocker sync.Mutex
 func StartAntennaListener() {
 
 	if Config.PROXY_ACTIVE == "true" {
-		fmt.Println("Started tcp proxy restream to", Config.PROXY_HOST, "and port:", Config.PROXY_PORT)
+		log.Println("Started tcp proxy restream to", Config.PROXY_HOST, "and port:", Config.PROXY_PORT)
 	}
 
 	// Start buffer synchro with database
-	go startSaveLapsBufferToDatabase()
+	lapsChannelLocker <- 0 //Put the initial value into the channel to unlock operations
+	go saveLapsBufferToDB()
 
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
@@ -89,9 +90,9 @@ func StartAntennaListener() {
 }
 
 // Save laps buffer to database
-func startSaveLapsBufferToDatabase() {
+func saveLapsBufferToDB() {
 	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
-		lapsLocker.Lock()
+		<-lapsChannelLocker //grab the ticket via channel (lock others)
 		var lapStruct Lap
 		var currentlapRaceID uint
 		var currentlapLapNumber int
@@ -152,12 +153,12 @@ func startSaveLapsBufferToDatabase() {
 
 			//race total time
 			lap.RaceTotalTime = previousRaceTotalTime + lap.LapTime
-			//fmt.Println("race total time:", lap.RaceTotalTime, "lap time", lap.LapTime)
+			//log.Println("race total time:", lap.RaceTotalTime, "lap time", lap.LapTime)
 
 			leaderRaceTotalTime := GetLeaderRaceTotalTimeByRaceIdAndLapNumber(lap.RaceID, lap.LapNumber)
 			if leaderRaceTotalTime == 0 {
 				//first lap
-				//fmt.Println("leaderRaceTotalTime = 0 - first lap detected, TimeBehindTheLeader = lap.LapTime:", lap.LapTime)
+				//log.Println("leaderRaceTotalTime = 0 - first lap detected, TimeBehindTheLeader = lap.LapTime:", lap.LapTime)
 				if lap.LapPosition == 1 {
 					lap.TimeBehindTheLeader = 0
 				} else {
@@ -220,16 +221,16 @@ func startSaveLapsBufferToDatabase() {
 
 			err := DB.Create(&lap).Error
 			if err != nil {
-				fmt.Println("Error. Lap not added to database", err)
+				log.Println("Error. Lap not added to database", err)
 			} else {
-				fmt.Printf("Saved! tag: %s, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
+				log.Printf("Saved! tag: %s, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
 				spErr := UpdateCurrentStartPositionsByRaceId(currentlapRaceID)
 				if spErr != nil {
-					fmt.Println("UpdateCurrentStartPositionsByRaceId(currentlapRaceID) Error", spErr)
+					log.Println("UpdateCurrentStartPositionsByRaceId(currentlapRaceID) Error", spErr)
 				}
 				upErr := UpdateCurrentResultsByRaceId(currentlapRaceID)
 				if upErr != nil {
-					fmt.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", upErr)
+					log.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", upErr)
 				}
 
 				//refresh my results
@@ -239,7 +240,7 @@ func startSaveLapsBufferToDatabase() {
 						//if I am the leader - update other riders results - set lap.StageFinished=0
 						err := UpdateAllStageNotYetFinishedByRaceId(currentlapRaceID)
 						if err != nil {
-							fmt.Println("UpdateAllStageNotYetFinishedByRaceId(currentlapRaceID) ERROR:", err)
+							log.Println("UpdateAllStageNotYetFinishedByRaceId(currentlapRaceID) ERROR:", err)
 						}
 					}
 
@@ -249,15 +250,15 @@ func startSaveLapsBufferToDatabase() {
 					//save final results
 					sfErr := DB.Save(&lap).Error
 					if sfErr != nil {
-						fmt.Println("lap.StageFinished=1 Error. Lap not added to database", sfErr)
+						log.Println("lap.StageFinished=1 Error. Lap not added to database", sfErr)
 					} else {
 						err := PrintCurrentResultsByRaceId(currentlapRaceID)
 						if err != nil {
-							fmt.Println("PrintCurrentResultsByRaceId(currentlapRaceID) ERROR:", err)
+							log.Println("PrintCurrentResultsByRaceId(currentlapRaceID) ERROR:", err)
 						}
 					}
 				} else {
-					fmt.Println("GetOneLap(&lap) ERROR:", golERR)
+					log.Println("GetOneLap(&lap) ERROR:", golERR)
 				}
 			}
 		}
@@ -265,8 +266,7 @@ func startSaveLapsBufferToDatabase() {
 		// Clear lap buffer
 		var cL []Lap
 		laps = cL
-		lapsLocker.Unlock()
-
+		lapsChannelLocker <- 1 //give ticket back via channel (unlock operations)
 	}
 }
 
@@ -278,9 +278,9 @@ func addNewLapToLapsBuffer(lap Lap) {
 	if expiredTime, ok := rfidTimeoutMap[lap.TagID]; !ok {
 
 		// First time for this TagID, save lap to buffer
-		lapsLocker.Lock()
+		<-lapsChannelLocker //grab the ticket via channel (lock)
 		laps = append(laps, lap)
-		lapsLocker.Unlock()
+		lapsChannelLocker <- 1 //give ticket back via channel (unlock)
 
 		// Add new value to timeouts checker map
 		setNewExpriredDataForRfidTag(lap.TagID)
@@ -292,13 +292,12 @@ func addNewLapToLapsBuffer(lap Lap) {
 		if tN.After(expiredTime) {
 
 			// Time is over, save lap to buffer
-			lapsLocker.Lock()
+			<-lapsChannelLocker //grab the ticket via channel (lock)
 			laps = append(laps, lap)
-			lapsLocker.Unlock()
+			lapsChannelLocker <- 1 //give ticket back via channel (unlock)
 
 			// Generate new expired time
 			setNewExpriredDataForRfidTag(lap.TagID)
-
 		}
 	}
 }
@@ -338,8 +337,8 @@ func newAntennaConnection(conn net.Conn) {
 		size, err := conn.Read(buf)
 		if err != nil {
 			if err == io.EOF {
-				//fmt.Println("conn.Read(buf) error:", err)
-				//fmt.Println("Message EOF detected - closing LAN connection.")
+				//log.Println("conn.Read(buf) error:", err)
+				//log.Println("Message EOF detected - closing LAN connection.")
 				break
 			}
 
@@ -367,27 +366,27 @@ func newAntennaConnection(conn net.Conn) {
 
 		//various data formats processing (text csv, xml) start:
 		if !IsValidXML(data) {
-		  // CSV data processing
-			//fmt.Println("Received data is not XML, trying CSV text...")
+			// CSV data processing
+			//log.Println("Received data is not XML, trying CSV text...")
 			//received data of type TEXT (parse TEXT).
 			r := csv.NewReader(bytes.NewReader(data))
 			r.Comma = ','
 			r.FieldsPerRecord = 3
 			CSV, err := r.Read()
 			if err != nil {
-				fmt.Println("Recived incorrect CSV data", err)
+				log.Println("Recived incorrect CSV data", err)
 				continue
 			}
 
 			// Prepare antenna position
 			antennaPosition, err := strconv.ParseInt(strings.TrimSpace(CSV[2]), 10, 64)
 			if err != nil {
-				fmt.Println("Recived incorrect Antenna position CSV value:", err)
+				log.Println("Recived incorrect Antenna position CSV value:", err)
 				continue
 			}
 			_, err = strconv.ParseInt(strings.TrimSpace(CSV[1]), 10, 64)
 			if err != nil {
-				fmt.Println("Recived incorrect discovery unix time CSV value:", err)
+				log.Println("Recived incorrect discovery unix time CSV value:", err)
 				continue
 			} else {
 				lap.DiscoveryTimePrepared, _ = timeFromUnixMillis(strings.TrimSpace(CSV[1]))
@@ -399,22 +398,22 @@ func newAntennaConnection(conn net.Conn) {
 		} else {
 			// XML data processing
 			// Prepare date
-			//fmt.Println("Received data is valid XML")
+			//log.Println("Received data is valid XML")
 			err := xml.Unmarshal(data, &lap)
 			if err != nil {
-				fmt.Println("xml.Unmarshal ERROR:", err)
+				log.Println("xml.Unmarshal ERROR:", err)
 				continue
 			}
-			//fmt.Println("TIME_ZONE=", Config.TIME_ZONE)
+			//log.Println("TIME_ZONE=", Config.TIME_ZONE)
 			loc, err := time.LoadLocation(Config.TIME_ZONE)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			xmlTimeFormat := `2006/01/02 15:04:05.000`
 			discoveryTime, err := time.ParseInLocation(xmlTimeFormat, lap.DiscoveryTime, loc)
 			if err != nil {
-				fmt.Println("time.ParseInLocation ERROR:", err)
+				log.Println("time.ParseInLocation ERROR:", err)
 				continue
 			}
 			lap.DiscoveryTimePrepared = discoveryTime
@@ -424,7 +423,7 @@ func newAntennaConnection(conn net.Conn) {
 		//various data formats processing (text csv, xml) end.
 
 		//Debug all received data from RFID reader
-		fmt.Printf("NEW DATA from IP %s - %s, %d, %d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+		log.Printf("NEW: IP=%s, TAG=%s, TIME=%d, ANT=%d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
 		if Config.PROXY_ACTIVE == "true" {
 			go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
