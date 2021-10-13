@@ -18,6 +18,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"sort"
 
 	"chicha/Packages/Config"
 	"chicha/Packages/Proxy"
@@ -29,14 +30,8 @@ var laps []Lap
 // Laps locker channgel
 var lapsChannelLocker = make(chan int, 1)
 
-// Laps save into DB interval
-var lapsSaveInterval int
-
 // Check RFID mute timeout map
 var rfidTimeoutMap map[string]time.Time
-
-// Mute timeout duration (stored in .env)
-var rfidLapMinimalTime int
 
 // Check RFID mute timeout locker
 var rfidTimeoutLocker sync.Mutex
@@ -54,20 +49,6 @@ func StartAntennaListener() {
 
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
-
-	// Prepare rfidLapMinimalTime
-	rfidTimeout, rfidTimeoutErr := strconv.ParseInt(Config.MINIMAL_LAP_TIME, 10, 64)
-	if rfidTimeoutErr != nil {
-		log.Panicln("Incorrect MINIMAL_LAP_TIME parameter in .env file", rfidTimeoutErr)
-	}
-	rfidLapMinimalTime = int(rfidTimeout)
-
-	// Prepare lapsSaveInterval
-	lapsInterval, lapsIntervalErr := strconv.ParseInt(Config.LAPS_SAVE_INTERVAL, 10, 64)
-	if lapsIntervalErr != nil {
-		log.Panicln("Incorrect LAPS_SAVE_INTERVAL parameter in .env file", lapsIntervalErr)
-	}
-	lapsSaveInterval = int(lapsInterval)
 
 	// Start listener
 	l, err := net.Listen("tcp", Config.APP_ANTENNA_LISTENER_IP)
@@ -91,27 +72,10 @@ func StartAntennaListener() {
 
 // Save laps buffer to database
 func saveLapsBufferToDB() {
-	for range time.Tick(time.Duration(lapsSaveInterval) * time.Second) {
+	for range time.Tick(time.Duration(Config.LAPS_SAVE_INTERVAL_SEC) * time.Second) {
 		<-lapsChannelLocker //grab the ticket via channel (lock others)
-		var lapStruct Lap
 		var currentlapRaceID uint
 		var currentlapLapNumber int
-		lastRaceID, lastLapTime := GetLastRaceIDandTime(&lapStruct)
-		if lastRaceID == 0 {
-			currentlapRaceID = 1
-		} else {
-
-			raceTimeOut, _ := strconv.ParseInt(Config.RACE_TIMEOUT_SEC, 10, 64)
-			if time.Now().UnixNano()/int64(time.Millisecond)-(int64(raceTimeOut)*1000) > lastLapTime.UnixNano()/int64(time.Millisecond) {
-				//last lap data was created more than RACE_TIMEOUT_SEC seconds ago
-				//RaceID++ (create new race)
-				currentlapRaceID = lastRaceID + 1
-
-			} else {
-				//last lap data was created less than RACE_TIMEOUT_SEC seconds ago
-				currentlapRaceID = lastRaceID
-			}
-		}
 
 		// Save laps to database
 		for _, lap := range laps {
@@ -218,8 +182,15 @@ func saveLapsBufferToDB() {
 				}
 			}
 			//END: лучшее время и возможные пропуски в учете на воротах RFID (lap.LapIsStrange):
+		
+			
+			errL := DB.Where("id = ?", lap.ID).First(&lap).Error
+			if errL != nil {
+				DB.Create(&lap)
+			} 
 
-			err := DB.Create(&lap).Error
+			err := DB.Save(&lap).Error
+			
 			if err != nil {
 				log.Println("Error. Lap not added to database", err)
 			} else {
@@ -264,48 +235,125 @@ func saveLapsBufferToDB() {
 		}
 
 		// Clear lap buffer
-		var cL []Lap
-		laps = cL
+		//var cL []Lap
+		//laps = cL
 		lapsChannelLocker <- 1 //give ticket back via channel (unlock operations)
 	}
 }
 
-// Add new lap to laps buffer (private func)
-func addNewLapToLapsBuffer(lap Lap) {
 
-	// Check minimal lap time (we save only laps grater than MINIMAL_LAP_TIME from .env file)
-
-	if expiredTime, ok := rfidTimeoutMap[lap.TagID]; !ok {
-
-		// First time for this TagID, save lap to buffer
-		<-lapsChannelLocker //grab the ticket via channel (lock)
-		laps = append(laps, lap)
-		lapsChannelLocker <- 1 //give ticket back via channel (unlock)
-
-		// Add new value to timeouts checker map
-		setNewExpriredDataForRfidTag(lap.TagID)
-
-	} else {
-
-		// Check previous time
-		tN := time.Now()
-		if tN.After(expiredTime) {
-
-			// Time is over, save lap to buffer
-			<-lapsChannelLocker //grab the ticket via channel (lock)
-			laps = append(laps, lap)
-			lapsChannelLocker <- 1 //give ticket back via channel (unlock)
-
-			// Generate new expired time
-			setNewExpriredDataForRfidTag(lap.TagID)
+func getMyLastLapFromBuffer(newLap Lap) (myLastLap Lap) {
+	//block 1: get my previous results from this race - start block.
+	var myLastLaps []Lap
+	//gather all my laps from previous results:
+	for _, savedLap := range laps {
+		if savedLap.TagID == newLap.TagID {
+			myLastLaps = append(myLastLaps, savedLap)
 		}
 	}
+
+	if len(myLastLaps) == 1 {
+		//allready have one lap
+		//get my last result:
+		myLastLap = myLastLaps[0]
+
+	} else if len(myLastLaps) > 1 {
+		//allready have more than one lap
+		sort.Slice(myLastLaps, func(i, j int) bool {
+			//sort ascending by DisoveryUnixTime
+			return myLastLaps[i].DiscoveryUnixTime < myLastLaps[j].DiscoveryUnixTime
+		})
+		//get my last result (newest DisoveryUnixTime result)
+		myLastLap = myLastLaps[len(myLastLaps)-1]
+	}
+	return
+	//block 1: get my previous results from this race - finish block.
 }
 
+func getLastLapFromBuffer() (lastLap Lap) {
+	//block 1: get previous results from this race - start block.
+	if len(laps) == 1 {
+		//allready have one lap
+		//get my last result:
+		lastLap = laps[0]
+
+	} else if len(laps) > 1 {
+		//allready have more than one lap
+		sort.Slice(laps, func(i, j int) bool {
+			//sort ascending by DisoveryUnixTime
+			return laps[i].DiscoveryUnixTime < laps[j].DiscoveryUnixTime
+		})
+		//get my last result (newest DisoveryUnixTime result)
+		lastLap = laps[len(laps)-1]
+	}
+	return
+	//block 1: get previous results from this race - finish block.
+}
+
+
+// Add new lap to laps buffer (private func)
+func addNewLapToLapsBuffer(newLap Lap) {
+	<-lapsChannelLocker //grab the ticket via channel (lock)
+	newlapUnixTime := newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)
+
+	if len(laps) == 0 {
+		//empty create race and lap
+		fmt.Println("Slice empty - adding new element with TagID = ", newLap.TagID)
+		newLap.LapNumber=0;
+		newLap.LapPosition=1;
+		newLap.RaceID=1;
+		newLap.CurrentRacePosition=1;
+		newLap.DiscoveryUnixTime = newlapUnixTime
+		newLap.DiscoveryAverageUnixTime = newlapUnixTime
+		laps = append(laps, newLap)
+		log.Println("SAVED TO BUFFER:", newLap)
+	} else {
+		//get any previous lap data:
+		lastLap := getLastLapFromBuffer()
+		if lastLap != (Lap{}) {
+			//lastLap not empty
+			//get my previous lap data:
+			myLastLap := getMyLastLapFromBuffer(newLap)
+			if myLastLap != (Lap{}) {
+				//my last lap not empty
+				if (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) <= (Config.RESULTS_PRECISION_SEC*1000)  {
+					//from 0 to 5 sec (RESULTS_PRECISION_SEC) = update DiscoveryAverageUnixTime data
+					myLastLap.DiscoveryAverageUnixTime = (myLastLap.DiscoveryAverageUnixTime + newlapUnixTime) / 2
+				} else if (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) > (Config.RESULTS_PRECISION_SEC*1000) && (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) <= (Config.MINIMAL_LAP_TIME_SEC*1000) {
+					//from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data - ERROR DATA RECEIVED!
+					log.Println("ERROR DATA RECEIVED: from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data.", newLap)
+				} else if (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) > (Config.MINIMAL_LAP_TIME_SEC*1000) && (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) <= (Config.RACE_TIMEOUT_SEC*1000) {
+					//from 30 to 300 sec (MINIMAL_LAP_TIME_SEC - RACE_TIMEOUT_SEC) passed  = create new lap LapNumber++! 
+					newLap.LapNumber++;
+					newLap.DiscoveryUnixTime = newlapUnixTime
+					newLap.DiscoveryAverageUnixTime = newlapUnixTime
+					laps = append(laps, newLap)
+					log.Println("SAVED TO BUFFER:", newLap)
+				} else if(newLap.DiscoveryUnixTime - lastLap.DiscoveryUnixTime) > (Config.RACE_TIMEOUT_SEC*1000) {
+					//> 300 sec (RACE_TIMEOUT_SEC) passed  = create new Race and First Lap: RaceID=lastLap.RaceID+1, LapNumber=0
+					//but first - clean previous race data
+					newLap.RaceID=lastLap.RaceID+1
+					newLap.LapNumber=0;
+					newLap.LapPosition=1;
+					newLap.CurrentRacePosition=1;
+					newLap.DiscoveryUnixTime = newlapUnixTime
+					newLap.DiscoveryAverageUnixTime = newlapUnixTime
+
+    			// Clear lap buffer, start with clean slice:
+		    	var cL []Lap
+				  laps = cL
+					laps = append(laps, newLap)
+					log.Println("SAVED TO BUFFER:", newLap)
+				}
+			}
+		}
+	}
+	lapsChannelLocker <- 1 //give ticket back via channel (unlock)
+}
 // Set new expired date for rfid Tag
 func setNewExpriredDataForRfidTag(tagID string) {
 
-	newExpiredTime := time.Now().Add(time.Duration(rfidLapMinimalTime) * time.Second)
+	newExpiredTime := time.Now().Add(time.Duration(Config.MINIMAL_LAP_TIME_SEC) * time.Second)
 	rfidTimeoutLocker.Lock()
 	rfidTimeoutMap[tagID] = newExpiredTime
 	rfidTimeoutLocker.Unlock()

@@ -29,8 +29,11 @@ type Lap struct {
 	OwnerID               uint      `gorm:"index" json:"owner_id"`
 	TagID                 string    `gorm:"char(80);index" json:"tag_id" xml:"TagID"`
 	DiscoveryUnixTime     int64     `gorm:"index" json:"discovery_unix_time"`
+	DiscoveryAverageUnixTime int64     `gorm:"index" json:"discovery_average_unix_time"`
 	DiscoveryTime         string    `json:"-" xml:"DiscoveryTime"`
 	DiscoveryTimePrepared time.Time `json:"discovery_time"`
+	DiscoveryAverageTimePrepared time.Time `json:"discovery_average_time"`
+
 	Antenna               uint8     `gorm:"index" json:"antenna" xml:"Antenna"`
 	AntennaIP             string    `gorm:"char(128);index" json:"antenna_ip"`
 	CreatedAt             time.Time `json:"created_at"`

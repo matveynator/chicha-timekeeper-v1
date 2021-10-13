@@ -5,9 +5,11 @@ Work in progress.
 */
 
 import (
+	"chicha/Packages/Config"
 	"chicha/Packages/view"
 	"embed"
 	"fmt"
+	"log"
 
 	"gorm.io/driver/postgres" // Gorm Postgres driver package
 	"gorm.io/driver/sqlite"   //gorm sqlite driver
@@ -19,7 +21,6 @@ import (
 	//"github.com/pkg/profile"
 
 	"chicha/Models" // Our package with database models
-	"chicha/Packages/Config"
 )
 
 //go:embed static
@@ -35,11 +36,11 @@ func main() {
 		if db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent),
 		}); err != nil {
-			fmt.Println("ERROR: Connect to database failed at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER, err)
+			log.Println("ERROR: Connect to database failed at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER, err)
 			panic(err)
 		} else {
 			Models.DB = db
-			fmt.Println("Connected to database at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER)
+			log.Println("Connected to database at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER)
 		}
 	} else {
 		//DEFAULT: if Config.DB_TYPE == "sqlite"
@@ -47,17 +48,17 @@ func main() {
 		if db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent),
 		}); err != nil {
-			fmt.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
+			log.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
 			panic(err)
 
 		} else {
 			Models.DB = db
-			fmt.Println("Connected to local SQLite database at", dsn)
+			log.Println("Connected to local SQLite database at", dsn)
 		}
 	}
 
 	// Database Migrations
-	fmt.Println("Creating or changing database structures (applying migrations)...")
+	log.Println("Creating or changing database structures (applying migrations)...")
 	Models.DB.AutoMigrate(&Models.Lap{}, &Models.User{}, &Models.Race{}, &Models.Checkin{}, &Models.Admin{})
 
 	// Create new system administator if them not exists
@@ -75,7 +76,7 @@ func main() {
 
 	// Start RFID listener
 	go Models.StartAntennaListener()
-	fmt.Println("Started RFID data listener at", Config.APP_ANTENNA_LISTENER_IP, "with laps save interval =", Config.LAPS_SAVE_INTERVAL, "and lap minimal duration =", Config.MINIMAL_LAP_TIME, "seconds")
+	log.Printf("Data collector IP = %s, db save interval = %d sec, minimal lap time = %d sec.\n", Config.APP_ANTENNA_LISTENER_IP, Config.LAPS_SAVE_INTERVAL_SEC, Config.MINIMAL_LAP_TIME_SEC)
 
 	// Routing
 	r := Models.SetupRouter()
@@ -83,9 +84,9 @@ func main() {
 	view.New(r, static, updCh)
 
 	// Start API server
-	fmt.Println("Starting API server at:", Config.API_SERVER_LISTENER_IP)
+	log.Printf("WEB API server IP = %s\n", Config.API_SERVER_LISTENER_IP)
 	errAPI := r.Run(Config.API_SERVER_LISTENER_IP)
 	if errAPI != nil {
-		fmt.Println("ERROR: API server start failed:", errAPI)
+		log.Println("ERROR: API server start failed:", errAPI)
 	}
 }
