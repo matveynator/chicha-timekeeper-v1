@@ -45,7 +45,7 @@ func StartAntennaListener() {
 
 	// Start buffer synchro with database
 	lapsChannelLocker <- 0 //Put the initial value into the channel to unlock operations
-	go saveLapsBufferToDB()
+	//go saveLapsBufferToDB()
 
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
@@ -73,7 +73,7 @@ func StartAntennaListener() {
 // Save laps buffer to database
 func saveLapsBufferToDB() {
 	for range time.Tick(time.Duration(Config.LAPS_SAVE_INTERVAL_SEC) * time.Second) {
-		<-lapsChannelLocker //grab the ticket via channel (lock others)
+		//<-lapsChannelLocker //grab the ticket via channel (lock others)
 		var currentlapRaceID uint
 		var currentlapLapNumber int
 
@@ -182,15 +182,15 @@ func saveLapsBufferToDB() {
 				}
 			}
 			//END: лучшее время и возможные пропуски в учете на воротах RFID (lap.LapIsStrange):
-		
-			
+
+
 			errL := DB.Where("id = ?", lap.ID).First(&lap).Error
 			if errL != nil {
 				DB.Create(&lap)
 			} 
 
 			err := DB.Save(&lap).Error
-			
+
 			if err != nil {
 				log.Println("Error. Lap not added to database", err)
 			} else {
@@ -237,7 +237,7 @@ func saveLapsBufferToDB() {
 		// Clear lap buffer
 		//var cL []Lap
 		//laps = cL
-		lapsChannelLocker <- 1 //give ticket back via channel (unlock operations)
+		//lapsChannelLocker <- 1 //give ticket back via channel (unlock operations)
 	}
 }
 
@@ -293,8 +293,8 @@ func getLastLapFromBuffer() (lastLap Lap) {
 
 // Add new lap to laps buffer (private func)
 func addNewLapToLapsBuffer(newLap Lap) {
-	<-lapsChannelLocker //grab the ticket via channel (lock)
-	newlapUnixTime := newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)
+<-lapsChannelLocker //grab the ticket via channel (lock)
+	newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)
 
 	if len(laps) == 0 {
 		//empty create race and lap
@@ -303,49 +303,64 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		newLap.LapPosition=1;
 		newLap.RaceID=1;
 		newLap.CurrentRacePosition=1;
-		newLap.DiscoveryUnixTime = newlapUnixTime
-		newLap.DiscoveryAverageUnixTime = newlapUnixTime
+		newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime
 		laps = append(laps, newLap)
-		log.Println("SAVED TO BUFFER:", newLap)
+		log.Printf("SAVED %d TO BUFFER: laps: %d, raceid: %d, tag: %s\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID )
 	} else {
 		//get any previous lap data:
 		lastLap := getLastLapFromBuffer()
 		if lastLap != (Lap{}) {
 			//lastLap not empty
 			//get my previous lap data:
+			gap := newLap.DiscoveryUnixTime - lastLap.DiscoveryUnixTime
 			myLastLap := getMyLastLapFromBuffer(newLap)
+			//my last lap not empty
 			if myLastLap != (Lap{}) {
-				//my last lap not empty
-				if (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) <= (Config.RESULTS_PRECISION_SEC*1000)  {
+			  myGap := newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime
+				fmt.Printf("gap: %d, myGap: %d \n", gap, myGap)
+
+				if  myGap >= 0 && Config.RESULTS_PRECISION_SEC*1000 >= myGap  {
 					//from 0 to 5 sec (RESULTS_PRECISION_SEC) = update DiscoveryAverageUnixTime data
-					myLastLap.DiscoveryAverageUnixTime = (myLastLap.DiscoveryAverageUnixTime + newlapUnixTime) / 2
-				} else if (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) > (Config.RESULTS_PRECISION_SEC*1000) && (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) <= (Config.MINIMAL_LAP_TIME_SEC*1000) {
+					myLastLap.DiscoveryAverageUnixTime = (myLastLap.DiscoveryAverageUnixTime + newLap.DiscoveryUnixTime) / 2
+					log.Printf("UPDATED BUFFER: laps: %d, raceid: %d, lap#: %d, avtime: %d, tag: %s\n", len(laps), myLastLap.RaceID, myLastLap.LapNumber, myLastLap.DiscoveryAverageUnixTime, myLastLap.TagID )
+				} else if Config.RESULTS_PRECISION_SEC*1000 < myGap && myGap < Config.MINIMAL_LAP_TIME_SEC*1000 {
 					//from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data - ERROR DATA RECEIVED!
-					log.Println("ERROR DATA RECEIVED: from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data.", newLap)
-				} else if (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) > (Config.MINIMAL_LAP_TIME_SEC*1000) && (newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime) <= (Config.RACE_TIMEOUT_SEC*1000) {
+					log.Println("ERROR DATA RECEIVED: from 5 to 30 sec", newLap.TagID)
+				} else if Config.MINIMAL_LAP_TIME_SEC*1000 <= myGap && gap < Config.RACE_TIMEOUT_SEC*1000 {
 					//from 30 to 300 sec (MINIMAL_LAP_TIME_SEC - RACE_TIMEOUT_SEC) passed  = create new lap LapNumber++! 
-					newLap.LapNumber++;
-					newLap.DiscoveryUnixTime = newlapUnixTime
-					newLap.DiscoveryAverageUnixTime = newlapUnixTime
+					newLap.LapNumber = myLastLap.LapNumber + 1
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime
 					laps = append(laps, newLap)
-					log.Println("SAVED TO BUFFER:", newLap)
-				} else if(newLap.DiscoveryUnixTime - lastLap.DiscoveryUnixTime) > (Config.RACE_TIMEOUT_SEC*1000) {
+					log.Printf("ADDED NEXT LAP TO BUFFER: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
+				} else if gap > Config.RACE_TIMEOUT_SEC*1000 {
 					//> 300 sec (RACE_TIMEOUT_SEC) passed  = create new Race and First Lap: RaceID=lastLap.RaceID+1, LapNumber=0
 					//but first - clean previous race data
 					newLap.RaceID=lastLap.RaceID+1
 					newLap.LapNumber=0;
 					newLap.LapPosition=1;
 					newLap.CurrentRacePosition=1;
-					newLap.DiscoveryUnixTime = newlapUnixTime
-					newLap.DiscoveryAverageUnixTime = newlapUnixTime
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime
 
-    			// Clear lap buffer, start with clean slice:
-		    	var cL []Lap
-				  laps = cL
+					// Clear lap buffer, start with clean slice:
+					var cL []Lap
+					laps = cL
 					laps = append(laps, newLap)
-					log.Println("SAVED TO BUFFER:", newLap)
+					log.Printf("SAVED NEXT RACE TO BUFFER: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
+				} else {
+
+					log.Printf("STRANGE!: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
 				}
+			} else {
+				//no my results - create my first lap in same race
+				newLap.LapNumber=0;
+				newLap.RaceID=lastLap.RaceID;
+				newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime
+				laps = append(laps, newLap)
+				log.Printf("SAVED NEW PLAYER TO BUFFER: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
 			}
+		} else {
+			//SOME ERROR - lastLap EMPTY ?
+			log.Println("SOME ERROR - lastLap EMPTY ?", lastLap, laps,)
 		}
 	}
 	lapsChannelLocker <- 1 //give ticket back via channel (unlock)
