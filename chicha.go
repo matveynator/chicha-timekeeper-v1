@@ -74,6 +74,7 @@ func main() {
 	updCh := make(chan struct{}, 1)
 	Models.UpdateChan = updCh
 
+
 	// Start RFID listener
 	go Models.StartAntennaListener()
 	log.Printf("Data collector IP = %s, db save interval = %d sec, minimal lap time = %d sec.\n", Config.APP_ANTENNA_LISTENER_IP, Config.LAPS_SAVE_INTERVAL_SEC, Config.MINIMAL_LAP_TIME_SEC)
