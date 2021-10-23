@@ -373,14 +373,22 @@ func getZeroLapGap(lastLap Lap) (zeroLapGap int64) {
 	return
 }
 
+func containsTagID(laps []Lap, needle Lap) bool {
+	for _, lap := range laps {
+		if lap.TagID == needle.TagID {
+			return true
+		}
+	}
+	return false
+}
 
-func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumber uint) {
+func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumber uint, myBestLapPosition uint) {
 	if len(laps) != 0  {
 
 		var myLaps []Lap
 
 		for _, savedLap := range laps {
-			if savedLap.TagID == lastLap.TagID && savedLap.LapNumber != 0 {
+			if savedLap.RaceID == lastLap.RaceID && savedLap.TagID == lastLap.TagID && savedLap.LapNumber != 0 {
 				myLaps = append(myLaps, savedLap)
 			}
 		}
@@ -401,9 +409,53 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 			myBestLapTime =  0
 			myBestLapNumber = 0
 		}
+
+		//get position from all race laps 
+
+		//get best laps from all racers
+		var bestLaps []Lap
+		for _, lap := range laps {
+			if lap.RaceID == lastLap.RaceID && lap.BestLapTime != 0 && lap.LapNumber != 0 {
+				bestLaps = append(bestLaps, lap)
+			}
+		}
+
+		//add current lap
+		if lastLap.LapNumber != 0 {
+			lastLap.BestLapTime = myBestLapTime
+			lastLap.BestLapNumber = myBestLapNumber
+			bestLaps = append(bestLaps, lastLap)
+		}
+
+		if len(bestLaps) > 0 {
+			sort.SliceStable(bestLaps, func(i, j int) bool {
+				return bestLaps[i].BestLapTime < bestLaps[j].BestLapTime
+			})
+			var tempLaps []Lap
+			for _, lap := range bestLaps {
+				//create new slice with only results by TagID
+				if !containsTagID(tempLaps, lap) {
+					tempLaps = append(tempLaps, lap)
+				}
+			}
+
+			if len(tempLaps) > 0 {
+				for position, lap := range tempLaps {
+					log.Printf("Tag: %s, BestLapTime: %d, BestLapNumber: %d, BestLapPosition: %d\n", lap.TagID, lap.BestLapTime, lap.BestLapNumber, position+1)
+					if lap.TagID == lastLap.TagID {
+						myBestLapPosition = uint(position + 1)
+					}
+				}
+			}
+
+		} else {
+			myBestLapPosition = 0
+		}
+
 	} else {
 		myBestLapTime = 0
 		myBestLapNumber = 0
+		myBestLapPosition = 0
 	}
 
 	return
@@ -580,8 +632,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.LapIsCurrent = 1 //returns 1 (sets this lap current) && sets my previous laps in same race: LapIsCurrent=0
 					//newLap.LapIsStrange=?
 					newLap.StageFinished=1
-					newLap.BestLapTime, newLap.BestLapNumber = getMyBestLapTimeAndNumber(newLap)
-					//newLap.BestLapPosition=?
+					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
+					//newLap.BestLapPosition=getMyBestLapPosition(newLap)
 					newLap.RaceTotalTime = myLastLap.RaceTotalTime + myLastGap
 					//newLap.BetterOrWorseLapTime = ?
 
@@ -640,7 +692,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				newLap.LapIsCurrent = 1 //returns 1 (sets this lap current) && sets my previous laps in same race: LapIsCurrent=0
 				//newLap.LapIsStrange=?
 				newLap.StageFinished=1
-				newLap.BestLapTime, newLap.BestLapNumber = getMyBestLapTimeAndNumber(newLap)
+				newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 				//newLap.BestLapPosition=?
 				newLap.RaceTotalTime = newLap.LapTime
 				//newLap.BetterOrWorseLapTime = ?
@@ -660,9 +712,9 @@ func addNewLapToLapsBuffer(newLap Lap) {
 	//saveLapsBufferSimplyToDB(laps)
 
 	for _, lap := range laps {
-		//if lap.LapIsCurrent==1 {
-			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
-		//}
+		if lap.LapIsCurrent==1 {
+		fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
+		}
 	}
 
 
