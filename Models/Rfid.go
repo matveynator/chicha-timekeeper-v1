@@ -682,12 +682,34 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				} else if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
 					//> 300 sec (RACE_TIMEOUT_SEC) passed  = create new Race and First Lap: RaceID=lastLap.RaceID+1, LapNumber=0
 					//but first - clean previous race data
+
+					//////////////////// DATA MAGIC START ///////////////////
+					//newlap.ID //taken from DB (on save)
+					//newlap.OwnerID
+					//newlap.TagID //taken from RFID
+					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond) //int64
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
+					//newLap.DiscoveryTimePrepared //taken from RFID
+					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
+
+					//newLap.Antenna //taken from RFID
+					//newLap.AntennaIP //taken from RFID
+					newLap.UpdatedAt = time.Now() //current time in time.Time
 					newLap.RaceID=lastLap.RaceID+1
-					newLap.LapNumber=0
-					newLap.LapPosition=1
 					newLap.CurrentRacePosition=1
-					newLap.LapIsCurrent = 1 
-					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime
+					newLap.TimeBehindTheLeader=0
+					newLap.LapNumber=0
+					newLap.LapTime=0
+					newLap.LapPosition=1
+					newLap.LapIsCurrent=1
+					newLap.LapIsStrange=0
+					newLap.StageFinished=1
+					newLap.BestLapTime=0
+					newLap.BestLapNumber=0
+					newLap.BestLapPosition=0
+					newLap.RaceTotalTime=0
+					newLap.BetterOrWorseLapTime=0
+					//////////////////// DATA MAGIC END ///////////////////
 
 					// Clear lap buffer, start with clean slice:
 					var cL []Lap
