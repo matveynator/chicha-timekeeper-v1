@@ -879,8 +879,19 @@ func newAntennaConnection(conn net.Conn) {
 		if Config.PROXY_ACTIVE == "true" {
 			go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 		}
-
-		// Add current Lap to Laps buffer
-		go addNewLapToLapsBuffer(lap)
+		if len(laps) == 0 {
+			//laps buffer empty - recreate last race from db:
+			log.Println("laps buffer empty - recreate last race from db")
+			laps, err = GetCurrentRaceDataFromDB()
+			if err == nil {
+				log.Printf("laps buffer recreated with %d records from db.\n", len(laps))
+			} else {
+				log.Println("laps buffer recreation failed with:", err)
+			}
+			go addNewLapToLapsBuffer(lap)
+		} else {
+			// Add current Lap to Laps buffer
+			go addNewLapToLapsBuffer(lap)
+		}
 	}
 }

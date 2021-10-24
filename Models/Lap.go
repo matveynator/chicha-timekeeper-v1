@@ -4,20 +4,15 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"chicha/Packages/Config"
 )
 
 
 //
 func GetCurrentRaceDataFromDB() (currentRace []Lap, err error) {
   var lastLap Lap 
-	currentUnixTime := time.Now().UnixNano()/int64(time.Millisecond)
-	validRaceTime := currentUnixTime - Config.RACE_TIMEOUT_SEC*1000
-
-	err = DB.Where("discovery_unix_time >= ?", validRaceTime ).Order("discovery_unix_time desc").First(lastLap).Error
+	err = DB.Last(&lastLap).Error
 	if err == nil {
-		err = DB.Where("race_id = ?", lastLap.RaceID ).Order("discovery_unix_time desc").Find(currentRace).Error
+		err = DB.Where("race_id = ?", lastLap.RaceID ).Order("discovery_unix_time desc").Find(&currentRace).Error
 	}
 	return
 }
