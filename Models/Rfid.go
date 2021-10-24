@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 	"sort"
+	"errors"
 
 	"chicha/Packages/Config"
 	"chicha/Packages/Proxy"
@@ -83,7 +84,7 @@ func saveLapsBufferSimplyToDB() {
 		<-lapsChannelDBLocker //grab the ticket via channel (lock)
 		//log.Println("Saving buffer to database started.")
 		for _, lap := range laps {
-		  var newLap Lap
+			var newLap Lap
 			err := DB.Where("race_id = ?", lap.RaceID).Where("lap_number = ?", lap.LapNumber).Where("tag_id = ?", lap.TagID).Where("discovery_unix_time = ?", lap.DiscoveryUnixTime).First(&newLap).Error
 			//log.Printf("race_id = %d, lap_number = %d, tag_id = %s, discovery_unix_time = %d \n", lap.RaceID, lap.LapNumber, lap.TagID, lap.DiscoveryUnixTime);
 			if err == nil {
@@ -124,7 +125,7 @@ func saveLapsBufferSimplyToDB() {
 					//log.Println("Updated in database OK.", newLap.TagID, newLap.LapNumber)
 				}
 			} else {
-			  log.Println("Data not found in database:", err)
+				log.Println("Data not found in database:", err)
 				//not found - create new
 				err := DB.Create(&lap).Error;
 				if err != nil {
@@ -328,52 +329,52 @@ func setMyPreviousLapsNonCurrentInBuffer(myNewLap Lap)  {
 	//log.Printf("Found %d previous laps and set LapIsCurrent=0 on them.\n", len(onlyMyLaps))
 }
 
-func getMyLastLapFromBuffer(newLap Lap) (myLastLap Lap) {
-	//block 1: get my previous results from this race - start block.
-	var myLastLaps []Lap
-	//gather all my laps from previous results:
-	for _, savedLap := range laps {
-		if savedLap.TagID == newLap.TagID {
-			myLastLaps = append(myLastLaps, savedLap)
+func getMyLastLapFromBuffer(newLap Lap) (myLastLap Lap, err error) {
+
+	if len(laps) != 0 {
+		//block 1: get my previous results from this race - start block.
+		var myLastLaps []Lap
+		//gather all my laps from previous results:
+		for _, savedLap := range laps {
+			if savedLap.TagID == newLap.TagID {
+				myLastLaps = append(myLastLaps, savedLap)
+			}
 		}
-	}
 
-	if len(myLastLaps) == 1 {
-		//allready have one lap
-		//get my last result:
-		myLastLap = myLastLaps[0]
-
-	} else if len(myLastLaps) > 1 {
-		//allready have more than one lap
-		sort.Slice(myLastLaps, func(i, j int) bool {
-			//sort ascending by DisoveryUnixTime
-			return myLastLaps[i].DiscoveryUnixTime < myLastLaps[j].DiscoveryUnixTime
-		})
-		//get my last result (newest DisoveryUnixTime result)
-		myLastLap = myLastLaps[len(myLastLaps)-1]
+		if len(myLastLaps) != 0 {
+			//allready have more than one lap
+			sort.Slice(myLastLaps, func(i, j int) bool {
+				//sort descending by DisoveryUnixTime
+				return myLastLaps[i].DiscoveryUnixTime > myLastLaps[j].DiscoveryUnixTime
+			})
+			//get my last result (newest inverted DisoveryUnixTime result)
+			myLastLap = myLastLaps[0]
+		} else {
+			err = errors.New("My results buffer empty.")
+		}
+	} else {
+		err = errors.New("Laps buffer empty.")
 	}
 	return
 	//block 1: get my previous results from this race - finish block.
 }
 
-func getLastLapFromBuffer() (lastLap Lap) {
+func getLastLapFromBuffer() (lastLap Lap, err error) {
 	//block 1: get previous results from this race - start block.
-	if len(laps) == 1 {
-		//allready have one lap
-		//get my last result:
-		lastLap = laps[0]
 
-	} else if len(laps) > 1 {
-		//allready have more than one lap
-		sort.Slice(laps, func(i, j int) bool {
-			//sort ascending by DisoveryUnixTime
-			return laps[i].DiscoveryUnixTime < laps[j].DiscoveryUnixTime
+	if len(laps) != 0 { 
+		lapsCopy := laps
+		sort.Slice(lapsCopy, func(i, j int) bool {
+			//sort descending by DisoveryUnixTime
+			return laps[i].DiscoveryUnixTime > laps[j].DiscoveryUnixTime
 		})
-		//get my last result (newest DisoveryUnixTime result)
-		lastLap = laps[len(laps)-1]
+		lastLap = lapsCopy[0]
+		return
+	} else {
+		//retrun empty lap struct 
+		err = errors.New("Error: empty laps buffer.")
+		return
 	}
-	return
-	//block 1: get previous results from this race - finish block.
 }
 
 
@@ -619,14 +620,16 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 	} else {
 		//get any previous lap data:
-		lastLap := getLastLapFromBuffer()
-		if lastLap != (Lap{}) {
+		lastLap, err := getLastLapFromBuffer()
+		if err != nil {
+			//SOME ERROR - lastLap EMPTY ?
+			log.Println("SOME ERROR - lastLap EMPTY:", err)
+		} else {
 			//lastLap not empty
 			//get my previous lap data:
 			lastGap := newLap.DiscoveryUnixTime - lastLap.DiscoveryUnixTime
-			myLastLap := getMyLastLapFromBuffer(newLap)
-
-			if myLastLap != (Lap{}) {
+			myLastLap, err := getMyLastLapFromBuffer(newLap)
+			if err == nil {
 				//my last lap not empty
 				myLastGap := newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime
 				fmt.Printf("lastGap: %d, myLastGap: %d \n", lastGap, myLastGap)
@@ -760,15 +763,12 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 				log.Printf("SAVED NEW PLAYER TO BUFFER LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 			}
-		} else {
-			//SOME ERROR - lastLap EMPTY ?
-			log.Println("SOME ERROR - lastLap EMPTY ?", lastLap, laps,)
 		}
 	}
 
 	for _, lap := range laps {
 		if lap.LapIsCurrent==1 {
-		fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
+			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
 		}
 	}
 
