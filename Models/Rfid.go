@@ -27,8 +27,9 @@ import (
 // Buffer for new RFID requests
 var laps []Lap
 
-// Laps locker channgel
-var lapsChannelLocker = make(chan int, 1)
+// channel lockers 
+var lapsChannelBufferLocker = make(chan int, 1)
+var lapsChannelDBLocker = make(chan int, 1)
 
 // Check RFID mute timeout map
 var rfidTimeoutMap map[string]time.Time
@@ -43,20 +44,14 @@ func StartAntennaListener() {
 		log.Println("Started tcp proxy restream to", Config.PROXY_HOST, "and port:", Config.PROXY_PORT)
 	}
 
-	// Start buffer synchro with database
-	lapsChannelLocker <- 0 //Put the initial value into the channel to unlock operations
+	//unlock buffer operations
+	lapsChannelBufferLocker <- 0 //Put the initial value into the channel to unlock operations
 
-	//if laps slice empty - refill it from db:
-	//if len(laps)==0 {
-	//	laps,err := GetCurrentRaceDataFromDB()
-	//	if err == nil {
-	//		log.Println("GetCurrentRaceDataFromDB() LAPS:", len(laps))
-	//	} else {
-	//		log.Println("GetCurrentRaceDataFromDB() ERR:", err)
-	//	}
-	//}
+	//unlock db operations
+	lapsChannelDBLocker <- 0 //Put the initial value into the channel to unlock operations
 
-	//go saveLapsBufferToDB()
+	//spin forever go routine to save in db with some interval:
+	go saveLapsBufferSimplyToDB()
 
 	// Create RFID mute timeout
 	rfidTimeoutMap = make(map[string]time.Time)
@@ -81,35 +76,74 @@ func StartAntennaListener() {
 	}
 }
 
-func saveLapsBufferSimplyToDB(uLaps []Lap) () {
-	for _, lap := range uLaps {
-		err := DB.Where("id = ?", lap.ID).First(&lap).Error
-		if err != nil {
-			log.Printf("Error. Lap not found with lap.ID = %d in database, ERR: %s", lap.ID, err)
-			DB.Create(&lap)
-		} else {
-			err := DB.Save(&lap).Error
-			if err != nil {
-				log.Println("Error. Lap not added to database", err)
+func saveLapsBufferSimplyToDB() {
+
+	//loop forever:
+	for range time.Tick(time.Duration(Config.LAPS_SAVE_INTERVAL_SEC) * time.Second) {
+		<-lapsChannelDBLocker //grab the ticket via channel (lock)
+		//log.Println("Saving buffer to database started.")
+		for _, lap := range laps {
+		  var newLap Lap
+			err := DB.Where("race_id = ?", lap.RaceID).Where("lap_number = ?", lap.LapNumber).Where("tag_id = ?", lap.TagID).Where("discovery_unix_time = ?", lap.DiscoveryUnixTime).First(&newLap).Error
+			//log.Printf("race_id = %d, lap_number = %d, tag_id = %s, discovery_unix_time = %d \n", lap.RaceID, lap.LapNumber, lap.TagID, lap.DiscoveryUnixTime);
+			if err == nil {
+				//found old data - just update it:
+
+				//////////////////// DATA MAGIC START ///////////////////
+				//newlap.ID //taken from DB (on save)
+				newLap.OwnerID = lap.OwnerID
+				newLap.TagID = lap.TagID
+				newLap.DiscoveryUnixTime =  lap.DiscoveryUnixTime
+				newLap.DiscoveryAverageUnixTime = lap.DiscoveryAverageUnixTime
+				newLap.DiscoveryTimePrepared = lap.DiscoveryTimePrepared
+				newLap.DiscoveryAverageTimePrepared = lap.DiscoveryAverageTimePrepared
+				newLap.DiscoveryTimePrepared  = lap.DiscoveryTimePrepared
+				newLap.Antenna  = lap.Antenna
+				newLap.AntennaIP  = lap.AntennaIP
+				newLap.UpdatedAt  = lap.UpdatedAt
+				newLap.RaceID = lap.RaceID
+				newLap.CurrentRacePosition = lap.CurrentRacePosition
+				newLap.TimeBehindTheLeader = lap.TimeBehindTheLeader
+				newLap.LapNumber = lap.LapNumber
+				newLap.LapTime = lap.LapTime
+				newLap.LapPosition = lap.LapPosition
+				newLap.LapIsCurrent = lap.LapIsCurrent
+				newLap.LapIsStrange = lap.LapIsStrange
+				newLap.StageFinished = lap.StageFinished
+				newLap.BestLapTime = lap.BestLapTime
+				newLap.BestLapNumber = lap.BestLapNumber
+				newLap.BestLapPosition = lap.BestLapPosition
+				newLap.RaceTotalTime = lap.RaceTotalTime
+				newLap.BetterOrWorseLapTime = lap.BetterOrWorseLapTime
+				//////////////////// DATA MAGIC END ///////////////////
+
+				err := DB.Save(&newLap).Error
+				if err != nil {
+					log.Println("Error. Not updated in database:", err)
+				} else {
+					//log.Println("Updated in database OK.", newLap.TagID, newLap.LapNumber)
+				}
+			} else {
+			  log.Println("Data not found in database:", err)
+				//not found - create new
+				err := DB.Create(&lap).Error;
+				if err != nil {
+					log.Println("Error. Not created new data in database:", err)
+				} else {
+					//log.Println("Created NEW in database OK.", lap.TagID, lap.LapNumber)
+				}
 			}
 		}
-		log.Printf("lap.ID: %d, lap.TagID: %s \n", lap.ID, lap.TagID)
-	}
 
-	//lapsCopy := laps
-	//var cL []Lap
-	//laps = cL
-	// for _, lap := range lapsCopy {
-	//	laps = append(laps, lap)
-	//}
-	//return 
+		lapsChannelDBLocker <- 1 //give ticket back via channel (unlock)
+	}
 }
 
 
 // Save laps buffer to database
 func saveLapsBufferToDB() {
 	for range time.Tick(time.Duration(Config.LAPS_SAVE_INTERVAL_SEC) * time.Second) {
-		//<-lapsChannelLocker //grab the ticket via channel (lock others)
+		//<-lapsChannelBufferLocker //grab the ticket via channel (lock others)
 		var currentlapRaceID uint
 		var currentlapLapNumber int
 
@@ -274,7 +308,7 @@ func saveLapsBufferToDB() {
 		// Clear lap buffer
 		//var cL []Lap
 		//laps = cL
-		//lapsChannelLocker <- 1 //give ticket back via channel (unlock operations)
+		//lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock operations)
 	}
 }
 
@@ -543,7 +577,7 @@ func getCurrentRacePositionFromBuffer(lastLap Lap) (currentRacePosition uint){
 
 // Add new lap to laps buffer (private func)
 func addNewLapToLapsBuffer(newLap Lap) {
-	<-lapsChannelLocker //grab the ticket via channel (lock)
+	<-lapsChannelBufferLocker //grab the ticket via channel (lock)
 	newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)
 	if len(laps) == 0 {
 		//empty data: create race and lap
@@ -709,7 +743,6 @@ func addNewLapToLapsBuffer(newLap Lap) {
 			log.Println("SOME ERROR - lastLap EMPTY ?", lastLap, laps,)
 		}
 	}
-	//saveLapsBufferSimplyToDB(laps)
 
 	for _, lap := range laps {
 		if lap.LapIsCurrent==1 {
@@ -717,9 +750,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		}
 	}
 
+	lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock)
 
-
-	lapsChannelLocker <- 1 //give ticket back via channel (unlock)
 }
 // Set new expired date for rfid Tag
 func setNewExpriredDataForRfidTag(tagID string) {
