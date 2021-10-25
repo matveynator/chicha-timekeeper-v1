@@ -376,6 +376,24 @@ func getLastLapFromBuffer() (lastLap Lap, err error) {
 	}
 }
 
+func getLastRaceIdFromBuffer() (raceID uint) {
+  //block 1: get previous results from this race - start block.
+
+  if len(laps) != 0 {
+    lapsCopy := laps
+    sort.Slice(lapsCopy, func(i, j int) bool {
+      //sort descending by DisoveryUnixTime
+      return laps[i].RaceID > laps[j].RaceID
+    })
+    raceID = lapsCopy[0].RaceID
+    return
+  } else {
+    //retrun 0 raceID
+		raceID = 0
+    return
+  }
+}
+
 
 func getLapPositionFromBuffer(lastLap Lap) (lapPosition uint) {
 	if len(laps) != 0  {
@@ -724,7 +742,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
 					newLap.UpdatedAt = time.Now() //current time in time.Time
-					newLap.RaceID=lastLap.RaceID+1
+					newLap.RaceID=getLastRaceIdFromBuffer()+1
 					newLap.CurrentRacePosition=1
 					newLap.TimeBehindTheLeader=0
 					newLap.LapNumber=0
