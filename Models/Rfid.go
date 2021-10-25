@@ -99,6 +99,7 @@ func saveLapsBufferSimplyToDB() {
 				newLap.DiscoveryTimePrepared = lap.DiscoveryTimePrepared
 				newLap.DiscoveryAverageTimePrepared = lap.DiscoveryAverageTimePrepared
 				newLap.DiscoveryTimePrepared  = lap.DiscoveryTimePrepared
+				newLap.AverageResultsCount = lap.AverageResultsCount
 				newLap.Antenna  = lap.Antenna
 				newLap.AntennaIP  = lap.AntennaIP
 				newLap.UpdatedAt  = lap.UpdatedAt
@@ -121,17 +122,13 @@ func saveLapsBufferSimplyToDB() {
 				err := DB.Save(&newLap).Error
 				if err != nil {
 					log.Println("Error. Not updated in database:", err)
-				} else {
-					//log.Println("Updated in database OK.", newLap.TagID, newLap.LapNumber)
 				}
 			} else {
-				log.Println("Data not found in database:", err)
+				//log.Println("Data not found in database:", err)
 				//not found - create new
 				err := DB.Create(&lap).Error;
 				if err != nil {
 					log.Println("Error. Not created new data in database:", err)
-				} else {
-					//log.Println("Created NEW in database OK.", lap.TagID, lap.LapNumber)
 				}
 			}
 		}
@@ -377,21 +374,78 @@ func getLastLapFromBuffer() (lastLap Lap, err error) {
 }
 
 func getLastRaceIdFromBuffer() (raceID uint) {
-  //block 1: get previous results from this race - start block.
+	//block 1: get previous results from this race - start block.
 
-  if len(laps) != 0 {
-    lapsCopy := laps
-    sort.Slice(lapsCopy, func(i, j int) bool {
-      //sort descending by DisoveryUnixTime
-      return lapsCopy[i].RaceID > lapsCopy[j].RaceID
-    })
-    raceID = lapsCopy[0].RaceID
-    return
-  } else {
-    //retrun 0 raceID
+	if len(laps) != 0 {
+		lapsCopy := laps
+		sort.Slice(lapsCopy, func(i, j int) bool {
+			//sort descending by DisoveryUnixTime
+			return lapsCopy[i].RaceID > lapsCopy[j].RaceID
+		})
+		raceID = lapsCopy[0].RaceID
+		return
+	} else {
+		//retrun 0 raceID
 		raceID = 0
-    return
-  }
+		return
+	}
+}
+
+func checkLapIsValid(myLap Lap) bool {
+
+	if len(laps) == 0 {
+	  //все в порядке - кругов  еще нет - первый участник - вернем true
+		return true
+	} else {
+
+		if myLap.LapNumber == 0 {
+			//едем нулевой круг
+			for _, lap := range laps {
+				if lap.RaceID==myLap.RaceID && lap.LapNumber == 1 {
+					//если кто то проехал уже 2 круга а мы едем только нулевой
+					//не нормально - помечаем что круг странный (возможно не считалась метка)
+					return false
+				}
+			}
+		} else if myLap.LapNumber == 1 {
+			//едем первый полный круг
+
+			for _, lap := range laps {
+				//узнаем лучшее время первого круга у других участников:
+				if lap.RaceID == myLap.RaceID && lap.LapNumber == 1 && lap.CurrentRacePosition == 1 {
+
+					//узнаем соотношение времени лучшего проезда первого круга к нашему времени
+					lapTimeRatio := int(math.Round ( float64(lap.LapTime) / float64(myLap.LapTime) ) )
+
+					if lapTimeRatio >= 2 {
+						//если наше время в 2 или более раз долльше лучего времени этого круга у других участников
+						//отметим что круг странный (возможно не считалась метка)
+						return false
+					}
+				}
+			}
+		} else {
+			//едем второй полный круг и все последующие
+
+			for _, lap := range laps {
+				//узнаем свое время предыдущего круга:
+				if lap.RaceID == myLap.RaceID && lap.TagID == myLap.TagID && lap.LapNumber == ( myLap.LapNumber - 1 ) {
+
+					//узнаем соотношение времени проезда своего предыдущего круга к текущему времени
+					lapTimeRatio := int(math.Round ( float64(lap.LapTime) / float64(myLap.LapTime) ) )
+
+					if lapTimeRatio >= 2 {
+						//если наше время в 2 или более раз долльше нашего предыдущего
+						//отметим что круг странный (возможно не считалась метка)
+						return false
+					}
+				}
+			}
+		}
+
+		//если ошибок не найдено - вернем true
+		return true
+	}
 }
 
 
@@ -536,7 +590,7 @@ func getTimeBehindTheLeader(lastLap Lap) (timeBehindTheLeader int64) {
 		})
 
 		timeBehindTheLeader = lastLap.DiscoveryUnixTime - currentLaps[0].DiscoveryUnixTime
-		log.Printf("timeBehindTheLeader: %d = lastLap.DiscoveryUnixTime: %d - currentLaps[0].DiscoveryUnixTime: %d\n", timeBehindTheLeader, lastLap.DiscoveryUnixTime, currentLaps[0].DiscoveryUnixTime)
+		//log.Printf("timeBehindTheLeader: %d = lastLap.DiscoveryUnixTime: %d - currentLaps[0].DiscoveryUnixTime: %d\n", timeBehindTheLeader, lastLap.DiscoveryUnixTime, currentLaps[0].DiscoveryUnixTime)
 
 	} else {
 		timeBehindTheLeader = 0
@@ -611,6 +665,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
 		//newLap.DiscoveryTimePrepared //taken from RFID
 		newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
+		newLap.AverageResultsCount = 1 //first result from antenna
 
 		//newLap.Antenna //taken from RFID
 		//newLap.AntennaIP //taken from RFID
@@ -622,17 +677,22 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		newLap.LapTime=0
 		newLap.LapPosition=1
 		newLap.LapIsCurrent=1
-		newLap.LapIsStrange=0
+		//newLap.LapIsStrange=0
 		newLap.StageFinished=1
 		newLap.BestLapTime=0
 		newLap.BestLapNumber=0
 		newLap.BestLapPosition=0
 		newLap.RaceTotalTime=0
 		newLap.BetterOrWorseLapTime=0
+		if checkLapIsValid(newLap) {
+			newLap.LapIsStrange=0
+		} else {
+			newLap.LapIsStrange=1
+		}
 		//////////////////// DATA MAGIC END ///////////////////
 
 		laps = append(laps, newLap)
-		log.Printf("SAVED %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+		//log.Printf("SAVED %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 
 	} else {
@@ -653,13 +713,14 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 				if  myLastGap >= -(Config.RESULTS_PRECISION_SEC*1000)  && myLastGap <= Config.RESULTS_PRECISION_SEC*1000  {
 					//from -5sec to 5 sec (RESULTS_PRECISION_SEC)
+					//результаты уже имеются - только обновить среднее и минимальное время 
 
 					for i, lap := range laps {
 						if lap.RaceID == myLastLap.RaceID && lap.TagID == myLastLap.TagID && lap.LapNumber == myLastLap.LapNumber && lap.DiscoveryUnixTime == myLastLap.DiscoveryUnixTime && lap.DiscoveryAverageUnixTime == myLastLap.DiscoveryAverageUnixTime {
-						//get exact lap to update
-						
+							//get exact lap to update
+
 							//increment average results count
-						  laps[i].AverageResultsCount = laps[i].AverageResultsCount + 1
+							laps[i].AverageResultsCount = laps[i].AverageResultsCount + 1
 
 							//calculate and set new average time
 							//unix:
@@ -667,19 +728,15 @@ func addNewLapToLapsBuffer(newLap Lap) {
 							laps[i].DiscoveryAverageUnixTime = discoveryAverageUnixTime
 
 							//time.Time:
-							discoveryAverageTimePrepared := timeFromUnixMillis(discoveryAverageUnixTime)
-							laps[i].DiscoveryAverageTimePrepared = discoveryAverageTimePrepared
+							laps[i].DiscoveryAverageTimePrepared = timeFromUnixMillis(discoveryAverageUnixTime)
 
 							//my stored time is older than in received new?
 							if myLastLap.DiscoveryUnixTime > newLap.DiscoveryUnixTime {
 								//set minimal(youngest) discovered time
 								laps[i].DiscoveryUnixTime = newLap.DiscoveryUnixTime
-								discoveryTimePrepared := timeFromUnixMillis(newLap.DiscoveryUnixTime)
-								laps[i].DiscoveryTimePrepared = discoveryTimePrepared
+								laps[i].DiscoveryTimePrepared = timeFromUnixMillis(newLap.DiscoveryUnixTime)
 							}
-
-							log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
-
+							//log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
 						}
 					}
 
@@ -700,6 +757,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
 					//newLap.DiscoveryTimePrepared //taken from RFID
 					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
+					newLap.AverageResultsCount = 1 //first result from antenna
 
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
@@ -720,11 +778,16 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 					newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
+					if checkLapIsValid(newLap) {
+						newLap.LapIsStrange=0
+					} else {
+						newLap.LapIsStrange=1
+					}
 					//////////////////// DATA MAGIC END ///////////////////
 
 
 					laps = append(laps, newLap)
-					log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+					//log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 				} else if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
 					//> 300 sec (RACE_TIMEOUT_SEC) passed  = create new Race and First Lap: RaceID=lastLap.RaceID+1, LapNumber=0
@@ -738,6 +801,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
 					//newLap.DiscoveryTimePrepared //taken from RFID
 					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
+					newLap.AverageResultsCount = 1 //first result from antenna
 
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
@@ -749,13 +813,18 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.LapTime=0
 					newLap.LapPosition=1
 					newLap.LapIsCurrent=1
-					newLap.LapIsStrange=0
+					//newLap.LapIsStrange=0
 					newLap.StageFinished=1
 					newLap.BestLapTime=0
 					newLap.BestLapNumber=0
 					newLap.BestLapPosition=0
 					newLap.RaceTotalTime=0
 					newLap.BetterOrWorseLapTime=0
+					if checkLapIsValid(newLap) {
+						newLap.LapIsStrange=0
+					} else {
+						newLap.LapIsStrange=1
+					}
 					//////////////////// DATA MAGIC END ///////////////////
 
 					// Clear lap buffer, start with clean slice:
@@ -763,13 +832,13 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					laps = cL
 					laps = append(laps, newLap)
 
-					log.Printf("SAVED NEXT RACE LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+					//log.Printf("SAVED NEXT RACE LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 
 
 				} else {
 
-					log.Printf("STRANGE!: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
+					//log.Printf("STRANGE!: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
 				}
 			} else {
 				//no my results - create my first lap in same race
@@ -782,6 +851,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
 				//newLap.DiscoveryTimePrepared //taken from RFID
 				newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
+				newLap.AverageResultsCount = 1 //first result from antenna
 
 				//newLap.Antenna //taken from RFID
 				//newLap.AntennaIP //taken from RFID
@@ -801,11 +871,16 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				//newLap.BetterOrWorseLapTime = ?
 				newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 				newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
+				if checkLapIsValid(newLap) {
+					newLap.LapIsStrange=0
+				} else {
+					newLap.LapIsStrange=1
+				}
 				//////////////////// DATA MAGIC END ///////////////////
 
 				laps = append(laps, newLap)
 
-				log.Printf("SAVED NEW PLAYER TO BUFFER LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+				//log.Printf("SAVED NEW PLAYER TO BUFFER LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 			}
 		}
 	}
