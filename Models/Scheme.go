@@ -33,6 +33,7 @@ type Lap struct {
 	DiscoveryTime         string    `json:"-" xml:"DiscoveryTime"`
 	DiscoveryTimePrepared time.Time `json:"discovery_time"`
 	DiscoveryAverageTimePrepared time.Time `json:"discovery_average_time"`
+	AverageResultsCount   uint       `gorm:"index" json:"average_results_count"`
 
 	Antenna               uint8     `gorm:"index" json:"antenna" xml:"Antenna"`
 	AntennaIP             string    `gorm:"char(128);index" json:"antenna_ip"`

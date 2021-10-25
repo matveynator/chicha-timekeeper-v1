@@ -316,14 +316,13 @@ func saveLapsBufferToDB() {
 
 func setMyPreviousLapsNonCurrentInBuffer(myNewLap Lap)  {
 	//get my previous results from this race - start block.
-	var onlyMyLaps []Lap
+	//var onlyMyLaps []Lap
 	//gather all my laps from previous results:
 	for i, lap := range laps {
 		if lap.RaceID == myNewLap.RaceID && lap.TagID == myNewLap.TagID {
 			//my previous results found in this race:
 			laps[i].LapIsCurrent=0;
-			onlyMyLaps = append(onlyMyLaps, lap)
-			laps[i].LapIsCurrent=0;
+			//onlyMyLaps = append(onlyMyLaps, lap)
 		}
 	}
 	//log.Printf("Found %d previous laps and set LapIsCurrent=0 on them.\n", len(onlyMyLaps))
@@ -634,10 +633,37 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				myLastGap := newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime
 				fmt.Printf("lastGap: %d, myLastGap: %d \n", lastGap, myLastGap)
 
-				if  myLastGap >= 0 && Config.RESULTS_PRECISION_SEC*1000 >= myLastGap  {
-					//from 0 to 5 sec (RESULTS_PRECISION_SEC) = update DiscoveryAverageUnixTime data
-					myLastLap.DiscoveryAverageUnixTime = (myLastLap.DiscoveryAverageUnixTime + newLap.DiscoveryUnixTime) / 2
-					log.Printf("UPDATED BUFFER: laps: %d, raceid: %d, lap#: %d, avtime: %d, tag: %s\n", len(laps), myLastLap.RaceID, myLastLap.LapNumber, myLastLap.DiscoveryAverageUnixTime, myLastLap.TagID )
+				if  myLastGap >= -(Config.RESULTS_PRECISION_SEC*1000)  && myLastGap <= Config.RESULTS_PRECISION_SEC*1000  {
+					//from -5sec to 5 sec (RESULTS_PRECISION_SEC)
+
+					for i, lap := range laps {
+						if lap.RaceID == myLastLap.RaceID && lap.TagID == myLastLap.TagID && lap.LapNumber == myLastLap.LapNumber && lap.DiscoveryUnixTime == myLastLap.DiscoveryUnixTime && lap.DiscoveryAverageUnixTime == myLastLap.DiscoveryAverageUnixTime {
+						//get exact lap to update
+						
+							//increment average results count
+						  laps[i].AverageResultsCount = laps[i].AverageResultsCount + 1
+
+							//calculate and set new average time
+							//unix:
+							discoveryAverageUnixTime := (myLastLap.DiscoveryAverageUnixTime + newLap.DiscoveryUnixTime) / 2
+							laps[i].DiscoveryAverageUnixTime = discoveryAverageUnixTime
+
+							//time.Time:
+							discoveryAverageTimePrepared := timeFromUnixMillis(discoveryAverageUnixTime)
+							laps[i].DiscoveryAverageTimePrepared = discoveryAverageTimePrepared
+
+							//my stored time is older than in received new?
+							if myLastLap.DiscoveryUnixTime > newLap.DiscoveryUnixTime {
+								//set minimal(youngest) discovered time
+								laps[i].DiscoveryUnixTime = newLap.DiscoveryUnixTime
+								discoveryTimePrepared := timeFromUnixMillis(newLap.DiscoveryUnixTime)
+								laps[i].DiscoveryTimePrepared = discoveryTimePrepared
+							}
+
+							log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
+
+						}
+					}
 
 				} else if Config.RESULTS_PRECISION_SEC*1000 < myLastGap && myLastGap < Config.MINIMAL_LAP_TIME_SEC*1000 {
 					//from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data - ERROR DATA RECEIVED!
@@ -786,7 +812,13 @@ func setNewExpriredDataForRfidTag(tagID string) {
 }
 
 //string to time.Unix milli
-func timeFromUnixMillis(ms string) (time.Time, error) {
+func timeFromUnixMillis(msInt int64) (time.Time) {
+	return time.Unix(0, msInt*int64(time.Millisecond))
+}
+
+
+//string to time.Unix milli
+func timeFromStringUnixMillis(ms string) (time.Time, error) {
 	msInt, err := strconv.ParseInt(ms, 10, 64)
 	if err != nil {
 		return time.Time{}, err
@@ -862,7 +894,7 @@ func newAntennaConnection(conn net.Conn) {
 				log.Println("Recived incorrect discovery unix time CSV value:", err)
 				continue
 			} else {
-				lap.DiscoveryTimePrepared, _ = timeFromUnixMillis(strings.TrimSpace(CSV[1]))
+				lap.DiscoveryTimePrepared, _ = timeFromStringUnixMillis(strings.TrimSpace(CSV[1]))
 			}
 			lap.TagID = strings.TrimSpace(CSV[0])
 			lap.Antenna = uint8(antennaPosition)
