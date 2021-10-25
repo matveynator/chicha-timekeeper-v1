@@ -365,7 +365,7 @@ func getLastLapFromBuffer() (lastLap Lap, err error) {
 		lapsCopy := laps
 		sort.Slice(lapsCopy, func(i, j int) bool {
 			//sort descending by DisoveryUnixTime
-			return laps[i].DiscoveryUnixTime > laps[j].DiscoveryUnixTime
+			return lapsCopy[i].DiscoveryUnixTime > lapsCopy[j].DiscoveryUnixTime
 		})
 		lastLap = lapsCopy[0]
 		return
@@ -383,7 +383,7 @@ func getLastRaceIdFromBuffer() (raceID uint) {
     lapsCopy := laps
     sort.Slice(lapsCopy, func(i, j int) bool {
       //sort descending by DisoveryUnixTime
-      return laps[i].RaceID > laps[j].RaceID
+      return lapsCopy[i].RaceID > lapsCopy[j].RaceID
     })
     raceID = lapsCopy[0].RaceID
     return
