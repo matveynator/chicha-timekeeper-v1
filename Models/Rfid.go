@@ -537,23 +537,33 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 			sort.SliceStable(bestLaps, func(i, j int) bool {
 				return bestLaps[i].BestLapTime < bestLaps[j].BestLapTime
 			})
-			var tempLaps []Lap
+			var absoluteBestLaps []Lap
 			for _, lap := range bestLaps {
 				//create new slice with only results by TagID
-				if !containsTagID(tempLaps, lap) {
-					tempLaps = append(tempLaps, lap)
+				if !containsTagID(absoluteBestLaps, lap) {
+					absoluteBestLaps = append(absoluteBestLaps, lap)
 				}
 			}
 
-			if len(tempLaps) > 0 {
-				for position, lap := range tempLaps {
-					log.Printf("Tag: %s, BestLapTime: %d, BestLapNumber: %d, BestLapPosition: %d\n", lap.TagID, lap.BestLapTime, lap.BestLapNumber, position+1)
+			if len(absoluteBestLaps) > 0 {
+				for position, lap := range absoluteBestLaps {
+
+					//prepare my best lap position
 					if lap.TagID == lastLap.TagID {
 						myBestLapPosition = uint(position + 1)
 					}
+
+					//update everyone else best lap position globally in current laps
+					for i, _ := range laps {
+						if laps[i].RaceID == lap.RaceID && laps[i].TagID == lap.TagID && laps[i].LapIsCurrent == 1 {
+							laps[i].BestLapPosition = uint(position + 1)
+						}
+					}
+
+					//log.Printf("Tag: %s, BestLapTime: %d, BestLapNumber: %d, BestLapPosition: %d\n", lap.TagID, lap.BestLapTime, lap.BestLapNumber, position+1)
+
 				}
 			}
-
 		} else {
 			myBestLapPosition = 0
 		}
