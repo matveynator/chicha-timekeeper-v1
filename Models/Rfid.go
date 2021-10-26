@@ -1089,10 +1089,10 @@ func newAntennaConnection(conn net.Conn) {
 			laps, err = GetCurrentRaceDataFromDB()
 			if err == nil {
 				log.Printf("laps buffer recreated with %d records from db.\n", len(laps))
+				go addNewLapToLapsBuffer(lap)
 			} else {
 				log.Println("laps buffer recreation failed with:", err)
 			}
-			go addNewLapToLapsBuffer(lap)
 		} else {
 			// Add current Lap to Laps buffer
 			go addNewLapToLapsBuffer(lap)
