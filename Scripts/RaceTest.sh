@@ -6,15 +6,21 @@
 port=4000
 host=localhost
 competitors=10 #riders
-results=30 #results from one rider
-laps=5 #laps
-minimal_lap_time_sec=60
+results=20 #results from one rider
+laps=10 #laps
+minimal_lap_time_sec=20
 xml=0  #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
 random=1 #0 = 1 2 3 4 5; #1 = 4 1 2 3 5
 ##################################################
 
 
 LANG=C
+
+TAGPREFIX="TESTRIDER000"
+TAGRANDOM1=$((RANDOM % 9999))
+TAGRANDOM2=$((RANDOM % 9999))
+TAG="${TAGPREFIX}${TAGRANDOM1}${TAGRANDOM2}"
+
 cmdname=`basename $0`
 newtmpdir=`mktemp -d /tmp/${cmdname}.XXXXXX`
 spool="$newtmpdir/spool"
@@ -82,7 +88,7 @@ function raceXML() {
 				then
 					cat > ${spool}  <<EOF
 <Alien-RFID-Tag>
-	<TagID>1000 0802 0200 0001 0000 079${racer}</TagID>
+	<TagID>TEST RIDE R000 ${TAGRANDOM1} ${TAGRANDOM2} 00${racer}</TagID>
 	<DiscoveryTime>${time}</DiscoveryTime>
 	<LastSeenTime>${time}</LastSeenTime>
 	<Antenna>${antenna}</Antenna>
@@ -91,7 +97,7 @@ function raceXML() {
 </Alien-RFID-Tag>
 EOF
 else
-	echo "10000802020000010000079${racer}, ${unixtime}, ${antenna}" > ${spool}
+	echo "${TAG}00${racer}, ${unixtime}, ${antenna}" > ${spool}
 				fi
 
 				#[ "${racer}" != "1" ] 
