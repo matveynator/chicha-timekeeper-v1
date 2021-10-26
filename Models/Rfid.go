@@ -394,7 +394,7 @@ func getLastRaceIdFromBuffer() (raceID uint) {
 func checkLapIsValid(myLap Lap) bool {
 
 	if len(laps) == 0 {
-	  //все в порядке - кругов  еще нет - первый участник - вернем true
+		//все в порядке - кругов  еще нет - первый участник - вернем true
 		return true
 	} else {
 
@@ -579,7 +579,6 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 
 func getTimeBehindTheLeader(lastLap Lap) (timeBehindTheLeader int64) {
 	if len(laps) != 0  {
-		setMyPreviousLapsNonCurrentInBuffer(lastLap)
 
 		var currentLaps []Lap
 
@@ -610,9 +609,36 @@ func getTimeBehindTheLeader(lastLap Lap) (timeBehindTheLeader int64) {
 }
 
 
-func getCurrentRacePositionFromBuffer(lastLap Lap) (currentRacePosition uint){
+func getMyPreviousBestLapTime(lastLap Lap) (myPreviousBestLapTime int64) {
 
-	setMyPreviousLapsNonCurrentInBuffer(lastLap)
+	if len(laps)!=0 {
+		//get my previous BestLapTime
+		var previousLaps []Lap
+
+		for _, savedLap := range laps {
+			if savedLap.RaceID == lastLap.RaceID && savedLap.TagID == lastLap.TagID && savedLap.LapNumber != lastLap.LapNumber && savedLap.LapNumber != 0  {
+				previousLaps = append(previousLaps, savedLap)
+			}
+		}
+
+		if len(previousLaps) > 0 {
+			sort.SliceStable(previousLaps, func(i, j int) bool {
+				return previousLaps[i].BestLapTime < previousLaps[j].BestLapTime
+			})
+			myPreviousBestLapTime = previousLaps[0].BestLapTime
+
+		} else {
+			myPreviousBestLapTime = 0
+		}
+
+	} else {
+		myPreviousBestLapTime = 0
+	}
+	return
+}
+
+
+func getCurrentRacePositionFromBuffer(lastLap Lap) (currentRacePosition uint){
 
 	if len(laps) != 0  {
 		var currentLaps []Lap
@@ -632,22 +658,18 @@ func getCurrentRacePositionFromBuffer(lastLap Lap) (currentRacePosition uint){
 			return currentLaps[i].DiscoveryUnixTime < currentLaps[j].DiscoveryUnixTime
 		})
 
-		var position uint
-		position = 1
-		for _, currentLap := range currentLaps {
+		for position, currentLap := range currentLaps {
 
 			//set my current race position
 			if  currentLap.TagID == lastLap.TagID {
-				currentRacePosition = position
+				currentRacePosition = uint(position + 1)
 			}
 			//update other race positions:
 			for i, lap := range laps {
 				if lap.RaceID ==  currentLap.RaceID && lap.TagID == currentLap.TagID && lap.DiscoveryUnixTime == currentLap.DiscoveryUnixTime {
-					laps[i].CurrentRacePosition=position
+					laps[i].CurrentRacePosition=uint(position + 1)
 				}
 			}
-
-			position ++ //= position + 1
 		}
 
 	} else {
@@ -686,6 +708,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		newLap.LapNumber=0
 		newLap.LapTime=0
 		newLap.LapPosition=1
+		setMyPreviousLapsNonCurrentInBuffer(newLap)
 		newLap.LapIsCurrent=1
 		//newLap.LapIsStrange=0
 		newLap.StageFinished=1
@@ -728,6 +751,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					for i, lap := range laps {
 						if lap.RaceID == myLastLap.RaceID && lap.TagID == myLastLap.TagID && lap.LapNumber == myLastLap.LapNumber && lap.DiscoveryUnixTime == myLastLap.DiscoveryUnixTime && lap.DiscoveryAverageUnixTime == myLastLap.DiscoveryAverageUnixTime {
 							//get exact lap to update
+							//UPDATE OTHER RESULTS IN BUFFER ACCORDING TO NEW TIME START BLOCK:
 
 							//increment average results count
 							laps[i].AverageResultsCount = laps[i].AverageResultsCount + 1
@@ -746,7 +770,24 @@ func addNewLapToLapsBuffer(newLap Lap) {
 								laps[i].DiscoveryUnixTime = newLap.DiscoveryUnixTime
 								laps[i].DiscoveryTimePrepared = timeFromUnixMillis(newLap.DiscoveryUnixTime)
 							}
-							//log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
+
+							//laps[i].LapTime= myLastGap
+							//laps[i].LapPosition=getLapPositionFromBuffer(laps[i])
+							//laps[i].BestLapTime, laps[i].BestLapNumber, laps[i].BestLapPosition = getMyBestLapTimeAndNumber(laps[i])
+							//laps[i].RaceTotalTime = myLastLap.RaceTotalTime + myLastGap
+							//(-) minus is better (green), (+) plus is worth (orange).
+							//laps[i].BetterOrWorseLapTime = laps[i].BestLapTime - getMyPreviousBestLapTime(laps[i])
+							//laps[i].CurrentRacePosition=getCurrentRacePositionFromBuffer(laps[i])
+							//laps[i].TimeBehindTheLeader=getTimeBehindTheLeader(laps[i])
+							//if checkLapIsValid(laps[i]) {
+							//	laps[i].LapIsStrange=0
+							//} else {
+							//	laps[i].LapIsStrange=1
+							//}
+							//UPDATE OTHER RESULTS IN BUFFER ACCORDING TO NEW TIME END BLOCK.
+
+
+							log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
 						}
 					}
 
@@ -778,14 +819,15 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.LapNumber = myLastLap.LapNumber + 1
 					newLap.LapTime= myLastGap
 					newLap.LapPosition=getLapPositionFromBuffer(newLap)
+					setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent = 1 //returns 1 (sets this lap current) && sets my previous laps in same race: LapIsCurrent=0
 					//newLap.LapIsStrange=?
 					newLap.StageFinished=1
 					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 					//newLap.BestLapPosition=getMyBestLapPosition(newLap)
 					newLap.RaceTotalTime = myLastLap.RaceTotalTime + myLastGap
-					//newLap.BetterOrWorseLapTime = ?
-
+					//(-) minus is better (green), (+) plus is worth (orange).
+					newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
 					newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
@@ -800,8 +842,9 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 				} else if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
-					//> 300 sec (RACE_TIMEOUT_SEC) passed  = create new Race and First Lap: RaceID=lastLap.RaceID+1, LapNumber=0
-					//but first - clean previous race data
+					// > 300 sec (RACE_TIMEOUT_SEC) passed 
+					// create new Race and First Lap: RaceID=lastLap.RaceID+1, LapNumber=0
+					// and clean previous race data
 
 					//////////////////// DATA MAGIC START ///////////////////
 					//newlap.ID //taken from DB (on save)
@@ -822,6 +865,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.LapNumber=0
 					newLap.LapTime=0
 					newLap.LapPosition=1
+					setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent=1
 					//newLap.LapIsStrange=0
 					newLap.StageFinished=1
@@ -872,13 +916,16 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				newLap.LapNumber = 0
 				newLap.LapTime = getZeroLapGap(newLap)
 				newLap.LapPosition=getLapPositionFromBuffer(newLap)
-				newLap.LapIsCurrent = 1 //returns 1 (sets this lap current) && sets my previous laps in same race: LapIsCurrent=0
+
+				setMyPreviousLapsNonCurrentInBuffer(newLap)
+				newLap.LapIsCurrent = 1 
 				//newLap.LapIsStrange=?
 				newLap.StageFinished=1
 				newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 				//newLap.BestLapPosition=?
 				newLap.RaceTotalTime = newLap.LapTime
-				//newLap.BetterOrWorseLapTime = ?
+				//(-) minus is better (green), (+) plus is worth (orange).
+				newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
 				newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 				newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
 				if checkLapIsValid(newLap) {

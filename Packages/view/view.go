@@ -114,10 +114,10 @@ func (v *View) RaceView(c *gin.Context) {
 	// gold
 	//Models.GetLeaderRaceTotalTimeByRaceIdAndLapNumber()
 
-	// if better then prev
+	// if (-) sec better then prev
 	// green
 
-	// if worse then prev
+	// if (+) sec worse then prev
 	// orange
 
 	// if best current lap
