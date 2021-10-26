@@ -9,15 +9,10 @@ import (
 
 //
 func GetCurrentRaceDataFromDB() (currentRace []Lap, err error) {
-  var lastLap Lap 
+	var lastLap Lap 
 	err = DB.Order("discovery_unix_time desc").First(&lastLap).Error
 	if err == nil {
 		err = DB.Where("race_id = ?", lastLap.RaceID ).Find(&currentRace).Error
-		if err != nil {
-			return
-		}
-	} else {
-		return
 	}
 	return
 }
