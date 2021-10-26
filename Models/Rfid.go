@@ -752,9 +752,11 @@ func addNewLapToLapsBuffer(newLap Lap) {
 			log.Println("lastGap:", lastGap)
 			myLastLap, err := getMyLastLapFromBuffer(newLap)
 			if err == nil {
-				//my last lap not empty
+				
+				//существуют мои результаты в текущем заезде
+
 				myLastGap := newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime
-				fmt.Printf("lastGap: %d, myLastGap: %d \n", lastGap, myLastGap)
+				fmt.Printf("myLastGap: %d \n", myLastGap)
 
 				if  myLastGap >= -(Config.RESULTS_PRECISION_SEC*1000)  && myLastGap <= Config.RESULTS_PRECISION_SEC*1000  {
 					//from -5sec to 5 sec (RESULTS_PRECISION_SEC)
@@ -799,13 +801,15 @@ func addNewLapToLapsBuffer(newLap Lap) {
 							//UPDATE OTHER RESULTS IN BUFFER ACCORDING TO NEW TIME END BLOCK.
 
 
-							log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
+							//log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
 						}
 					}
 
 				} else if Config.RESULTS_PRECISION_SEC*1000 < myLastGap && myLastGap < Config.MINIMAL_LAP_TIME_SEC*1000 {
 					//from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data - ERROR DATA RECEIVED!
-					log.Println("ERROR DATA RECEIVED: from 5 to 30 sec", newLap.TagID)
+
+				log.Println("ERROR DATA RECEIVED: from 5 to 30 sec", newLap.TagID)
+
 
 				} else if Config.MINIMAL_LAP_TIME_SEC*1000 <= myLastGap && lastGap < Config.RACE_TIMEOUT_SEC*1000 {
 
@@ -851,7 +855,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 
 					laps = append(laps, newLap)
-					log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+					//log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 				} else if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
 
@@ -897,13 +901,13 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					laps = cL
 					laps = append(laps, newLap)
 
-					log.Printf("SAVED NEXT RACE LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+					//log.Printf("SAVED NEXT RACE LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 
 
 				} else {
 
-					log.Printf("STRANGE!: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
+					//log.Printf("STRANGE!: laps: %d, raceid: %d, lap#: %d, tag: %s\n", len(laps), newLap.RaceID, newLap.LapNumber, newLap.TagID )
 				}
 			} else {
 
@@ -953,7 +957,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					laps = cL
 					laps = append(laps, newLap)
 
-					log.Printf("CREATED NEW RACE %d, with lap#  %d IN BUFFER: tag: %s, \n", newLap.RaceID, newLap.LapNumber, newLap.TagID)
+					//log.Printf("CREATED NEW RACE %d, with lap#  %d IN BUFFER: tag: %s, \n", newLap.RaceID, newLap.LapNumber, newLap.TagID)
 
 				} else {
 					
@@ -999,7 +1003,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 					laps = append(laps, newLap)
 
-					log.Printf("SAVED NEW PLAYER TO SAME RACE in BUFFER:  LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
+					//log.Printf("SAVED NEW PLAYER TO SAME RACE in BUFFER:  LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 
 				}
