@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"sort"
 
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
@@ -102,9 +103,12 @@ func (v *View) Homepage(c *gin.Context) {
 
 func (v *View) RaceView(c *gin.Context) {
 	raceID := c.Params.ByName("id")
-	laps := new([]Models.Lap)
+	//laps := new([]Models.Lap)
 
-	if err := Models.GetAllResultsByRaceId(laps, raceID); err != nil {
+	//if err := Models.GetAllResultsByRaceId(laps, raceID); err != nil {
+	
+	laps, err := Models.GetLaps()
+	if err != nil {
 		c.Error(err)
 		log.Println(err)
 		//return
@@ -126,22 +130,32 @@ func (v *View) RaceView(c *gin.Context) {
 	//Models.
 
 	var sLaps []gin.H
-	for _, v := range *laps {
 
-		//d := rand.Intn(20)
-		var stl string
-		if v.BetterOrWorseLapTime > 0 {
-			stl = "orange"
-		} else if v.BetterOrWorseLapTime < 0 {
-			stl = "green"
-		} else if v.BestLapPosition == 1 {
-			stl = "violet"
+	sort.Slice(laps, func(i, j int) bool {
+		//sort by minimal CurrentRacePosition
+		return laps[i].CurrentRacePosition < laps[j].CurrentRacePosition
+	})
+
+	for _, v := range laps {
+
+		if v.LapIsCurrent == 1 {
+
+			//d := rand.Intn(20)
+			var stl string
+			if v.BetterOrWorseLapTime > 0 {
+				stl = "orange"
+			} else if v.BetterOrWorseLapTime < 0 {
+				stl = "green"
+			} else if v.BestLapPosition == 1 {
+				stl = "violet"
+			}
+
+			sLaps = append(sLaps, gin.H{
+				"Lap":   v,
+				"Style": stl,
+			})
+
 		}
-
-		sLaps = append(sLaps, gin.H{
-			"Lap":   v,
-			"Style": stl,
-		})
 	}
 
 	reslt := gin.H{

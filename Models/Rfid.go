@@ -137,6 +137,25 @@ func saveLapsBufferSimplyToDB() {
 	}
 }
 
+//export laps slice to other packages
+func GetLaps() (outLaps []Lap, err error) {
+	//<-lapsChannelBufferLocker //grab the ticket via channel (lock)
+	if len(laps) == 0 {
+		//laps buffer empty - recreate last race from db:
+		laps, err = GetCurrentRaceDataFromDB()
+		if err == nil {
+			outLaps = laps
+		}
+	}
+	//lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock)
+
+	if len(laps) > 0 {
+		outLaps = laps
+	}
+
+	return
+}
+
 
 // Save laps buffer to database
 func saveLapsBufferToDB() {
