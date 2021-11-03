@@ -5,6 +5,7 @@ package Models
 */
 
 import(
+	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,8 +24,8 @@ func GetLapsByRaceId(c *gin.Context) {
 // Return list of all laps
 func GetResultsByRaceId(c *gin.Context) {
         var laps []Lap
-        race_id := c.Params.ByName("id")
-        err := GetAllResultsByRaceId(&laps, race_id)
+				race_id, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+        err := GetAllResultsByRaceId(&laps, uint(race_id))
         if err != nil {
                 c.JSON(404, err)
                 return

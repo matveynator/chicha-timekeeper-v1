@@ -16,7 +16,7 @@
 
 <tbody>
 {{range .Laps}}
-<tr id="{{.Lap.TagID}}" class="{{.Style}}">
+<tr id="{{.Lap.TagID}}">
 <td align="center">{{.Lap.CurrentRacePosition}}</td>
 <td>{{.Lap.TagID}}</td>
 <td align="center">{{.Lap.LapNumber}}</td>
@@ -24,7 +24,7 @@
 	<div>{{timestampRender .Lap.RaceTotalTime}}</div>
 	<div>( {{millisDurationRender .Lap.TimeBehindTheLeader}} )</div>
 </td>
-<td>
+<td{{ if .Style }} class="{{.Style}}" {{ end }}>
 	<div>{{timestampRender .Lap.LapTime}}</div>
 	<div>( {{millisDurationRender .Lap.BetterOrWorseLapTime}} )</div>
 </td>

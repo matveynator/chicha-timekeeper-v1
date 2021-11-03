@@ -4,8 +4,32 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"log"
 )
 
+func GetLapsForWeb(raceID uint) (laps []Lap) {
+	lapsFromBuffer, err := GetLaps()
+	if err != nil {
+		log.Println(err)
+	}
+
+	if len(lapsFromBuffer) > 0 && raceID == lapsFromBuffer[0].RaceID  {
+	//if race is current - get data from buffer - it is faster:
+		log.Println("race is current - took data from buffer, raceID:", raceID)
+		laps = lapsFromBuffer
+	} else {
+	//race is not current - get data from database:
+		log.Println("race is not current - took data from database, raceID:", raceID)
+		var lapsFromDB []Lap
+		err := GetAllResultsByRaceId(&lapsFromDB, raceID);
+		if err != nil {
+			log.Println(err)
+		} else {
+			laps = lapsFromDB
+		}
+	}
+	return
+}
 
 //
 func GetCurrentRaceDataFromDB() (currentRace []Lap, err error) {
@@ -26,8 +50,9 @@ func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
 }
 
 // Get results by race ID
-func GetAllResultsByRaceId(u *[]Lap, race_id_string string) (err error) {
-	race_id_int, _ := strconv.ParseInt(race_id_string, 10, 64)
+func GetAllResultsByRaceId(u *[]Lap, race_id_int uint) (err error) {
+	//race_id_int, _ := strconv.ParseInt(race_id_string, 10, 64)
+
 	result := DB.Where("race_id = ?", race_id_int).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(u)
 	return result.Error
 }

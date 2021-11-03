@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 	"sort"
+	"strconv"
 
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
@@ -102,21 +103,11 @@ func (v *View) Homepage(c *gin.Context) {
 }
 
 func (v *View) RaceView(c *gin.Context) {
-	raceID := c.Params.ByName("id")
-	//laps := new([]Models.Lap)
+	raceID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
 
-	//if err := Models.GetAllResultsByRaceId(laps, raceID); err != nil {
-	
-	laps, err := Models.GetLaps()
-	if err != nil {
-		c.Error(err)
-		log.Println(err)
-		//return
-	}
 
-	// if leader race_total_time by race_id
-	// gold
-	//Models.GetLeaderRaceTotalTimeByRaceIdAndLapNumber()
+
+	laps := Models.GetLapsForWeb(uint(raceID))
 
 	// if (-) sec better then prev
 	// green
@@ -127,7 +118,6 @@ func (v *View) RaceView(c *gin.Context) {
 	// if best current lap
 	// purple
 
-	//Models.
 
 	var sLaps []gin.H
 
@@ -140,13 +130,12 @@ func (v *View) RaceView(c *gin.Context) {
 
 		if v.LapIsCurrent == 1 {
 
-			//d := rand.Intn(20)
 			var stl string
 			if v.BetterOrWorseLapTime > 0 {
 				stl = "orange"
 			} else if v.BetterOrWorseLapTime < 0 {
 				stl = "green"
-			} else if v.BestLapPosition == 1 {
+			} else if ( v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber )  {
 				stl = "violet"
 			}
 
@@ -155,7 +144,7 @@ func (v *View) RaceView(c *gin.Context) {
 				"Style": stl,
 			})
 
-		}
+ 		}
 	}
 
 	reslt := gin.H{

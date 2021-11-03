@@ -156,180 +156,6 @@ func GetLaps() (outLaps []Lap, err error) {
 	return
 }
 
-
-// Save laps buffer to database
-func saveLapsBufferToDB() {
-	for range time.Tick(time.Duration(Config.LAPS_SAVE_INTERVAL_SEC) * time.Second) {
-		//<-lapsChannelBufferLocker //grab the ticket via channel (lock others)
-		var currentlapRaceID uint
-		var currentlapLapNumber int
-
-		// Save laps to database
-		for _, lap := range laps {
-			previousLapNumber, previousDiscoveryUnixTime, previousRaceTotalTime := GetPreviousLapDataFromRaceByTagID(lap.TagID, currentlapRaceID)
-			if previousLapNumber != -1 {
-				//set lap.LapIsCurrent = 0 for previous lap
-				//set previos lap "non current"
-				ExpireMyPreviousLap(lap.TagID, currentlapRaceID)
-			}
-			if previousLapNumber == -1 {
-				currentlapLapNumber = 0
-			} else {
-				currentlapLapNumber = previousLapNumber + 1
-			}
-			//set this lap actual (current)
-			lap.LapIsCurrent = 1
-			lap.LapNumber = currentlapLapNumber
-			lap.RaceID = currentlapRaceID
-			lap.DiscoveryUnixTime = lap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond)
-			if previousLapNumber == -1 {
-				//if this is first lap results:
-				//#7 issue - first lap time
-				leaderFirstLapDiscoveryUnixTime, err := GetLeaderFirstLapDiscoveryUnixTime(currentlapRaceID)
-				if err == nil {
-					//you are not the leader of the first lap
-					//calculate against the leader
-					lap.LapTime = lap.DiscoveryUnixTime - leaderFirstLapDiscoveryUnixTime
-					lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
-				} else {
-					//you are the leader set LapTime=0;
-					lap.LapTime = 0
-					lap.LapPosition = 1
-					lap.CurrentRacePosition = 1
-				}
-			} else {
-				lap.LapTime = lap.DiscoveryUnixTime - previousDiscoveryUnixTime
-				lap.LapPosition = GetLapPosition(currentlapRaceID, currentlapLapNumber, lap.TagID)
-			}
-
-			//race total time
-			lap.RaceTotalTime = previousRaceTotalTime + lap.LapTime
-			//log.Println("race total time:", lap.RaceTotalTime, "lap time", lap.LapTime)
-
-			leaderRaceTotalTime := GetLeaderRaceTotalTimeByRaceIdAndLapNumber(lap.RaceID, lap.LapNumber)
-			if leaderRaceTotalTime == 0 {
-				//first lap
-				//log.Println("leaderRaceTotalTime = 0 - first lap detected, TimeBehindTheLeader = lap.LapTime:", lap.LapTime)
-				if lap.LapPosition == 1 {
-					lap.TimeBehindTheLeader = 0
-				} else {
-					lap.TimeBehindTheLeader = lap.LapTime
-				}
-			} else {
-				lap.TimeBehindTheLeader = lap.RaceTotalTime - leaderRaceTotalTime
-			}
-
-			//START: лучшее время и возможные пропуски в учете на воротах RFID (lap.LapIsStrange):
-			if lap.LapNumber == 0 {
-				//едем нулевой круг
-				lap.BestLapTime = lap.LapTime
-				lap.BetterOrWorseLapTime = 0
-				_, err := GetBestLapTimeFromRace(currentlapRaceID)
-				if err == nil {
-					//если кто то проехал уже 2 круга а мы едем только нулевой
-					//не нормально - помечаем что круг странный (возможно не считалась метка)
-					lap.LapIsStrange = 1
-				} else {
-					//нормально - еще нет проехавших второй круг
-					lap.LapIsStrange = 0
-				}
-			} else if lap.LapNumber == 1 {
-				//едем первый полный круг
-				lap.BestLapTime = lap.LapTime
-				lap.BetterOrWorseLapTime = 0
-				//узнаем лучшее время круга у других участников:
-				currentRaceBestLapTime, _ := GetBestLapTimeFromRace(currentlapRaceID)
-				lapIsStrange := int(math.Round(float64(lap.LapTime) / float64(currentRaceBestLapTime)))
-				if lapIsStrange >= 2 {
-					//если наше время в 2 или более раз долльше лучего времени этого круга у других участников
-					//отметим что круг странный (возможно не считалась метка)
-					lap.LapIsStrange = 1
-				} else {
-					//нормально - наше время не очень долгое (вероятно правильно считалось)
-					lap.LapIsStrange = 0
-				}
-			} else {
-				//едем второй полный круг и все последующие
-				//запросим свое предыдущее лучшее время круга:
-				myPreviousBestLapTime, _ := GetBestLapTimeFromRaceByTagID(lap.TagID, currentlapRaceID)
-				if lap.LapTime > myPreviousBestLapTime {
-					lap.BestLapTime = myPreviousBestLapTime
-				} else {
-					lap.BestLapTime = lap.LapTime
-				}
-				//улучшил или ухудшил свое предыдущее лучшее время?
-				lap.BetterOrWorseLapTime = lap.LapTime - myPreviousBestLapTime
-				lapIsStrange := int(math.Round(float64(lap.LapTime) / float64(lap.BestLapTime)))
-				if lapIsStrange >= 2 {
-					//если наше время в 2 и более раз дольше чем наше лучшее время круга
-					//отметим что круг странный (метка возможно просто не считалась)
-					lap.LapIsStrange = 1
-				} else {
-					lap.LapIsStrange = 0
-				}
-			}
-			//END: лучшее время и возможные пропуски в учете на воротах RFID (lap.LapIsStrange):
-
-
-			errL := DB.Where("id = ?", lap.ID).First(&lap).Error
-			if errL != nil {
-				DB.Create(&lap)
-			} else { 
-
-				err := DB.Save(&lap).Error
-
-				if err != nil {
-					log.Println("Error. Lap not added to database", err)
-				} else {
-					log.Printf("Saved! tag: %s, lap: %d, lap time: %d, total time: %d \n", lap.TagID, lap.LapNumber, lap.LapTime, lap.RaceTotalTime)
-					spErr := UpdateCurrentStartPositionsByRaceId(currentlapRaceID)
-					if spErr != nil {
-						log.Println("UpdateCurrentStartPositionsByRaceId(currentlapRaceID) Error", spErr)
-					}
-					upErr := UpdateCurrentResultsByRaceId(currentlapRaceID)
-					if upErr != nil {
-						log.Println("UpdateCurrentResultsByRaceId(currentlapRaceID) Error", upErr)
-					}
-
-					//refresh my results
-					golERR := DB.Where("id = ?", lap.ID).First(&lap).Error
-					if golERR == nil {
-						if lap.CurrentRacePosition == 1 {
-							//if I am the leader - update other riders results - set lap.StageFinished=0
-							err := UpdateAllStageNotYetFinishedByRaceId(currentlapRaceID)
-							if err != nil {
-								log.Println("UpdateAllStageNotYetFinishedByRaceId(currentlapRaceID) ERROR:", err)
-							}
-						}
-
-						//update that your lap is finished lap.StageFinished=1 in any case
-						lap.StageFinished = 1
-
-						//save final results
-						sfErr := DB.Save(&lap).Error
-						if sfErr != nil {
-							log.Println("lap.StageFinished=1 Error. Lap not added to database", sfErr)
-						} else {
-							err := PrintCurrentResultsByRaceId(currentlapRaceID)
-							if err != nil {
-								log.Println("PrintCurrentResultsByRaceId(currentlapRaceID) ERROR:", err)
-							}
-						}
-					} else {
-						log.Println("GetOneLap(&lap) ERROR:", golERR)
-					}
-				}
-			}
-		}
-
-		// Clear lap buffer
-		//var cL []Lap
-		//laps = cL
-		//lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock operations)
-	}
-}
-
-
 func setMyPreviousLapsNonCurrentInBuffer(myNewLap Lap)  {
 	//get my previous results from this race - start block.
 	//var onlyMyLaps []Lap
@@ -518,7 +344,7 @@ func containsTagID(laps []Lap, needle Lap) bool {
 	return false
 }
 
-func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumber uint, myBestLapPosition uint) {
+func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumber int, myBestLapPosition uint) {
 	if len(laps) != 0  {
 
 		var myLaps []Lap
@@ -539,7 +365,7 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 				return myLaps[i].LapTime < myLaps[j].LapTime
 			})
 			myBestLapTime = myLaps[0].LapTime
-			myBestLapNumber = uint(myLaps[0].LapNumber)
+			myBestLapNumber = myLaps[0].LapNumber
 
 		} else {
 			myBestLapTime =  0
@@ -831,8 +657,6 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 
 				} else if Config.MINIMAL_LAP_TIME_SEC*1000 <= myLastGap && lastGap < Config.RACE_TIMEOUT_SEC*1000 {
-
-
 					//from 30 to 300 sec (MINIMAL_LAP_TIME_SEC - RACE_TIMEOUT_SEC) passed  = create new lap LapNumber++! 
 
 					//////////////////// DATA MAGIC START ///////////////////
@@ -861,8 +685,13 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 					//newLap.BestLapPosition=getMyBestLapPosition(newLap)
 					newLap.RaceTotalTime = myLastLap.RaceTotalTime + myLastGap
-					//(-) minus is better (green), (+) plus is worth (orange).
-					newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
+					if newLap.LapNumber == 1 {
+						//first full lap - no BetterOrWorseLapTime data
+						newLap.BetterOrWorseLapTime = 0
+					} else {
+						//(-) minus is better (green), (+) plus is worth (orange).
+						newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
+					}
 					newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
@@ -1009,8 +838,13 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 					//newLap.BestLapPosition=?
 					newLap.RaceTotalTime = newLap.LapTime
-					//(-) minus is better (green), (+) plus is worth (orange).
-					newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
+					if newLap.LapNumber == 1 {
+						//first full lap - no BetterOrWorseLapTime data
+						newLap.BetterOrWorseLapTime = 0
+					} else {
+						//(-) minus is better (green), (+) plus is worth (orange).
+						newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
+					}
 					newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
@@ -1186,6 +1020,7 @@ func newAntennaConnection(conn net.Conn) {
 				go addNewLapToLapsBuffer(lap)
 			} else {
 				log.Println("laps buffer recreation failed with:", err)
+				go addNewLapToLapsBuffer(lap)
 			}
 		} 
 		lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock)
