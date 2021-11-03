@@ -1,10 +1,8 @@
 package view
 
 import (
-	"chicha/Packages/view/sse"
 	"embed"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -12,10 +10,12 @@ import (
 	"sort"
 	"strconv"
 
+	"html/template"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 
-	"chicha/Models"
+	"chicha/Packages/Models"
+	"chicha/Packages/View/SSE"
 )
 
 type View struct {
