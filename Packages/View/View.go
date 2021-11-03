@@ -62,6 +62,7 @@ func New(r *gin.Engine, static embed.FS, ch <-chan struct{}) *View {
 
 		r.GET("/", v.Homepage)
 		r.GET("/race/:id", v.RaceView)
+		r.GET("/race/:id/:tag", v.RaceRiderView)
 
 		rStream := r.Group("/race-stream")
 		sse.Setup(rStream, ch)
@@ -102,22 +103,65 @@ func (v *View) Homepage(c *gin.Context) {
 	})
 }
 
-func (v *View) RaceView(c *gin.Context) {
+
+func (v *View) RaceRiderView(c *gin.Context) {
 	raceID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-
-
+	tagID := c.Params.ByName("tag")
 
 	laps := Models.GetLapsForWeb(uint(raceID))
 
-	// if (-) sec better then prev
-	// green
+	var sLaps []gin.H
 
-	// if (+) sec worse then prev
-	// orange
+	sort.Slice(laps, func(i, j int) bool {
+		//sort by minimal CurrentRacePosition
+		return laps[i].LapNumber < laps[j].LapNumber
+	})
 
-	// if best current lap
-	// purple
+	for _, v := range laps {
 
+		if v.TagID == tagID {
+
+			var stl string
+			if v.BetterOrWorseLapTime > 0 {
+				// if (+) sec worse then prev
+				// orange
+				stl = "orange"
+			} else if v.BetterOrWorseLapTime < 0 {
+				// if (-) sec better then prev
+				// green
+				stl = "green"
+			} else if ( v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber )  {
+				// if best race lap
+				// violet
+				stl = "violet"
+			}
+
+			sLaps = append(sLaps, gin.H{
+				"Lap":   v,
+				"Style": stl,
+			})
+
+		}
+	}
+
+	reslt := gin.H{
+		"RaceID": raceID,
+		"Laps":   sLaps,
+	}
+
+	if c.Query("updtable") == "true" {
+		c.HTML(http.StatusOK, "race_table_view", reslt)
+		return
+	}
+	c.HTML(http.StatusOK, "race", reslt)
+}
+
+
+
+func (v *View) RaceView(c *gin.Context) {
+	raceID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+
+	laps := Models.GetLapsForWeb(uint(raceID))
 
 	var sLaps []gin.H
 
@@ -132,10 +176,16 @@ func (v *View) RaceView(c *gin.Context) {
 
 			var stl string
 			if v.BetterOrWorseLapTime > 0 {
+				// if (+) sec worse then prev
+				// orange
 				stl = "orange"
 			} else if v.BetterOrWorseLapTime < 0 {
+				// if (-) sec better then prev
+				// green
 				stl = "green"
 			} else if ( v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber )  {
+				// if best race lap
+				// violet
 				stl = "violet"
 			}
 

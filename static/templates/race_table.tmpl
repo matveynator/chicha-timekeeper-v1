@@ -18,7 +18,7 @@
 {{range .Laps}}
 <tr id="{{.Lap.TagID}}">
 <td align="center">{{.Lap.CurrentRacePosition}}</td>
-<td>{{.Lap.TagID}}</td>
+<td><a href="/race/{{.Lap.RaceID}}/{{.Lap.TagID}}">{{.Lap.TagID}}</a></td>
 <td align="center">{{.Lap.LapNumber}}</td>
 <td>
 	<div>{{timestampRender .Lap.RaceTotalTime}}</div>

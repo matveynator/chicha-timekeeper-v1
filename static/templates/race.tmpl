@@ -55,12 +55,8 @@ htmx.logAll()
 
 <main class="pure-g">
 <section class="content pure-u-1">
-<a href="/" class="pure-button pure-button-primary"><< Back</a>
-<a
-hx-get="/race/{{.RaceID}}?updtable=true"
-hx-target=".parent_table"
-class="pure-button pure-button-primary"
->Update</a>
+<a href="javascript:history.back()" class="pure-button pure-button-primary"><< Back</a>
+<a hx-get="?updtable=true" hx-target=".parent_table" class="pure-button pure-button-primary">Update</a>
 </section>
 
 <section hx-sse="connect:/race-stream/{{.RaceID}}" class="content pure-u-1">

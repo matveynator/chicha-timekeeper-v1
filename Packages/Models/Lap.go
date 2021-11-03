@@ -53,7 +53,7 @@ func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
 func GetAllResultsByRaceId(u *[]Lap, race_id_int uint) (err error) {
 	//race_id_int, _ := strconv.ParseInt(race_id_string, 10, 64)
 
-	result := DB.Where("race_id = ?", race_id_int).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(u)
+	result := DB.Where("race_id = ?", race_id_int).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(u)
 	return result.Error
 }
 
