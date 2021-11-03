@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.3-004"
+version="0.3-005"
 git_root_path=`git rev-parse --show-toplevel`
 execution_file=chicha
 cd ${git_root_path}/Scripts
