@@ -85,7 +85,7 @@ func saveLapsBufferSimplyToDB() {
 		//log.Println("Saving buffer to database started.")
 		for _, lap := range laps {
 			var newLap Lap
-			err := DB.Where("race_id = ?", lap.RaceID).Where("lap_number = ?", lap.LapNumber).Where("tag_id = ?", lap.TagID).Where("discovery_unix_time = ?", lap.DiscoveryUnixTime).First(&newLap).Error
+			err := DB.Where("tag_id = ?", lap.TagID).Where("race_id = ?", lap.RaceID).Where("lap_number = ?", lap.LapNumber).First(&newLap).Error
 			//log.Printf("race_id = %d, lap_number = %d, tag_id = %s, discovery_unix_time = %d \n", lap.RaceID, lap.LapNumber, lap.TagID, lap.DiscoveryUnixTime);
 			if err == nil {
 				//found old data - just update it:
