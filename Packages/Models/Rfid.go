@@ -493,6 +493,34 @@ func getMyPreviousBestLapTime(lastLap Lap) (myPreviousBestLapTime int64) {
 	return
 }
 
+func getMyPreviousLapTime(lastLap Lap) (myPreviousLapTime int64) {
+
+  if len(laps)!=0 {
+    //get my previous LapTime
+    var previousLaps []Lap
+
+    for _, savedLap := range laps {
+      if savedLap.RaceID == lastLap.RaceID && savedLap.TagID == lastLap.TagID && savedLap.LapNumber != lastLap.LapNumber && savedLap.LapNumber != 0  {
+        previousLaps = append(previousLaps, savedLap)
+      }
+    }
+
+    if len(previousLaps) > 0 {
+      sort.SliceStable(previousLaps, func(i, j int) bool {
+        return previousLaps[i].LapNumber > previousLaps[j].LapNumber
+      })
+      myPreviousLapTime = previousLaps[0].LapTime
+
+    } else {
+      myPreviousLapTime = 0
+    }
+
+  } else {
+    myPreviousLapTime = 0
+  }
+  return
+}
+
 
 func getCurrentRacePositionFromBuffer(lastLap Lap) (currentRacePosition uint){
 
@@ -690,7 +718,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 						newLap.BetterOrWorseLapTime = 0
 					} else {
 						//(-) minus is better (green), (+) plus is worth (orange).
-						newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
+						newLap.BetterOrWorseLapTime = newLap.LapTime - getMyPreviousLapTime(newLap)
 					}
 					newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
@@ -843,7 +871,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 						newLap.BetterOrWorseLapTime = 0
 					} else {
 						//(-) minus is better (green), (+) plus is worth (orange).
-						newLap.BetterOrWorseLapTime = newLap.BestLapTime - getMyPreviousBestLapTime(newLap)
+						newLap.BetterOrWorseLapTime = newLap.LapTime - getMyPreviousLapTime(newLap) 
 					}
 					newLap.CurrentRacePosition=getCurrentRacePositionFromBuffer(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
