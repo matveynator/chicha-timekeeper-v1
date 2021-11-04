@@ -6,7 +6,8 @@ Work in progress.
 
 import (
 	"chicha/Packages/Config"
-	"chicha/Packages/view"
+	"chicha/Packages/View"
+	"chicha/Packages/Models" // Our package with database models
 	"embed"
 	"fmt"
 	"log"
@@ -20,7 +21,6 @@ import (
 	//profiling CPU:
 	//"github.com/pkg/profile"
 
-	"chicha/Models" // Our package with database models
 )
 
 //go:embed static
