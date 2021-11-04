@@ -41,7 +41,7 @@ var rfidTimeoutLocker sync.Mutex
 // Start antenna listener
 func StartAntennaListener() {
 
-	if Config.PROXY_ACTIVE == "true" {
+	if Config.PROXY_ACTIVE {
 		log.Println("Started tcp proxy restream to", Config.PROXY_HOST, "and port:", Config.PROXY_PORT)
 	}
 
@@ -1033,7 +1033,7 @@ func newAntennaConnection(conn net.Conn) {
 		//Debug all received data from RFID reader
 		log.Printf("NEW: IP=%s, TAG=%s, TIME=%d, ANT=%d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
-		if Config.PROXY_ACTIVE == "true" {
+		if Config.PROXY_ACTIVE {
 			go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 		}
 

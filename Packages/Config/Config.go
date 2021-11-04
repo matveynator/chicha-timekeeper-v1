@@ -8,8 +8,8 @@ import (
 	"strconv"
 )
 
-var APP_ANTENNA_LISTENER_IP,API_SERVER_LISTENER_IP,TIME_ZONE,DB_TYPE,DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,DB_PORT,ADMIN_LOGIN,ADMIN_PASSWORD,PROXY_ACTIVE,PROXY_HOST,PROXY_PORT,VERSION string
-
+var APP_ANTENNA_LISTENER_IP,API_SERVER_LISTENER_IP,TIME_ZONE,DB_TYPE,DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,DB_PORT,ADMIN_LOGIN,ADMIN_PASSWORD,PROXY_HOST,PROXY_PORT,VERSION string
+var AVERAGE_RESULTS,PROXY_ACTIVE bool
 var RACE_TIMEOUT_SEC,MINIMAL_LAP_TIME_SEC,RESULTS_PRECISION_SEC,LAPS_SAVE_INTERVAL_SEC int64
 
 func readIntFromConfig(name string) (value int64) {
@@ -27,6 +27,25 @@ func readIntFromConfig(name string) (value int64) {
 		os.Exit(1)
 	}
 	return
+}
+
+func readBoolFromConfig(name string) bool {
+  var boolValue bool
+	value, ok := os.LookupEnv(name)
+	if ok {
+		if value == "true" {
+			boolValue = true
+		} else if value == "false" {
+			boolValue = false
+		} else {
+			log.Printf("ERROR, configuration not boolean: %s\n", name)
+			os.Exit(1)
+		}
+	} else {
+		log.Printf("ERROR, configuration undefined: %s\n", name)
+		os.Exit(1)
+	}
+	return boolValue
 }
 
 
@@ -53,7 +72,7 @@ func init()  {
 	}
 
 	// PROXY settings
-	PROXY_ACTIVE, _ = os.LookupEnv("PROXY_ACTIVE")
+	PROXY_ACTIVE = readBoolFromConfig("PROXY_ACTIVE")
 	PROXY_HOST, _ = os.LookupEnv("PROXY_HOST")
 	PROXY_PORT, _ = os.LookupEnv("PROXY_PORT")
 	// Check enviroment
@@ -76,6 +95,7 @@ func init()  {
 	//INT configuration variables:
 	MINIMAL_LAP_TIME_SEC = readIntFromConfig("MINIMAL_LAP_TIME_SEC")
 	RACE_TIMEOUT_SEC = readIntFromConfig("RACE_TIMEOUT_SEC")
+	AVERAGE_RESULTS = readBoolFromConfig("AVERAGE_RESULTS")
 	RESULTS_PRECISION_SEC = readIntFromConfig("RESULTS_PRECISION_SEC")
 	LAPS_SAVE_INTERVAL_SEC = readIntFromConfig("LAPS_SAVE_INTERVAL")
 
