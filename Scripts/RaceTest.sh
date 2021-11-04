@@ -6,9 +6,9 @@
 port=4000
 host=localhost
 competitors=10 #riders
-results=20 #results from one rider
+results=10 #results from one rider
 laps=10 #laps
-minimal_lap_time_sec=20
+minimal_lap_time_sec=120
 xml=0  #0 -> csv (%k, ${MSEC1}, %a), 1 -> xml
 random=1 #0 = 1 2 3 4 5; #1 = 4 1 2 3 5
 ##################################################
@@ -77,8 +77,8 @@ function raceXML() {
 					unixtime=`date +%s%3N`
 				elif [ "${os}" == "Darwin" ]
 				then
-					time=`date +"%Y/%m/%d %T.000"`
-					unixtime=`date +%s000`
+					time=`python -c "import datetime; date = datetime.datetime.today(); print(date.strftime('%Y/%m/%d %T.%f')[:-3]);"`
+					unixtime=`python -c 'import time; milliseconds = int(round(time.time() * 1000)); print(milliseconds);'`
 				else
 					time=`date +"%Y/%m/%d %T.%3N"`
 					unixtime=`date +%s%3N`
