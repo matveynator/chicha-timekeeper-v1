@@ -193,30 +193,21 @@ func getMyLastLapFromBuffer(newLap Lap) (myLastLap Lap, err error) {
 func getLastLapFromBuffer() (lastLap Lap, err error) {
 	//block 1: get previous results from this race - start block.
 
-	if len(laps) != 0 { 
+	if len(laps) > 0 { 
 
 		//create copy lapsCopy
-		var lapsCopy []Lap
-		for _, lap := range laps {
-			lapsCopy = append(lapsCopy, lap)
-		}
+		lapsCopy := laps
 
 		sort.Slice(lapsCopy, func(i, j int) bool {
 			//sort descending by DisoveryUnixTime
 			return lapsCopy[i].DiscoveryUnixTime > lapsCopy[j].DiscoveryUnixTime
 		})
 		lastLap = lapsCopy[0]
-
-		//clean lapsCopy
-		var cL []Lap
-		lapsCopy = cL
-
-		return
 	} else {
 		//retrun empty lap struct 
 		err = errors.New("Error: laps buffer is empty.")
-		return
 	}
+	return
 }
 
 func getLastRaceIdFromBuffer() (raceID uint) {
@@ -678,8 +669,9 @@ func addNewLapToLapsBuffer(newLap Lap) {
 			newLap.LapIsStrange=1
 		}
 		//////////////////// DATA MAGIC END ///////////////////
-
+		updateCurrentRacePositions(newLap)
 		laps = append(laps, newLap)
+
 		//log.Printf("SAVED %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 
@@ -692,6 +684,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		} else {
 			//lastLap not empty
 			//get my previous lap data:
+			// +/- time
 			lastGap := newLap.DiscoveryUnixTime - lastLap.DiscoveryUnixTime
 			//log.Println("lastGap:", lastGap)
 			myLastLap, err := getMyLastLapFromBuffer(newLap)
@@ -759,7 +752,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 
 				} else if Config.MINIMAL_LAP_TIME_SEC*1000 <= myLastGap && lastGap < Config.RACE_TIMEOUT_SEC*1000 {
-					//from 30 to 300 sec (MINIMAL_LAP_TIME_SEC - RACE_TIMEOUT_SEC) passed  = create new lap LapNumber++! 
+					//between MINIMAL_LAP_TIME_SEC <-> RACE_TIMEOUT_SEC
+					//в промежутке между минимальным временем круга и таймаутом заезда - создать новый круг
 
 					//////////////////// DATA MAGIC START ///////////////////
 					//newlap.ID //taken from DB (on save)
@@ -776,7 +770,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.UpdatedAt = time.Now() //current time in time.Time
 					newLap.RaceID=myLastLap.RaceID
 					newLap.LapNumber = myLastLap.LapNumber + 1
-					newLap.LapTime= myLastGap
+					newLap.LapTime= calculateLapTime(newLap)
 					newLap.LapPosition=calculateLapPosition(newLap)
 					setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent = 1 //returns 1 (sets this lap current) && sets my previous laps in same race: LapIsCurrent=0
@@ -792,7 +786,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 						//(-) minus is better (green), (+) plus is worth (orange).
 						newLap.BetterOrWorseLapTime = calculateBetterOrWorseLapTime(newLap)
 					}
-					//newLap.CurrentRacePosition=calculateRacePosition(newLap)
+					newLap.CurrentRacePosition=calculateRacePosition(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
 						newLap.LapIsStrange=0
@@ -801,13 +795,14 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					}
 					//////////////////// DATA MAGIC END ///////////////////
 
-
+					updateCurrentRacePositions(newLap)
 					laps = append(laps, newLap)
 					//log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
 				} else if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
 
 					//rider data available, but race expired - create new race and append this rider.
+					//время заезда истекло - создать новый заезд
 
 					//////////////////// DATA MAGIC START ///////////////////
 					//newlap.ID //taken from DB (on save)
@@ -860,10 +855,12 @@ func addNewLapToLapsBuffer(newLap Lap) {
 			} else {
 
 				//no previous rider data in this race
+				//такой гонщик еще не учавствовал в гонке
 
 				if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
 					
-					//rece expired - create new and append new rider
+					//race expired - create new and append new rider
+					//время заезда истекло - создать новый заезд
 
 					//////////////////// DATA MAGIC START ///////////////////
 					//newlap.ID //taken from DB (on save)
@@ -909,6 +906,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 				} else {
 					
+					//такой гонщик еще не учавствовал в заезде и время заезда еще не истекло
+					//создать нового гонщика в текущем заезде
 					//race is valid - append new rider
 
 					//////////////////// DATA MAGIC START ///////////////////
@@ -928,7 +927,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newLap.CurrentRacePosition=calculateRacePosition(newLap) - calculate at last
 					//newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap) - calc at last
 					newLap.LapNumber = 0
-					newLap.LapTime = getZeroLapGap(newLap)
+					newLap.LapTime = calculateLapTime(newLap)
 					newLap.LapPosition=calculateLapPosition(newLap)
 
 					setMyPreviousLapsNonCurrentInBuffer(newLap)
