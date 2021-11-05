@@ -491,9 +491,9 @@ func calculateLapTime(lastLap Lap) (lapTime int64) {
 	if len(laps) > 0 {
 		//cуществуют ли другие записи?
 		var myPreviousLaps []Lap
-		for _, savedLap := range laps {
-			if savedLap.TagID == lastLap.TagID && savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber != lastLap.LapNumber  {
-				myPreviousLaps = append(myPreviousLaps, savedLap)
+		for _, lap := range laps {
+			if lap.TagID == lastLap.TagID && lap.RaceID == lastLap.RaceID && lap.LapNumber != lastLap.LapNumber  {
+				myPreviousLaps = append(myPreviousLaps, lap)
 			}
 		}
 
@@ -506,10 +506,10 @@ func calculateLapTime(lastLap Lap) (lapTime int64) {
 			lapTime = lastLap.DiscoveryUnixTime - myPreviousLaps[0].DiscoveryUnixTime 
 		} else {
 			//отыщем лидера нулевого заезда и посчитаем от него 
-			for _, savedLap := range laps {
-				//log.Printf("savedLap.RaceID == %d && savedLap.LapNumber == %d && savedLap.LapPosition == %d  \n", savedLap.RaceID, savedLap.LapNumber, savedLap.LapPosition)
-				if savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber == 0 && savedLap.LapPosition == 1  {
-					lapTime = lastLap.DiscoveryUnixTime - savedLap.DiscoveryUnixTime
+			for _, lap := range laps {
+				//log.Printf("lap.RaceID == %d && lap.LapNumber == %d && lap.LapPosition == %d  \n", lap.RaceID, lap.LapNumber, lap.LapPosition)
+				if lap.RaceID == lastLap.RaceID && lap.LapNumber == 0 && lap.LapPosition == 1  {
+					lapTime = lastLap.DiscoveryUnixTime - lap.DiscoveryUnixTime
 					//log.Printf("Calculation: TAG: %s, LAP TIME: %d\n", lastLap.TagID, lapTime)
 					//return
 				}
@@ -669,7 +669,6 @@ func addNewLapToLapsBuffer(newLap Lap) {
 			newLap.LapIsStrange=1
 		}
 		//////////////////// DATA MAGIC END ///////////////////
-		updateCurrentRacePositions(newLap)
 		laps = append(laps, newLap)
 
 		//log.Printf("SAVED %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
@@ -881,7 +880,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.LapNumber=0
 					newLap.LapTime=0
 					newLap.LapPosition=1
-					setMyPreviousLapsNonCurrentInBuffer(newLap)
+					//setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent=1
 					//newLap.LapIsStrange=0
 					newLap.StageFinished=1
@@ -930,7 +929,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.LapTime = calculateLapTime(newLap)
 					newLap.LapPosition=calculateLapPosition(newLap)
 
-					setMyPreviousLapsNonCurrentInBuffer(newLap)
+					//setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent = 1
 					//newLap.LapIsStrange=?
 					newLap.StageFinished=1
