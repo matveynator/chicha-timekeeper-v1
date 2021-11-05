@@ -316,7 +316,7 @@ func calculateLapPosition(lastLap Lap) (lapPosition uint) {
 		sameRoundLaps = append(sameRoundLaps, lastLap)
 
 		if len(sameRoundLaps) > 0 {
-			sort.SliceStable(sameRoundLaps, func(i, j int) bool {
+			sort.Slice(sameRoundLaps, func(i, j int) bool {
 				return sameRoundLaps[i].DiscoveryUnixTime < sameRoundLaps[j].DiscoveryUnixTime
 			})
 			for position, sameRoundLap := range sameRoundLaps {
@@ -374,7 +374,7 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 
 
 		if len(myLaps) > 0 {
-			sort.SliceStable(myLaps, func(i, j int) bool {
+			sort.Slice(myLaps, func(i, j int) bool {
 				return myLaps[i].LapTime < myLaps[j].LapTime
 			})
 			myBestLapTime = myLaps[0].LapTime
@@ -403,7 +403,7 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 		}
 
 		if len(bestLaps) > 0 {
-			sort.SliceStable(bestLaps, func(i, j int) bool {
+			sort.Slice(bestLaps, func(i, j int) bool {
 				return bestLaps[i].BestLapTime < bestLaps[j].BestLapTime
 			})
 			var absoluteBestLaps []Lap
@@ -491,7 +491,7 @@ func getMyPreviousBestLapTime(lastLap Lap) (myPreviousBestLapTime int64) {
 		}
 
 		if len(previousLaps) > 0 {
-			sort.SliceStable(previousLaps, func(i, j int) bool {
+			sort.Slice(previousLaps, func(i, j int) bool {
 				return previousLaps[i].BestLapTime < previousLaps[j].BestLapTime
 			})
 			myPreviousBestLapTime = previousLaps[0].BestLapTime
@@ -519,7 +519,7 @@ func calculateLapTime(lastLap Lap) (lapTime int64) {
 		//существуют ли мои предыдущие записи?
 		if len(myPreviousLaps) > 0 {
 			//да существуют - посчитаем от моего предыдущего круга
-			sort.SliceStable(myPreviousLaps, func(i, j int) bool {
+			sort.Slice(myPreviousLaps, func(i, j int) bool {
 				return myPreviousLaps[i].LapNumber > myPreviousLaps[j].LapNumber
 			})
 			lapTime = lastLap.DiscoveryUnixTime - myPreviousLaps[0].DiscoveryUnixTime 
@@ -554,10 +554,10 @@ func calculateRaceTotalTime(lastLap Lap) (raceTotalTime int64) {
 		//существуют ли мои предыдущие записи?
 		if len(myPreviousLaps) > 0 {
 			//да существуют - посчитаем от моего предыдущего круга
-			sort.SliceStable(myPreviousLaps, func(i, j int) bool {
+			sort.Slice(myPreviousLaps, func(i, j int) bool {
 				return myPreviousLaps[i].LapNumber > myPreviousLaps[j].LapNumber
 			})
-			raceTotalTime =  myPreviousLaps[0].LapTime  + lastLap.LapTime
+			raceTotalTime =  myPreviousLaps[0].RaceTotalTime  + lastLap.LapTime
 		} else {
 			raceTotalTime = lastLap.LapTime
 		}
@@ -588,7 +588,7 @@ func calculateBetterOrWorseLapTime(lastLap Lap) (betterOrWorseLapTime int64) {
 		}
 
 		if len(myPreviousLaps) > 0 {
-			sort.SliceStable(myPreviousLaps, func(i, j int) bool {
+			sort.Slice(myPreviousLaps, func(i, j int) bool {
 				return myPreviousLaps[i].LapNumber > myPreviousLaps[j].LapNumber
 			})
 			betterOrWorseLapTime = lastLap.LapTime - myPreviousLaps[0].LapTime
