@@ -126,7 +126,7 @@ func (v *View) RaceRiderView(c *gin.Context) {
 				// if (+) sec worse then prev
 				// orange
 				stl = "orange"
-			} else if v.BetterOrWorseLapTime < 0 {
+			} else if v.BetterOrWorseLapTime < 0 && v.BestLapPosition != 1 {
 				// if (-) sec better then prev
 				// green
 				stl = "green"
