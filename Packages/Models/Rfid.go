@@ -543,7 +543,7 @@ func calculateRaceTotalTime(lastLap Lap) (raceTotalTime int64) {
 			raceTotalTime = lastLap.LapTime
 		}
 	} else {
-		raceTotalTime = lastLap.LapTime
+		raceTotalTime = 0
 	}
 	return
 }
@@ -778,13 +778,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 					//newLap.BestLapPosition=getMyBestLapPosition(newLap)
 					newLap.RaceTotalTime = myLastLap.RaceTotalTime + myLastGap
-					if newLap.LapNumber == 1 {
-						//first full lap - no BetterOrWorseLapTime data
-						newLap.BetterOrWorseLapTime = 0
-					} else {
-						//(-) minus is better (green), (+) plus is worth (orange).
-						newLap.BetterOrWorseLapTime = calculateBetterOrWorseLapTime(newLap)
-					}
+					//(-) minus is better (green), (+) plus is worth (orange).
+					newLap.BetterOrWorseLapTime = calculateBetterOrWorseLapTime(newLap)
 					newLap.CurrentRacePosition=calculateRacePosition(newLap)
 					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
