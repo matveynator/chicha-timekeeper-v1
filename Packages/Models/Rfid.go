@@ -16,7 +16,6 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"sort"
 	"errors"
@@ -31,12 +30,6 @@ var laps []Lap
 // channel lockers 
 var lapsChannelBufferLocker = make(chan int, 1)
 var lapsChannelDBLocker = make(chan int, 1)
-
-// Check RFID mute timeout map
-var rfidTimeoutMap map[string]time.Time
-
-// Check RFID mute timeout locker
-var rfidTimeoutLocker sync.Mutex
 
 // Start antenna listener
 func StartAntennaListener() {
@@ -53,9 +46,6 @@ func StartAntennaListener() {
 
 	//spin forever go routine to save in db with some interval:
 	go saveLapsBufferSimplyToDB()
-
-	// Create RFID mute timeout
-	rfidTimeoutMap = make(map[string]time.Time)
 
 	// Start listener
 	l, err := net.Listen("tcp", Config.APP_ANTENNA_LISTENER_IP)
@@ -986,15 +976,6 @@ func addNewLapToLapsBuffer(newLap Lap) {
 	lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock)
 
 }
-// Set new expired date for rfid Tag
-func setNewExpriredDataForRfidTag(tagID string) {
-
-	newExpiredTime := time.Now().Add(time.Duration(Config.MINIMAL_LAP_TIME_SEC) * time.Second)
-	rfidTimeoutLocker.Lock()
-	rfidTimeoutMap[tagID] = newExpiredTime
-	rfidTimeoutLocker.Unlock()
-
-}
 
 //string to time.Unix milli
 func timeFromUnixMillis(msInt int64) (time.Time) {
@@ -1116,7 +1097,7 @@ func newAntennaConnection(conn net.Conn) {
 		log.Printf("NEW: IP=%s, TAG=%s, TIME=%d, ANT=%d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
 		if Config.PROXY_ACTIVE {
-			go Proxy.ProxyDataToMotosponder(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
+			go Proxy.ProxyDataToAnotherHost(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 		}
 
 

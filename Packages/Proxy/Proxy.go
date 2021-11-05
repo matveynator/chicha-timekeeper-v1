@@ -7,7 +7,7 @@ import (
 	"chicha/Packages/Config"
 )
 
-func ProxyDataToMotosponder(tagID string, unixTime int64, antennaNumber uint8) {
+func ProxyDataToAnotherHost(tagID string, unixTime int64, antennaNumber uint8) {
 	conn, err := net.Dial("tcp", net.JoinHostPort(Config.PROXY_HOST, Config.PROXY_PORT))
 	if err != nil {
 		fmt.Println("dial error:", err)
