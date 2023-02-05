@@ -9,11 +9,12 @@ import (
 	"chicha/Packages/View"
 	"chicha/Packages/Models" // Our package with database models
 	"embed"
-	"fmt"
+	//"fmt"
 	"log"
 
-	"gorm.io/driver/postgres" // Gorm Postgres driver package
-	"gorm.io/driver/sqlite"   //gorm sqlite driver
+	//"gorm.io/driver/postgres" // Gorm Postgres driver package
+	//"gorm.io/driver/sqlite"   //gorm sqlite driver
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"            // Database ORM package
 	"gorm.io/gorm/logger"
 
@@ -30,19 +31,6 @@ func main() {
 	//profiling CPU: https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz
 	//defer profile.Start(profile.ProfilePath(".")).Stop()
 
-	if Config.DB_TYPE == "postgres" {
-		//Database section
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Moscow", Config.DB_HOST, Config.DB_USER, Config.DB_PASSWORD, Config.DB_NAME, Config.DB_PORT)
-		if db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Silent),
-		}); err != nil {
-			log.Println("ERROR: Connect to database failed at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER, err)
-			panic(err)
-		} else {
-			Models.DB = db
-			log.Println("Connected to database at", Config.DB_HOST, Config.DB_PORT, "with database name =", Config.DB_NAME, "and user =", Config.DB_USER)
-		}
-	} else {
 		//DEFAULT: if Config.DB_TYPE == "sqlite"
 		dsn := "chicha.sqlite"
 		if db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
@@ -55,7 +43,6 @@ func main() {
 			Models.DB = db
 			log.Println("Connected to local SQLite database at", dsn)
 		}
-	}
 
 	// Database Migrations
 	log.Println("Creating or changing database structures (applying migrations)...")
