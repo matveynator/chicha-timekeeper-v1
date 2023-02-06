@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.3-008"
+version="0.3-009"
 git_root_path=`git rev-parse --show-toplevel`
 execution_file="chicha"
 
@@ -18,17 +18,17 @@ if [ $? != "0" ]
 		echo "Tests on all modules passed."
 fi
 
-cd ${git_root_path}/scripts;
+cd ${git_root_path}/Scripts;
 
 mkdir -p ${git_root_path}/binaries/${version};
 
 rm -f ${git_root_path}/binaries/latest; 
 
-cd ${git_root_path}/binaries; ln -s ${version} latest; cd ${git_root_path}/scripts;
+cd ${git_root_path}/binaries; ln -s ${version} latest; cd ${git_root_path}/Scripts;
 
-#for os in linux freebsd netbsd openbsd aix android illumos ios solaris plan9 darwin dragonfly windows;
+for os in linux freebsd netbsd openbsd aix android illumos ios solaris plan9 darwin dragonfly windows;
 #for os in darwin;
-for os in windows;
+#for os in windows;
 
 do
 	for arch in "amd64" "386" "arm" "arm64" "mips64" "mips64le" "mips" "mipsle" "ppc64" "ppc64le" "riscv64" "s390x" "wasm"
@@ -47,7 +47,8 @@ do
 		else
 		  echo "GOOS=${os} GOARCH=${arch} go build -ldflags "-X chicha/Packages/Config.VERSION=${version}" -o ../binaries/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go"
 			cat ../chicha.conf > ../binaries/${version}/${target_os_name}/${arch}/chicha.conf
-			cat ../Scripts/racetest.sh > ../binaries/${version}/${target_os_name}/${arch}/racetest.sh
+			cp ../../racetest/binaries/latest/${target_os_name}/${arch}/* ../binaries/${version}/${target_os_name}/${arch}/
+
 		fi
 	done
 done

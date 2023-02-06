@@ -35,6 +35,7 @@ func main() {
 		dsn := "chicha.sqlite"
 		if db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent),
+			SkipDefaultTransaction: true,
 		}); err != nil {
 			log.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
 			panic(err)
