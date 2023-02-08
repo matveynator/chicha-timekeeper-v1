@@ -6,7 +6,7 @@ execution_file="chicha"
 go mod download
 go mod vendor
 go mod tidy
-go fmt
+go fmt -x ./...
 
 echo "Performing tests on all modules..."
 go test ./...
