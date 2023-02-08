@@ -3,22 +3,22 @@ package Models
 /**
 * This package module have some methods for storage RFID labels
 * and store them into database
-*/
+ */
 
 import (
 	"bytes"
 	"encoding/csv"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"math"
 	"net"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"sort"
-	"errors"
 
 	"chicha/Packages/Config"
 	"chicha/Packages/Proxy"
@@ -27,7 +27,7 @@ import (
 // Buffer for new RFID requests
 var laps []Lap
 
-// channel lockers 
+// channel lockers
 var lapsChannelBufferLocker = make(chan int, 1)
 var lapsChannelDBLocker = make(chan int, 1)
 
@@ -84,15 +84,15 @@ func saveLapsBufferSimplyToDB() {
 				//newlap.ID //taken from DB (on save)
 				newLap.OwnerID = lap.OwnerID
 				newLap.TagID = lap.TagID
-				newLap.DiscoveryUnixTime =  lap.DiscoveryUnixTime
+				newLap.DiscoveryUnixTime = lap.DiscoveryUnixTime
 				newLap.DiscoveryAverageUnixTime = lap.DiscoveryAverageUnixTime
 				newLap.DiscoveryTimePrepared = lap.DiscoveryTimePrepared
 				newLap.DiscoveryAverageTimePrepared = lap.DiscoveryAverageTimePrepared
-				newLap.DiscoveryTimePrepared  = lap.DiscoveryTimePrepared
+				newLap.DiscoveryTimePrepared = lap.DiscoveryTimePrepared
 				newLap.AverageResultsCount = lap.AverageResultsCount
-				newLap.Antenna  = lap.Antenna
-				newLap.AntennaIP  = lap.AntennaIP
-				newLap.UpdatedAt  = lap.UpdatedAt
+				newLap.Antenna = lap.Antenna
+				newLap.AntennaIP = lap.AntennaIP
+				newLap.UpdatedAt = lap.UpdatedAt
 				newLap.RaceID = lap.RaceID
 				newLap.CurrentRacePosition = lap.CurrentRacePosition
 				newLap.TimeBehindTheLeader = lap.TimeBehindTheLeader
@@ -116,7 +116,7 @@ func saveLapsBufferSimplyToDB() {
 			} else {
 				//log.Println("Data not found in database:", err)
 				//not found - create new
-				err := DB.Create(&lap).Error;
+				err := DB.Create(&lap).Error
 				if err != nil {
 					log.Println("Error. Not created new data in database:", err)
 				}
@@ -127,7 +127,7 @@ func saveLapsBufferSimplyToDB() {
 	}
 }
 
-//export laps slice to other packages
+// export laps slice to other packages
 func GetLaps() (outLaps []Lap, err error) {
 	//<-lapsChannelBufferLocker //grab the ticket via channel (lock)
 	if len(laps) == 0 {
@@ -146,14 +146,14 @@ func GetLaps() (outLaps []Lap, err error) {
 	return
 }
 
-func setMyPreviousLapsNonCurrentInBuffer(myNewLap Lap)  {
+func setMyPreviousLapsNonCurrentInBuffer(myNewLap Lap) {
 	//get my previous results from this race - start block.
 	//var onlyMyLaps []Lap
 	//gather all my laps from previous results:
 	for i, lap := range laps {
 		if lap.RaceID == myNewLap.RaceID && lap.TagID == myNewLap.TagID {
 			//my previous results found in this race:
-			laps[i].LapIsCurrent=0;
+			laps[i].LapIsCurrent = 0
 			//onlyMyLaps = append(onlyMyLaps, lap)
 		}
 	}
@@ -193,7 +193,7 @@ func getMyLastLapFromBuffer(newLap Lap) (myLastLap Lap, err error) {
 func getLastLapFromBuffer() (lastLap Lap, err error) {
 	//block 1: get previous results from this race - start block.
 
-	if len(laps) > 0 { 
+	if len(laps) > 0 {
 
 		//create copy lapsCopy
 		lapsCopy := laps
@@ -204,7 +204,7 @@ func getLastLapFromBuffer() (lastLap Lap, err error) {
 		})
 		lastLap = lapsCopy[0]
 	} else {
-		//retrun empty lap struct 
+		//retrun empty lap struct
 		err = errors.New("Error: laps buffer is empty.")
 	}
 	return
@@ -238,7 +238,7 @@ func checkLapIsValid(myLap Lap) bool {
 		if myLap.LapNumber == 0 {
 			//едем нулевой круг
 			for _, lap := range laps {
-				if lap.RaceID==myLap.RaceID && lap.LapNumber == 1 {
+				if lap.RaceID == myLap.RaceID && lap.LapNumber == 1 {
 					//если кто то проехал уже 2 круга а мы едем только нулевой
 					//не нормально - помечаем что круг странный (возможно не считалась метка)
 					return false
@@ -252,7 +252,7 @@ func checkLapIsValid(myLap Lap) bool {
 				if lap.RaceID == myLap.RaceID && lap.LapNumber == 1 && lap.CurrentRacePosition == 1 {
 
 					//узнаем соотношение времени лучшего проезда первого круга к нашему времени
-					lapTimeRatio := int(math.Round ( float64(lap.LapTime) / float64(myLap.LapTime) ) )
+					lapTimeRatio := int(math.Round(float64(lap.LapTime) / float64(myLap.LapTime)))
 
 					if lapTimeRatio >= 2 {
 						//если наше время в 2 или более раз долльше лучего времени этого круга у других участников
@@ -266,10 +266,10 @@ func checkLapIsValid(myLap Lap) bool {
 
 			for _, lap := range laps {
 				//узнаем свое время предыдущего круга:
-				if lap.RaceID == myLap.RaceID && lap.TagID == myLap.TagID && lap.LapNumber == ( myLap.LapNumber - 1 ) {
+				if lap.RaceID == myLap.RaceID && lap.TagID == myLap.TagID && lap.LapNumber == (myLap.LapNumber-1) {
 
 					//узнаем соотношение времени проезда своего предыдущего круга к текущему времени
-					lapTimeRatio := int(math.Round ( float64(lap.LapTime) / float64(myLap.LapTime) ) )
+					lapTimeRatio := int(math.Round(float64(lap.LapTime) / float64(myLap.LapTime)))
 
 					if lapTimeRatio >= 2 {
 						//если наше время в 2 или более раз долльше нашего предыдущего
@@ -285,9 +285,8 @@ func checkLapIsValid(myLap Lap) bool {
 	}
 }
 
-
 func calculateLapPosition(lastLap Lap) (lapPosition uint) {
-	if len(laps) > 0  {
+	if len(laps) > 0 {
 		var sameRoundLaps []Lap
 		for _, savedLap := range laps {
 			if savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber == lastLap.LapNumber && savedLap.TagID != lastLap.TagID {
@@ -317,7 +316,7 @@ func calculateLapPosition(lastLap Lap) (lapPosition uint) {
 
 func getZeroLapGap(lastLap Lap) (zeroLapGap int64) {
 
-	if len(laps) != 0  {
+	if len(laps) != 0 {
 		for _, lap := range laps {
 			if lap.RaceID == lastLap.RaceID && lap.LapNumber == 0 && lap.CurrentRacePosition == 1 {
 				zeroLapGap = lastLap.DiscoveryUnixTime - lap.DiscoveryUnixTime
@@ -339,7 +338,7 @@ func containsTagID(laps []Lap, needle Lap) bool {
 }
 
 func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumber int, myBestLapPosition uint) {
-	if len(laps) != 0  {
+	if len(laps) != 0 {
 
 		var myLaps []Lap
 
@@ -353,7 +352,6 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 			myLaps = append(myLaps, lastLap)
 		}
 
-
 		if len(myLaps) > 0 {
 			sort.Slice(myLaps, func(i, j int) bool {
 				return myLaps[i].LapTime < myLaps[j].LapTime
@@ -362,11 +360,11 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 			myBestLapNumber = myLaps[0].LapNumber
 
 		} else {
-			myBestLapTime =  0
+			myBestLapTime = 0
 			myBestLapNumber = 0
 		}
 
-		//get position from all race laps 
+		//get position from all race laps
 
 		//get best laps from all racers
 		var bestLaps []Lap
@@ -428,12 +426,12 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 }
 
 func getTimeBehindTheLeader(lastLap Lap) (timeBehindTheLeader int64) {
-	if len(laps) != 0  {
+	if len(laps) != 0 {
 
 		var currentLaps []Lap
 
 		for _, savedLap := range laps {
-			if savedLap.RaceID==lastLap.RaceID && savedLap.LapIsCurrent == 1 && savedLap.TagID != lastLap.TagID {
+			if savedLap.RaceID == lastLap.RaceID && savedLap.LapIsCurrent == 1 && savedLap.TagID != lastLap.TagID {
 				currentLaps = append(currentLaps, savedLap)
 			}
 		}
@@ -458,15 +456,14 @@ func getTimeBehindTheLeader(lastLap Lap) (timeBehindTheLeader int64) {
 	return
 }
 
-
 func getMyPreviousBestLapTime(lastLap Lap) (myPreviousBestLapTime int64) {
 
-	if len(laps)!=0 {
+	if len(laps) != 0 {
 		//get my previous BestLapTime
 		var previousLaps []Lap
 
 		for _, savedLap := range laps {
-			if savedLap.RaceID == lastLap.RaceID && savedLap.TagID == lastLap.TagID && savedLap.LapNumber != lastLap.LapNumber && savedLap.LapNumber != 0  {
+			if savedLap.RaceID == lastLap.RaceID && savedLap.TagID == lastLap.TagID && savedLap.LapNumber != lastLap.LapNumber && savedLap.LapNumber != 0 {
 				previousLaps = append(previousLaps, savedLap)
 			}
 		}
@@ -492,7 +489,7 @@ func calculateLapTime(lastLap Lap) (lapTime int64) {
 		//cуществуют ли другие записи?
 		var myPreviousLaps []Lap
 		for _, lap := range laps {
-			if lap.TagID == lastLap.TagID && lap.RaceID == lastLap.RaceID && lap.LapNumber != lastLap.LapNumber  {
+			if lap.TagID == lastLap.TagID && lap.RaceID == lastLap.RaceID && lap.LapNumber != lastLap.LapNumber {
 				myPreviousLaps = append(myPreviousLaps, lap)
 			}
 		}
@@ -503,12 +500,12 @@ func calculateLapTime(lastLap Lap) (lapTime int64) {
 			sort.Slice(myPreviousLaps, func(i, j int) bool {
 				return myPreviousLaps[i].LapNumber > myPreviousLaps[j].LapNumber
 			})
-			lapTime = lastLap.DiscoveryUnixTime - myPreviousLaps[0].DiscoveryUnixTime 
+			lapTime = lastLap.DiscoveryUnixTime - myPreviousLaps[0].DiscoveryUnixTime
 		} else {
-			//отыщем лидера нулевого заезда и посчитаем от него 
+			//отыщем лидера нулевого заезда и посчитаем от него
 			for _, lap := range laps {
 				//log.Printf("lap.RaceID == %d && lap.LapNumber == %d && lap.LapPosition == %d  \n", lap.RaceID, lap.LapNumber, lap.LapPosition)
-				if lap.RaceID == lastLap.RaceID && lap.LapNumber == 0 && lap.LapPosition == 1  {
+				if lap.RaceID == lastLap.RaceID && lap.LapNumber == 0 && lap.LapPosition == 1 {
 					lapTime = lastLap.DiscoveryUnixTime - lap.DiscoveryUnixTime
 					//log.Printf("Calculation: TAG: %s, LAP TIME: %d\n", lastLap.TagID, lapTime)
 					//return
@@ -527,7 +524,7 @@ func calculateRaceTotalTime(lastLap Lap) (raceTotalTime int64) {
 		//cуществуют ли другие записи?
 		var myPreviousLaps []Lap
 		for _, savedLap := range laps {
-			if savedLap.TagID == lastLap.TagID && savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber != lastLap.LapNumber  {
+			if savedLap.TagID == lastLap.TagID && savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber != lastLap.LapNumber {
 				myPreviousLaps = append(myPreviousLaps, savedLap)
 			}
 		}
@@ -538,7 +535,7 @@ func calculateRaceTotalTime(lastLap Lap) (raceTotalTime int64) {
 			sort.Slice(myPreviousLaps, func(i, j int) bool {
 				return myPreviousLaps[i].LapNumber > myPreviousLaps[j].LapNumber
 			})
-			raceTotalTime =  myPreviousLaps[0].RaceTotalTime  + lastLap.LapTime
+			raceTotalTime = myPreviousLaps[0].RaceTotalTime + lastLap.LapTime
 		} else {
 			raceTotalTime = lastLap.LapTime
 		}
@@ -551,19 +548,35 @@ func calculateRaceTotalTime(lastLap Lap) (raceTotalTime int64) {
 func updateCurrentRacePositions(currentLap Lap) {
 	//update current race positions:
 	for i, lap := range laps {
-		if lap.RaceID ==  currentLap.RaceID && lap.LapIsCurrent == 1  {
-			laps[i].CurrentRacePosition=calculateRacePosition(laps[i])
+		if lap.RaceID == currentLap.RaceID && lap.LapIsCurrent == 1 {
+			laps[i].CurrentRacePosition = calculateRacePosition(laps[i])
+		}
+	}
+
+	if positionsChange != nil {
+		select {
+		case positionsChange <- struct{}{}:
+			log.Println("lap updated on subscriber")
+		default:
+			log.Println("ERROR: lap cant updated on subscriber")
 		}
 	}
 }
 
+var positionsChange chan struct{}
+
+func SubscribeOnceOnRacePositionsChange() <-chan struct{} {
+	positionsChange = make(chan struct{}, 1)
+	return positionsChange
+}
+
 func calculateBetterOrWorseLapTime(lastLap Lap) (betterOrWorseLapTime int64) {
-	if len(laps)>0 {
+	if len(laps) > 0 {
 		//get my previous LapTime
 		var myPreviousLaps []Lap
 
 		for _, savedLap := range laps {
-			if savedLap.TagID == lastLap.TagID && savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber != lastLap.LapNumber && savedLap.LapNumber != 0  {
+			if savedLap.TagID == lastLap.TagID && savedLap.RaceID == lastLap.RaceID && savedLap.LapNumber != lastLap.LapNumber && savedLap.LapNumber != 0 {
 				myPreviousLaps = append(myPreviousLaps, savedLap)
 			}
 		}
@@ -584,9 +597,9 @@ func calculateBetterOrWorseLapTime(lastLap Lap) (betterOrWorseLapTime int64) {
 	return
 }
 
-func calculateRacePosition(lastLap Lap) (currentRacePosition uint){
+func calculateRacePosition(lastLap Lap) (currentRacePosition uint) {
 
-	if len(laps) > 0  {
+	if len(laps) > 0 {
 		var currentLaps []Lap
 
 		for _, savedLap := range laps {
@@ -607,7 +620,7 @@ func calculateRacePosition(lastLap Lap) (currentRacePosition uint){
 		for position, currentLap := range currentLaps {
 
 			//set my current race position
-			if  currentLap.DiscoveryUnixTime == lastLap.DiscoveryUnixTime {
+			if currentLap.DiscoveryUnixTime == lastLap.DiscoveryUnixTime {
 				currentRacePosition = uint(position + 1)
 				return
 			}
@@ -628,7 +641,7 @@ func calculateRacePosition(lastLap Lap) (currentRacePosition uint){
 // Add new lap to laps buffer (private func)
 func addNewLapToLapsBuffer(newLap Lap) {
 	<-lapsChannelBufferLocker //grab the ticket via channel (lock)
-	newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond)
+	newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond)
 	if len(laps) == 0 {
 		//empty data: create race and lap
 		fmt.Println("Slice empty - adding new element with TagID = ", newLap.TagID)
@@ -639,8 +652,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		//newlap.ID //taken from DB (on save)
 		//newlap.OwnerID
 		//newlap.TagID //taken from RFID
-		newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond) //int64 
-		newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
+		newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond) //int64
+		newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime                                   //int64
 		//newLap.DiscoveryTimePrepared //taken from RFID
 		newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
 		newLap.AverageResultsCount = 1 //first result from antenna
@@ -648,31 +661,30 @@ func addNewLapToLapsBuffer(newLap Lap) {
 		//newLap.Antenna //taken from RFID
 		//newLap.AntennaIP //taken from RFID
 		newLap.UpdatedAt = time.Now() //current time in time.Time
-		newLap.RaceID=1
-		newLap.CurrentRacePosition=1
-		newLap.TimeBehindTheLeader=0
-		newLap.LapNumber=0
-		newLap.LapTime=0
-		newLap.LapPosition=1
+		newLap.RaceID = 1
+		newLap.CurrentRacePosition = 1
+		newLap.TimeBehindTheLeader = 0
+		newLap.LapNumber = 0
+		newLap.LapTime = 0
+		newLap.LapPosition = 1
 		setMyPreviousLapsNonCurrentInBuffer(newLap)
-		newLap.LapIsCurrent=1
+		newLap.LapIsCurrent = 1
 		//newLap.LapIsStrange=0
-		newLap.StageFinished=1
-		newLap.BestLapTime=0
-		newLap.BestLapNumber=0
-		newLap.BestLapPosition=0
-		newLap.RaceTotalTime=0
-		newLap.BetterOrWorseLapTime=0
+		newLap.StageFinished = 1
+		newLap.BestLapTime = 0
+		newLap.BestLapNumber = 0
+		newLap.BestLapPosition = 0
+		newLap.RaceTotalTime = 0
+		newLap.BetterOrWorseLapTime = 0
 		if checkLapIsValid(newLap) {
-			newLap.LapIsStrange=0
+			newLap.LapIsStrange = 0
 		} else {
-			newLap.LapIsStrange=1
+			newLap.LapIsStrange = 1
 		}
 		//////////////////// DATA MAGIC END ///////////////////
 		laps = append(laps, newLap)
 
 		//log.Printf("SAVED %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
-
 
 	} else {
 		//get any previous lap data:
@@ -694,14 +706,13 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				myLastGap := newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime
 				//fmt.Printf("myLastGap: %d \n", myLastGap)
 
-				if  myLastGap >= -(Config.RESULTS_PRECISION_SEC*1000)  && myLastGap <= Config.RESULTS_PRECISION_SEC*1000  {
+				if myLastGap >= -(Config.RESULTS_PRECISION_SEC*1000) && myLastGap <= Config.RESULTS_PRECISION_SEC*1000 {
 					//from -5sec to 5 sec (RESULTS_PRECISION_SEC)
-					//результаты уже имеются - только обновить среднее и минимальное время 
+					//результаты уже имеются - только обновить среднее и минимальное время
 
 					for i, lap := range laps {
 						//get exact lap in buffer to update
 						if lap.TagID == myLastLap.TagID && lap.RaceID == myLastLap.RaceID && lap.LapNumber == myLastLap.LapNumber {
-
 
 							//фиксируем средний результат от антенны:
 							laps[i].AverageResultsCount = laps[i].AverageResultsCount + 1
@@ -722,7 +733,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 								}
 							}
 							laps[i].LapTime = calculateLapTime(laps[i])
-							laps[i].LapPosition=calculateLapPosition(laps[i])
+							laps[i].LapPosition = calculateLapPosition(laps[i])
 							laps[i].BestLapTime, laps[i].BestLapNumber, laps[i].BestLapPosition = getMyBestLapTimeAndNumber(laps[i])
 							laps[i].RaceTotalTime = calculateRaceTotalTime(laps[i])
 							//(-) minus is better (green), (+) plus is worth (orange).
@@ -730,15 +741,14 @@ func addNewLapToLapsBuffer(newLap Lap) {
 							laps[i].CurrentRacePosition = calculateRacePosition(laps[i])
 							laps[i].TimeBehindTheLeader = getTimeBehindTheLeader(laps[i])
 							if checkLapIsValid(laps[i]) {
-								laps[i].LapIsStrange=0
+								laps[i].LapIsStrange = 0
 							} else {
-								laps[i].LapIsStrange=1
+								laps[i].LapIsStrange = 1
 							}
 
 							//UPDATE OTHER RESULTS IN BUFFER ACCORDING TO NEW TIME END BLOCK.
 							//пересчитать позиции учитывая уточненное время
 							updateCurrentRacePositions(laps[i])
-
 
 							//log.Printf("UPDATED BUFFER: raceid: %d, lap#: %d, results: %d, time: %d, avtime: %d, tag: %s\n", laps[i].RaceID, laps[i].LapNumber, laps[i].AverageResultsCount, laps[i].DiscoveryUnixTime, laps[i].DiscoveryAverageUnixTime, laps[i].TagID )
 						}
@@ -747,8 +757,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				} else if Config.RESULTS_PRECISION_SEC*1000 < myLastGap && myLastGap < Config.MINIMAL_LAP_TIME_SEC*1000 {
 					//from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data - ERROR DATA RECEIVED!
 
-				log.Printf("ERROR DATA RECEIVED: from %d sec (precision) to %d sec (min lap time): TAG=%s \n", Config.RESULTS_PRECISION_SEC, Config.MINIMAL_LAP_TIME_SEC, newLap.TagID)
-
+					log.Printf("ERROR DATA RECEIVED: from %d sec (precision) to %d sec (min lap time): TAG=%s \n", Config.RESULTS_PRECISION_SEC, Config.MINIMAL_LAP_TIME_SEC, newLap.TagID)
 
 				} else if Config.MINIMAL_LAP_TIME_SEC*1000 <= myLastGap && lastGap < Config.RACE_TIMEOUT_SEC*1000 {
 					//between MINIMAL_LAP_TIME_SEC <-> RACE_TIMEOUT_SEC
@@ -758,8 +767,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newlap.ID //taken from DB (on save)
 					//newlap.OwnerID
 					//newlap.TagID //taken from RFID
-					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond) //int64 
-					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
+					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond) //int64
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime                                   //int64
 					//newLap.DiscoveryTimePrepared //taken from RFID
 					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
 					newLap.AverageResultsCount = 1 //first result from antenna
@@ -767,25 +776,25 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
 					newLap.UpdatedAt = time.Now() //current time in time.Time
-					newLap.RaceID=myLastLap.RaceID
+					newLap.RaceID = myLastLap.RaceID
 					newLap.LapNumber = myLastLap.LapNumber + 1
-					newLap.LapTime= calculateLapTime(newLap)
-					newLap.LapPosition=calculateLapPosition(newLap)
+					newLap.LapTime = calculateLapTime(newLap)
+					newLap.LapPosition = calculateLapPosition(newLap)
 					setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent = 1 //returns 1 (sets this lap current) && sets my previous laps in same race: LapIsCurrent=0
 					//newLap.LapIsStrange=?
-					newLap.StageFinished=1
+					newLap.StageFinished = 1
 					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 					//newLap.BestLapPosition=getMyBestLapPosition(newLap)
 					newLap.RaceTotalTime = myLastLap.RaceTotalTime + myLastGap
 					//(-) minus is better (green), (+) plus is worth (orange).
 					newLap.BetterOrWorseLapTime = calculateBetterOrWorseLapTime(newLap)
-					newLap.CurrentRacePosition=calculateRacePosition(newLap)
-					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
+					newLap.CurrentRacePosition = calculateRacePosition(newLap)
+					newLap.TimeBehindTheLeader = getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
-						newLap.LapIsStrange=0
+						newLap.LapIsStrange = 0
 					} else {
-						newLap.LapIsStrange=1
+						newLap.LapIsStrange = 1
 					}
 					//////////////////// DATA MAGIC END ///////////////////
 
@@ -802,8 +811,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newlap.ID //taken from DB (on save)
 					//newlap.OwnerID
 					//newlap.TagID //taken from RFID
-					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond) //int64
-					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
+					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond) //int64
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime                                   //int64
 					//newLap.DiscoveryTimePrepared //taken from RFID
 					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
 					newLap.AverageResultsCount = 1 //first result from antenna
@@ -811,25 +820,25 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
 					newLap.UpdatedAt = time.Now() //current time in time.Time
-					newLap.RaceID=getLastRaceIdFromBuffer()+1
-					newLap.CurrentRacePosition=1
-					newLap.TimeBehindTheLeader=0
-					newLap.LapNumber=0
-					newLap.LapTime=0
-					newLap.LapPosition=1
+					newLap.RaceID = getLastRaceIdFromBuffer() + 1
+					newLap.CurrentRacePosition = 1
+					newLap.TimeBehindTheLeader = 0
+					newLap.LapNumber = 0
+					newLap.LapTime = 0
+					newLap.LapPosition = 1
 					setMyPreviousLapsNonCurrentInBuffer(newLap)
-					newLap.LapIsCurrent=1
+					newLap.LapIsCurrent = 1
 					//newLap.LapIsStrange=0
-					newLap.StageFinished=1
-					newLap.BestLapTime=0
-					newLap.BestLapNumber=0
-					newLap.BestLapPosition=0
-					newLap.RaceTotalTime=0
-					newLap.BetterOrWorseLapTime=0
+					newLap.StageFinished = 1
+					newLap.BestLapTime = 0
+					newLap.BestLapNumber = 0
+					newLap.BestLapPosition = 0
+					newLap.RaceTotalTime = 0
+					newLap.BetterOrWorseLapTime = 0
 					if checkLapIsValid(newLap) {
-						newLap.LapIsStrange=0
+						newLap.LapIsStrange = 0
 					} else {
-						newLap.LapIsStrange=1
+						newLap.LapIsStrange = 1
 					}
 					//////////////////// DATA MAGIC END ///////////////////
 
@@ -839,8 +848,6 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					laps = append(laps, newLap)
 
 					//log.Printf("SAVED NEXT RACE LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
-
-
 
 				} else {
 
@@ -852,7 +859,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				//такой гонщик еще не учавствовал в гонке
 
 				if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
-					
+
 					//race expired - create new and append new rider
 					//время заезда истекло - создать новый заезд
 
@@ -860,8 +867,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newlap.ID //taken from DB (on save)
 					//newlap.OwnerID
 					//newlap.TagID //taken from RFID
-					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond) //int64
-					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
+					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond) //int64
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime                                   //int64
 					//newLap.DiscoveryTimePrepared //taken from RFID
 					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
 					newLap.AverageResultsCount = 1 //first result from antenna
@@ -869,25 +876,25 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
 					newLap.UpdatedAt = time.Now() //current time in time.Time
-					newLap.RaceID=getLastRaceIdFromBuffer()+1
-					newLap.CurrentRacePosition=1
-					newLap.TimeBehindTheLeader=0
-					newLap.LapNumber=0
-					newLap.LapTime=0
-					newLap.LapPosition=1
+					newLap.RaceID = getLastRaceIdFromBuffer() + 1
+					newLap.CurrentRacePosition = 1
+					newLap.TimeBehindTheLeader = 0
+					newLap.LapNumber = 0
+					newLap.LapTime = 0
+					newLap.LapPosition = 1
 					//setMyPreviousLapsNonCurrentInBuffer(newLap)
-					newLap.LapIsCurrent=1
+					newLap.LapIsCurrent = 1
 					//newLap.LapIsStrange=0
-					newLap.StageFinished=1
-					newLap.BestLapTime=0
-					newLap.BestLapNumber=0
-					newLap.BestLapPosition=0
-					newLap.RaceTotalTime=0
-					newLap.BetterOrWorseLapTime=0
+					newLap.StageFinished = 1
+					newLap.BestLapTime = 0
+					newLap.BestLapNumber = 0
+					newLap.BestLapPosition = 0
+					newLap.RaceTotalTime = 0
+					newLap.BetterOrWorseLapTime = 0
 					if checkLapIsValid(newLap) {
-						newLap.LapIsStrange=0
+						newLap.LapIsStrange = 0
 					} else {
-						newLap.LapIsStrange=1
+						newLap.LapIsStrange = 1
 					}
 					//////////////////// DATA MAGIC END ///////////////////
 
@@ -899,7 +906,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//log.Printf("CREATED NEW RACE %d, with lap#  %d IN BUFFER: tag: %s, \n", newLap.RaceID, newLap.LapNumber, newLap.TagID)
 
 				} else {
-					
+
 					//такой гонщик еще не учавствовал в заезде и время заезда еще не истекло
 					//создать нового гонщика в текущем заезде
 					//race is valid - append new rider
@@ -908,8 +915,8 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newlap.ID //taken from DB (on save)
 					//newlap.OwnerID
 					//newlap.TagID //taken from RFID
-					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond) //int64
-					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime //int64
+					newLap.DiscoveryUnixTime = newLap.DiscoveryTimePrepared.UnixNano() / int64(time.Millisecond) //int64
+					newLap.DiscoveryAverageUnixTime = newLap.DiscoveryUnixTime                                   //int64
 					//newLap.DiscoveryTimePrepared //taken from RFID
 					newLap.DiscoveryAverageTimePrepared = newLap.DiscoveryTimePrepared
 					newLap.AverageResultsCount = 1 //first result from antenna
@@ -917,17 +924,17 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					//newLap.Antenna //taken from RFID
 					//newLap.AntennaIP //taken from RFID
 					newLap.UpdatedAt = time.Now() //current time in time.Time
-					newLap.RaceID=lastLap.RaceID
+					newLap.RaceID = lastLap.RaceID
 					//newLap.CurrentRacePosition=calculateRacePosition(newLap) - calculate at last
 					//newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap) - calc at last
 					newLap.LapNumber = 0
 					newLap.LapTime = calculateLapTime(newLap)
-					newLap.LapPosition=calculateLapPosition(newLap)
+					newLap.LapPosition = calculateLapPosition(newLap)
 
 					//setMyPreviousLapsNonCurrentInBuffer(newLap)
 					newLap.LapIsCurrent = 1
 					//newLap.LapIsStrange=?
-					newLap.StageFinished=1
+					newLap.StageFinished = 1
 					newLap.BestLapTime, newLap.BestLapNumber, newLap.BestLapPosition = getMyBestLapTimeAndNumber(newLap)
 					//newLap.BestLapPosition=?
 					newLap.RaceTotalTime = newLap.LapTime
@@ -936,14 +943,14 @@ func addNewLapToLapsBuffer(newLap Lap) {
 						newLap.BetterOrWorseLapTime = 0
 					} else {
 						//(-) minus is better (green), (+) plus is worth (orange).
-						newLap.BetterOrWorseLapTime = calculateBetterOrWorseLapTime(newLap) 
+						newLap.BetterOrWorseLapTime = calculateBetterOrWorseLapTime(newLap)
 					}
 					//newLap.CurrentRacePosition=calculateRacePosition(newLap)
-					newLap.TimeBehindTheLeader=getTimeBehindTheLeader(newLap)
+					newLap.TimeBehindTheLeader = getTimeBehindTheLeader(newLap)
 					if checkLapIsValid(newLap) {
-						newLap.LapIsStrange=0
+						newLap.LapIsStrange = 0
 					} else {
-						newLap.LapIsStrange=1
+						newLap.LapIsStrange = 1
 					}
 					//////////////////// DATA MAGIC END ///////////////////
 					updateCurrentRacePositions(newLap)
@@ -951,32 +958,27 @@ func addNewLapToLapsBuffer(newLap Lap) {
 
 					//log.Printf("SAVED NEW PLAYER TO SAME RACE in BUFFER:  LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
-
 				}
-
-
 
 			}
 		}
 	}
 
 	for _, lap := range laps {
-		if lap.LapIsCurrent==1 {
+		if lap.LapIsCurrent == 1 {
 			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
 		}
 	}
 
 	lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock)
-
 }
 
-//string to time.Unix milli
-func timeFromUnixMillis(msInt int64) (time.Time) {
+// string to time.Unix milli
+func timeFromUnixMillis(msInt int64) time.Time {
 	return time.Unix(0, msInt*int64(time.Millisecond))
 }
 
-
-//string to time.Unix milli
+// string to time.Unix milli
 func timeFromStringUnixMillis(ms string) (time.Time, error) {
 	msInt, err := strconv.ParseInt(ms, 10, 64)
 	if err != nil {
@@ -1093,7 +1095,6 @@ func newAntennaConnection(conn net.Conn) {
 			go Proxy.ProxyDataToAnotherHost(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 		}
 
-
 		<-lapsChannelBufferLocker //grab the ticket via channel (lock)
 		if len(laps) == 0 {
 			//laps buffer empty - recreate last race from db:
@@ -1106,7 +1107,7 @@ func newAntennaConnection(conn net.Conn) {
 				log.Println("laps buffer recreation failed with:", err)
 				go addNewLapToLapsBuffer(lap)
 			}
-		} 
+		}
 		lapsChannelBufferLocker <- 1 //give ticket back via channel (unlock)
 
 		if len(laps) > 0 {

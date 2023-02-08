@@ -2,9 +2,9 @@ package Models
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
-	"log"
 )
 
 func GetLapsForWeb(raceID uint) (laps []Lap) {
@@ -13,15 +13,15 @@ func GetLapsForWeb(raceID uint) (laps []Lap) {
 		log.Println(err)
 	}
 
-	if len(lapsFromBuffer) > 0 && raceID == lapsFromBuffer[0].RaceID  {
-	//if race is current - get data from buffer - it is faster:
+	if len(lapsFromBuffer) > 0 && raceID == lapsFromBuffer[0].RaceID {
+		//if race is current - get data from buffer - it is faster:
 		log.Println("race is current - took data from buffer, raceID:", raceID)
 		laps = lapsFromBuffer
 	} else {
-	//race is not current - get data from database:
+		//race is not current - get data from database:
 		log.Println("race is not current - took data from database, raceID:", raceID)
 		var lapsFromDB []Lap
-		err := GetAllResultsByRaceId(&lapsFromDB, raceID);
+		err := GetAllResultsByRaceId(&lapsFromDB, raceID)
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -31,16 +31,14 @@ func GetLapsForWeb(raceID uint) (laps []Lap) {
 	return
 }
 
-//
 func GetCurrentRaceDataFromDB() (currentRace []Lap, err error) {
-	var lastLap Lap 
+	var lastLap Lap
 	err = DB.Order("discovery_unix_time desc").First(&lastLap).Error
 	if err == nil {
-		err = DB.Where("race_id = ?", lastLap.RaceID ).Find(&currentRace).Error
+		err = DB.Where("race_id = ?", lastLap.RaceID).Find(&currentRace).Error
 	}
 	return
 }
-
 
 // Get laps by race ID
 func GetAllLapsByRaceId(u *[]Lap, race_id_string string) (err error) {
@@ -117,7 +115,7 @@ func UpdateCurrentResultsByRaceId(race_id uint) (err error) {
 	return
 }
 
-//Print Current Results
+// Print Current Results
 func PrintCurrentResultsByRaceId(race_id uint) (err error) {
 	var laps []Lap
 	err = DB.Where("race_id = ?", race_id).Where("lap_is_current = ?", 1).Order("lap_number desc").Order("race_total_time asc").Order("stage_finished desc").Find(&laps).Error
@@ -126,8 +124,6 @@ func PrintCurrentResultsByRaceId(race_id uint) (err error) {
 			fmt.Printf("lap: %d, tag: %s, position: %d, start#: %d, time: %d, gap: %d, best lap: %d, alive?: %d, strange?: %d\n", lap.LapNumber, lap.TagID, lap.CurrentRacePosition, lap.BestLapPosition, lap.RaceTotalTime, lap.TimeBehindTheLeader, lap.BestLapTime, lap.StageFinished, lap.LapIsStrange)
 		}
 	}
-
-	UpdateChan <- struct{}{}
 
 	return
 }
@@ -252,7 +248,7 @@ func GetLastRaceIDandTime(u *Lap) (lastLapRaceID uint, lastLapTime time.Time) {
 	return
 }
 
-//best lap time
+// best lap time
 func GetBestLapTimeFromRace(raceID uint) (bestLapTime int64, err error) {
 	var lap Lap
 	err = DB.Table("laps").Where("race_id = ?", raceID).Where("lap_number != ?", 0).Order("lap_time asc").First(&lap).Error
@@ -262,7 +258,7 @@ func GetBestLapTimeFromRace(raceID uint) (bestLapTime int64, err error) {
 	return
 }
 
-//best personal lap time
+// best personal lap time
 func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64, err error) {
 	var lap Lap
 	err = DB.Table("laps").Where("tag_id = ?", tagID).Where("race_id = ?", raceID).Where("lap_number != ?", 0).Order("lap_time asc").First(&lap).Error
@@ -272,7 +268,7 @@ func GetBestLapTimeFromRaceByTagID(tagID string, raceID uint) (bestLapTime int64
 	return
 }
 
-//best track lap time from all time all types
+// best track lap time from all time all types
 func GetBestLapTimeFromAllTime() (bestLapTime int64, err error) {
 	var lapStructCopy Lap
 	err = DB.Table("laps").Where("lap_number != ?", 0).Order("lap_time asc").First(&lapStructCopy).Error
@@ -350,5 +346,3 @@ func DeleteOneLap(u *Lap, lap_id string) (err error) {
 	DB.Where("id = ?", lap_id).Delete(u)
 	return nil
 }
-
-var UpdateChan chan struct{}

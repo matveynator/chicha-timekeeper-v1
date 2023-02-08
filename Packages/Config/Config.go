@@ -1,16 +1,16 @@
 package Config
 
 import (
+	"flag"
 	"github.com/joho/godotenv" // Enviroment read package
 	"log"
 	"os"
-	"flag"
 	"strconv"
 )
 
-var APP_ANTENNA_LISTENER_IP,API_SERVER_LISTENER_IP,TIME_ZONE,DB_TYPE,DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,DB_PORT,ADMIN_LOGIN,ADMIN_PASSWORD,PROXY_HOST,PROXY_PORT,VERSION string
-var AVERAGE_RESULTS,PROXY_ACTIVE bool
-var RACE_TIMEOUT_SEC,MINIMAL_LAP_TIME_SEC,RESULTS_PRECISION_SEC,LAPS_SAVE_INTERVAL_SEC int64
+var APP_ANTENNA_LISTENER_IP, API_SERVER_LISTENER_IP, TIME_ZONE, DB_TYPE, DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, ADMIN_LOGIN, ADMIN_PASSWORD, PROXY_HOST, PROXY_PORT, VERSION string
+var AVERAGE_RESULTS, PROXY_ACTIVE bool
+var RACE_TIMEOUT_SEC, MINIMAL_LAP_TIME_SEC, RESULTS_PRECISION_SEC, LAPS_SAVE_INTERVAL_SEC int64
 
 func readIntFromConfig(name string) (value int64) {
 	val, ok := os.LookupEnv(name)
@@ -30,7 +30,7 @@ func readIntFromConfig(name string) (value int64) {
 }
 
 func readBoolFromConfig(name string) bool {
-  var boolValue bool
+	var boolValue bool
 	value, ok := os.LookupEnv(name)
 	if ok {
 		if value == "true" {
@@ -48,12 +48,11 @@ func readBoolFromConfig(name string) bool {
 	return boolValue
 }
 
-
-func init()  {
+func init() {
 
 	flagVersion := flag.Bool("version", false, "Output version information")
 	flag.Parse()
-	if *flagVersion  {
+	if *flagVersion {
 		if VERSION != "" {
 			log.Println("Version:", VERSION)
 		}
@@ -78,7 +77,7 @@ func init()  {
 	// Check enviroment
 	APP_ANTENNA_LISTENER_IP, _ = os.LookupEnv("APP_ANTENNA_LISTENER_IP")
 	API_SERVER_LISTENER_IP, _ = os.LookupEnv("API_SERVER_LISTENER_IP")
-	TIME_ZONE, _ =  os.LookupEnv("TIME_ZONE")
+	TIME_ZONE, _ = os.LookupEnv("TIME_ZONE")
 
 	// DB connection preferences
 	DB_HOST, _ = os.LookupEnv("DB_HOST")
@@ -90,7 +89,6 @@ func init()  {
 
 	ADMIN_LOGIN, _ = os.LookupEnv("ADMIN_LOGIN")
 	ADMIN_PASSWORD, _ = os.LookupEnv("ADMIN_PASSWORD")
-
 
 	//INT configuration variables:
 	MINIMAL_LAP_TIME_SEC = readIntFromConfig("MINIMAL_LAP_TIME_SEC")

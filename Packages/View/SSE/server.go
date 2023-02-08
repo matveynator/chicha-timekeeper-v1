@@ -8,7 +8,7 @@ import (
 )
 
 // Broker It keeps a list of clients those are currently attached
-//and broadcasting events to those clients.
+// and broadcasting events to those clients.
 type Broker struct {
 	// Events are pushed to this channel by the main events-gathering routine
 	Notifier <-chan struct{}
@@ -37,8 +37,8 @@ func NewServer() (b *Broker) {
 	return
 }
 
-//It Listens all incoming requests from clients.
-//Handles addition and removal of clients and broadcast messages to clients.
+// It Listens all incoming requests from clients.
+// Handles addition and removal of clients and broadcast messages to clients.
 func (b *Broker) listen() {
 	for {
 		select {

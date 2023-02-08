@@ -2,35 +2,35 @@ package Models
 
 /**
 * This controller only for API work
-*/
+ */
 
-import(
-	"strconv"
+import (
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 // Return list of all laps
 func GetLapsByRaceId(c *gin.Context) {
-        var laps []Lap
-        race_id := c.Params.ByName("id")
-        err := GetAllLapsByRaceId(&laps, race_id)
-        if err != nil {
+	var laps []Lap
+	race_id := c.Params.ByName("id")
+	err := GetAllLapsByRaceId(&laps, race_id)
+	if err != nil {
 		c.JSON(404, err)
-                return
-        }
-        c.JSON(200, laps)
+		return
+	}
+	c.JSON(200, laps)
 }
 
 // Return list of all laps
 func GetResultsByRaceId(c *gin.Context) {
-        var laps []Lap
-				race_id, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-        err := GetAllResultsByRaceId(&laps, uint(race_id))
-        if err != nil {
-                c.JSON(404, err)
-                return
-        }
-        c.JSON(200, laps)
+	var laps []Lap
+	race_id, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	err := GetAllResultsByRaceId(&laps, uint(race_id))
+	if err != nil {
+		c.JSON(404, err)
+		return
+	}
+	c.JSON(200, laps)
 }
 
 // Return list of all laps
@@ -101,7 +101,6 @@ func UpdateLap(c *gin.Context) {
 
 	var lap Lap
 	id := c.Params.ByName("id")
-
 
 	if err := GetOneLap(&lap, id); err != nil {
 		c.JSON(404, nil)
