@@ -6,13 +6,13 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"time"
 	"sort"
 	"strconv"
+	"time"
 
-	"html/template"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
+	"html/template"
 
 	"chicha/Packages/Models"
 	"chicha/Packages/View/SSE"
@@ -88,7 +88,7 @@ func (v *View) Homepage(c *gin.Context) {
 
 	if err := Models.DB.Raw(s).Find(laps).Error; err != nil {
 		c.Error(err)
-		log.Println("",err)
+		log.Println("", err)
 		//return
 	}
 	if err := Models.DB.Raw(s).First(lap).Error; err != nil {
@@ -102,7 +102,6 @@ func (v *View) Homepage(c *gin.Context) {
 		"raceList":    laps,
 	})
 }
-
 
 func (v *View) RaceRiderView(c *gin.Context) {
 	raceID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
@@ -130,7 +129,7 @@ func (v *View) RaceRiderView(c *gin.Context) {
 				// if (-) sec better then prev
 				// green
 				stl = "green"
-			} else if ( v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber )  {
+			} else if v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber {
 				// if best race lap
 				// violet
 				stl = "violet"
@@ -155,8 +154,6 @@ func (v *View) RaceRiderView(c *gin.Context) {
 	}
 	c.HTML(http.StatusOK, "race", reslt)
 }
-
-
 
 func (v *View) RaceView(c *gin.Context) {
 	raceID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
@@ -183,7 +180,7 @@ func (v *View) RaceView(c *gin.Context) {
 				// if (-) sec better then prev
 				// green
 				stl = "green"
-			} else if ( v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber )  {
+			} else if v.BestLapPosition == 1 && v.BestLapNumber == v.LapNumber {
 				// if best race lap
 				// violet
 				stl = "violet"
@@ -194,7 +191,7 @@ func (v *View) RaceView(c *gin.Context) {
 				"Style": stl,
 			})
 
- 		}
+		}
 	}
 
 	reslt := gin.H{

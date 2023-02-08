@@ -7,6 +7,9 @@ start:
 build:
 	./Scripts/crosscompile.sh
 
+format:
+	go fmt -x ./...
+
 test:
 	./Scripts/RaceTest.sh
 

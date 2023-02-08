@@ -5,23 +5,22 @@ Work in progress.
 */
 
 import (
-	"chicha/Packages/Config"
-	"chicha/Packages/View"
-	"chicha/Packages/Models" // Our package with database models
 	"embed"
 	//"fmt"
 	"log"
 
+	"chicha/Packages/Config"
+	"chicha/Packages/Models" // Our package with database models
+	"chicha/Packages/View"
+
 	//"gorm.io/driver/postgres" // Gorm Postgres driver package
 	//"gorm.io/driver/sqlite"   //gorm sqlite driver
 	"github.com/glebarez/sqlite"
-	"gorm.io/gorm"            // Database ORM package
+	"gorm.io/gorm" // Database ORM package
 	"gorm.io/gorm/logger"
-
 	//"github.com/sethvargo/go-password/password" //password generator
 	//profiling CPU:
 	//"github.com/pkg/profile"
-
 )
 
 //go:embed static
@@ -31,23 +30,26 @@ func main() {
 	//profiling CPU: https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz
 	//defer profile.Start(profile.ProfilePath(".")).Stop()
 
-		//DEFAULT: if Config.DB_TYPE == "sqlite"
-		dsn := "chicha.sqlite"
-		if db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Silent),
-			SkipDefaultTransaction: true,
-		}); err != nil {
-			log.Println("ERROR: Connect to local SQLite database failed at", dsn, err)
-			panic(err)
+	//DEFAULT: if Config.DB_TYPE == "sqlite"
+	var (
+		err error
+		dsn = "chicha.sqlite"
+	)
+	Models.DB, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{
+		Logger:                 logger.Default.LogMode(logger.Silent),
+		SkipDefaultTransaction: true,
+	})
+	if err != nil {
+		log.Fatal("ERROR: Connect to local SQLite database failed at", dsn, err)
+	}
 
-		} else {
-			Models.DB = db
-			log.Println("Connected to local SQLite database at", dsn)
-		}
+	log.Println("Connected to local SQLite database at", dsn)
 
 	// Database Migrations
 	log.Println("Creating or changing database structures (applying migrations)...")
-	Models.DB.AutoMigrate(&Models.Lap{}, &Models.User{}, &Models.Race{}, &Models.Checkin{}, &Models.Admin{})
+	if err = Models.DB.AutoMigrate(&Models.Lap{}, &Models.User{}, &Models.Race{}, &Models.Checkin{}, &Models.Admin{}); err != nil {
+		log.Fatal("failed to apply migration: ", err)
+	}
 
 	// Create new system administator if them not exists
 
@@ -59,10 +61,6 @@ func main() {
 	//	Models.CreateDefaultAdmin(Config.ADMIN_LOGIN, adminPass)
 	//}
 
-	updCh := make(chan struct{}, 1)
-	Models.UpdateChan = updCh
-
-
 	// Start RFID listener
 	go Models.StartAntennaListener()
 	log.Printf("Data collector IP = %s, db save interval = %d sec, minimal lap time = %d sec.\n", Config.APP_ANTENNA_LISTENER_IP, Config.LAPS_SAVE_INTERVAL_SEC, Config.MINIMAL_LAP_TIME_SEC)
@@ -70,7 +68,7 @@ func main() {
 	// Routing
 	r := Models.SetupRouter()
 	// view
-	view.New(r, static, updCh)
+	view.New(r, static, Models.SubscribeOnceOnRacePositionsChange())
 
 	// Start API server
 	log.Printf("WEB API server IP = %s\n", Config.API_SERVER_LISTENER_IP)
