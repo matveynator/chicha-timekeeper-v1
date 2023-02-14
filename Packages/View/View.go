@@ -112,7 +112,7 @@ func (v *View) RaceRiderView(c *gin.Context) {
 	var sLaps []gin.H
 
 	sort.Slice(laps, func(i, j int) bool {
-		//sort by minimal CurrentRacePosition
+		//sort by Lap Number
 		return laps[i].LapNumber < laps[j].LapNumber
 	})
 
