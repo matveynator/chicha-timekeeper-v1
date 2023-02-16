@@ -1,3 +1,4 @@
+// пакет для вывода html всем подписчикам
 package sse
 
 import (

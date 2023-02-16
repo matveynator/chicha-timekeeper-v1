@@ -11,7 +11,7 @@ import (
 
 	"chicha/Packages/Config"
 	"chicha/Packages/Models" // Our package with database models
-	"chicha/Packages/View"
+	"chicha/Packages/view"
 
 	//"gorm.io/driver/postgres" // Gorm Postgres driver package
 	//"gorm.io/driver/sqlite"   //gorm sqlite driver

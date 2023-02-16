@@ -1,8 +1,14 @@
 root = true
 
-[*]
+[*.go]
 end_of_line = lf
 insert_final_newline = true
 tab_width = 2
 indent_size = tab
 indent_style = tab
+
+[*.gohtml]
+end_of_line = lf
+insert_final_newline = true
+tab_width = 2
+indent_style = space
