@@ -31,10 +31,10 @@ func (v *View) setupRenderer() multitemplate.Renderer {
 
 	r := multitemplate.NewRenderer()
 
-	index, _ := v.static.ReadFile("static/templates/index.tmpl")
-	race, _ := v.static.ReadFile("static/templates/race.tmpl")
-	raceTable, _ := v.static.ReadFile("static/templates/race_table.tmpl")
-	raceTableView, _ := v.static.ReadFile("static/templates/race_table_view.tmpl")
+	index, _ := v.static.ReadFile("static/templates/index.gohtml")
+	race, _ := v.static.ReadFile("static/templates/race.gohtml")
+	raceTable, _ := v.static.ReadFile("static/templates/race_table.gohtml")
+	raceTableView, _ := v.static.ReadFile("static/templates/race_table_view.gohtml")
 
 	r.AddFromStringsFuncs("index", funcsForTemplates, string(index))
 	r.AddFromStringsFuncs("race", funcsForTemplates, string(race), string(raceTable))

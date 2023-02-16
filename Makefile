@@ -11,5 +11,5 @@ format:
 	go fmt -x ./...
 
 test:
-	go run ./scripts/racetest.go
+	go run ./Scripts/racetest.go
 
