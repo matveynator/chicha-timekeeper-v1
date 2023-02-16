@@ -6,10 +6,37 @@
 content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
+<link rel="stylesheet" type="text/css" href="/static/assets/pure-min.css">
+<link rel="stylesheet" type="text/css" href="/static/assets/grids-responsive-min.css"/>
+
 <style>
 
 main {
 padding: 1em 2em;
+}
+
+.event-button-wrap {
+	margin-bottom: 4px;
+}
+
+.button-success {
+background: rgb(28, 184, 65);
+						/* this is a green */
+}
+
+.button-secondary {
+color: white;
+			 border-radius: 4px;
+			 text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.button-warning {
+background: rgb(223, 117, 20);
+						/* this is an orange */
+}
+
+.button-grey {
+background: #cccccc;
 }
 
 .table-header th {
@@ -39,9 +66,6 @@ transition: all ease-out 10s !important;
 
 </style>
 
-<link rel="stylesheet" type="text/css" href="/static/assets/pure-min.css">
-<link rel="stylesheet" type="text/css" href="/static/assets/grids-responsive-min.css"/>
-
 <script src="/static/assets/htmx.min.js"></script>
 
   <script>
@@ -55,13 +79,13 @@ htmx.logAll()
 
 	<main class="pure-g">
 	<section class="content pure-u-1">
-	<a href="/" class="pure-button pure-button-primary"><< INDEX</a>
-	<a href="/race/{{.RaceID}}" class="pure-button pure-button-primary">/race/{{.RaceID}}</a>
-	<a hx-get="?updtable=true" hx-target=".parent_table" class="pure-button pure-button-primary">Update</a>
+	<a href="/" class="button-grey pure-button button-secondary">Назад к календарю</a>
+	<a href="/race/{{.RaceID}}" class="button-success pure-button button-secondary">Соревнование #{{.RaceID}}</a>
+	<a hx-get="?updtable=true" hx-target=".parent_table" class="button-warning pure-button button-secondary">Обновить</a>
 	</section>
 
 	<section hx-sse="connect:/race-stream/{{.RaceID}}" class="content pure-u-1">
-	<h3>Race {{.RaceID}} </h3>
+	<h1>Соревнование #{{.RaceID}} </h1>
 	<div id="updatable_div" class="parent_table" hx-get="/race/{{.RaceID}}?updtable=true" hx-trigger="sse:update">
 {{template "race_table.tmpl" .}}
 </div>

@@ -9,8 +9,6 @@
 <th>Last lap</th>
 <th>Best lap</th>
 <th>Start position #</th>
-<th>Alive?</th>
-<th>Strange?</th>
 </tr>
 </thead>
 
@@ -30,8 +28,6 @@
 </td>
 <td>{{timestampRender .Lap.BestLapTime}}</td>
 <td align="center">{{.Lap.BestLapPosition}}</td>
-<td align="center">{{.Lap.StageFinished}}</td>
-<td align="center">{{.Lap.LapIsStrange}}</td>
 </tr>
 {{end}}
 </tbody>
