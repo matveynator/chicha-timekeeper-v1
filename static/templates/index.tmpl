@@ -91,11 +91,11 @@
     ]
 
     let curMonth = new Date()
-    curMonth.setMonth(curMonth.getMonth()-1)
+    curMonth.setMonth(curMonth.getMonth())
     new Calendar(document.querySelector('.calendar'), {
         language: 'ru',
         dataSource: events,
-        numberMonthsDisplayed: 2,
+        numberMonthsDisplayed: 1,
         startDate: curMonth,
         clickDay: (e) => updateEventList(e.events)
     })
