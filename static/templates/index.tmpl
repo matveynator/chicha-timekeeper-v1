@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-		<meta http-equiv="refresh" content="5" />
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+          content="width=device-width, user-scalable=no, initial-scale=2.0, maximum-scale=3.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <link rel="stylesheet" type="text/css" href="/static/assets/pure-min.css">
@@ -23,34 +22,35 @@
         .event-button-wrap {
             margin-bottom: 4px;
         }
+
+        .button-success {
+            background: rgb(28, 184, 65);
+            /* this is a green */
+        }
+
+				.button-secondary {
+            color: white;
+            border-radius: 4px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
     </style>
 
-    <title>chicha</title>
+    <title>Календарь соревнований:</title>
 </head>
 <body>
 
 
 <main class="pure-g">
     <section class="content pure-u-1">
-        <h1>Добро пожаловать на страницу chicha!</h1>
 
-
-
-			<h3>Календарь заездов</h3>
-        <a href="/race/{{ .currentRace.RaceID }}" class="pure-button">Текущий заезд № {{ .currentRace.RaceID }}</a>
-
-        <div class="pure-g">
-            <div class="pure-u-1 pure-u-md-3-5 pure-u-lg-2-5">
                 <div class="l-box events">
-                    <h6>Номер гонки, Дата</h6>
+										<h1>Календарь соревнований:</h1>
+										<div class="l-box calendar"></div>
+										<h1>Текущее соревнование:</h1>
+										<div><a href="/race/{{ .currentRace.RaceID }}" class="button-success pure-button button-secondary">Соревнование # {{ .currentRace.RaceID }}</a></div>
+										<h1>Соревнования в этот день:</h1>
                     <div class="events-wrap"></div>
                 </div>
-            </div>
-
-            <div class="pure-u-1 pure-u-md-2-5 pure-u-lg-3-5">
-                <div class="l-box calendar"></div>
-            </div>
-        </div>
     </section>
 </main>
 
@@ -91,16 +91,18 @@
     ]
 
     let curMonth = new Date()
-    curMonth.setMonth(curMonth.getMonth() - 2)
+    curMonth.setMonth(curMonth.getMonth()-1)
     new Calendar(document.querySelector('.calendar'), {
         language: 'ru',
         dataSource: events,
-        numberMonthsDisplayed: 6,
+        numberMonthsDisplayed: 2,
         startDate: curMonth,
         clickDay: (e) => updateEventList(e.events)
     })
 
 </script>
 
+				<br><br><br><br>
+        <center><a href="https://github.com/matveynator/chicha">Chicha: the competition timekeeper (chronograph).</a></center>
 </body>
 </html>
