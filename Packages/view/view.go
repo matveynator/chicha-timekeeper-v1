@@ -3,6 +3,7 @@ package view
 import (
 	"embed"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -12,32 +13,32 @@ import (
 
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
-	"html/template"
 
 	"chicha/Packages/Models"
-	"chicha/Packages/View/SSE"
+	"chicha/Packages/view/sse"
 )
 
 type View struct {
-	static embed.FS
+	static embed.FS // доступ к embedded файловой системе
 }
 
 func (v *View) setupRenderer() multitemplate.Renderer {
-	f := template.FuncMap{
+	// функции которые используются внутри html темплейтов
+	funcsForTemplates := template.FuncMap{
 		"timestampRender":      timestampRender,
 		"millisDurationRender": millisDurationRender,
 	}
 
 	r := multitemplate.NewRenderer()
 
-	index, _ := v.static.ReadFile("static/templates/index.tmpl")
-	race, _ := v.static.ReadFile("static/templates/race.tmpl")
-	raceTable, _ := v.static.ReadFile("static/templates/race_table.tmpl")
-	raceTableView, _ := v.static.ReadFile("static/templates/race_table_view.tmpl")
+	index, _ := v.static.ReadFile("static/templates/index.gohtml")
+	race, _ := v.static.ReadFile("static/templates/race.gohtml")
+	raceTable, _ := v.static.ReadFile("static/templates/race_table.gohtml")
+	raceTableView, _ := v.static.ReadFile("static/templates/race_table_view.gohtml")
 
-	r.AddFromStringsFuncs("index", f, string(index))
-	r.AddFromStringsFuncs("race", f, string(race), string(raceTable))
-	r.AddFromStringsFuncs("race_table_view", f, string(raceTableView), string(raceTable))
+	r.AddFromStringsFuncs("index", funcsForTemplates, string(index))
+	r.AddFromStringsFuncs("race", funcsForTemplates, string(race), string(raceTable))
+	r.AddFromStringsFuncs("race_table_view", funcsForTemplates, string(raceTableView), string(raceTable))
 
 	return r
 }
