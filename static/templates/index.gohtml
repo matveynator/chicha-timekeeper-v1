@@ -17,7 +17,16 @@
   <style>
       main {
           padding: 1em 2em;
-      }
+			}
+
+			html {
+				background: linear-gradient(rgba(255,255,255,.75), rgba(255,255,255,1)), url("/static/assets/chicha.jpeg");
+				height: 100%;
+				background-position: center;
+				background-repeat: no-repeat;
+				background-size: cover;
+				margin: 0;
+			}
 
       .event-button-wrap {
           margin-bottom: 4px;
@@ -39,8 +48,7 @@
 </head>
 <body>
 
-
-<main class="pure-g">
+<main class="pure-g bg">
   <section class="content pure-u-1">
     <div class="l-box events">
       <h1>Календарь соревнований:</h1>
@@ -52,6 +60,8 @@
       <div class="events-wrap"></div>
     </div>
   </section>
+
+<div class="pure-u-1"><br><br><br><a href="https://github.com/matveynator/chicha">Chicha: the competition timekeeper (chronograph).</a></div>
 </main>
 
 <template id="buttonrace">
@@ -102,7 +112,5 @@
 
 </script>
 
-<br><br><br><br>
-<div style="text-align: center;"><a href="https://github.com/matveynator/chicha">Chicha: the competition timekeeper (chronograph).</a></div>
 </body>
 </html>
