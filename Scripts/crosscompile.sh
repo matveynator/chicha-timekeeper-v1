@@ -47,7 +47,6 @@ do
 		  rm -rf ../binaries/${version}/${target_os_name}/${arch}
 		else
 		  echo "GOOS=${os} GOARCH=${arch} go build -ldflags "-X chicha/Packages/Config.VERSION=${version}" -o ../binaries/${version}/${target_os_name}/${arch}/${execution_file} ../chicha.go"
-			cat ../chicha.conf > ../binaries/${version}/${target_os_name}/${arch}/chicha.conf
 			cp ../../racetest/binaries/latest/${target_os_name}/${arch}/* ../binaries/${version}/${target_os_name}/${arch}/
 
 		fi
