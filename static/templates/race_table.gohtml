@@ -8,7 +8,7 @@
 <th>Total time</th>
 <th>Last lap</th>
 <th>Best lap</th>
-<th>Start position #</th>
+<th>Start #</th>
 </tr>
 </thead>
 
@@ -16,7 +16,7 @@
 {{range .Laps}}
 <tr id="{{.Lap.TagID}}">
 <td align="center">{{.Lap.CurrentRacePosition}}</td>
-<td><a href="/race/{{.Lap.RaceID}}/{{.Lap.TagID}}">{{.Lap.TagID}}</a></td>
+<td align="left"><a href="/race/{{.Lap.RaceID}}/{{.Lap.TagID}}">{{.Lap.TagID}}</a></td>
 <td align="center">{{.Lap.LapNumber}}</td>
 <td>
 	<div>{{timestampRender .Lap.RaceTotalTime}}</div>
