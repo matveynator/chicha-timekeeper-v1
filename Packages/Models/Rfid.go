@@ -34,8 +34,8 @@ var lapsChannelDBLocker = make(chan int, 1)
 // Start antenna listener
 func StartAntennaListener() {
 
-	if Config.PROXY_ACTIVE {
-		log.Println("Started tcp proxy restream to", Config.PROXY_HOST, "and port:", Config.PROXY_PORT)
+	if Config.PROXY_ADDRESS != "" {
+		log.Println("Started tcp proxy restream to", Config.PROXY_ADDRESS)
 	}
 
 	//unlock buffer operations
@@ -706,7 +706,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				myLastGap := newLap.DiscoveryUnixTime - myLastLap.DiscoveryUnixTime
 				//fmt.Printf("myLastGap: %d \n", myLastGap)
 
-				if myLastGap >= -(Config.RESULTS_PRECISION_SEC*1000) && myLastGap <= Config.RESULTS_PRECISION_SEC*1000 {
+				if myLastGap >= -(int64(Config.RESULTS_PRECISION_SEC)*1000) && myLastGap <= int64(Config.RESULTS_PRECISION_SEC)*1000 {
 					//from -5sec to 5 sec (RESULTS_PRECISION_SEC)
 					//результаты уже имеются - только обновить среднее и минимальное время
 
@@ -754,12 +754,12 @@ func addNewLapToLapsBuffer(newLap Lap) {
 						}
 					}
 
-				} else if Config.RESULTS_PRECISION_SEC*1000 < myLastGap && myLastGap < Config.MINIMAL_LAP_TIME_SEC*1000 {
+				} else if int64(Config.RESULTS_PRECISION_SEC)*1000 < myLastGap && myLastGap < int64(Config.MINIMAL_LAP_TIME_SEC)*1000 {
 					//from 5 to 30 sec (RESULTS_PRECISION_SEC - MINIMAL_LAP_TIME_SEC) = discard data - ERROR DATA RECEIVED!
 
-					log.Printf("ERROR DATA RECEIVED: from %d sec (precision) to %d sec (min lap time): TAG=%s \n", Config.RESULTS_PRECISION_SEC, Config.MINIMAL_LAP_TIME_SEC, newLap.TagID)
+					log.Printf("ERROR DATA RECEIVED: from %d sec (precision) to %d sec (min lap time): TAG=%s \n", int(Config.RESULTS_PRECISION_SEC), int(Config.MINIMAL_LAP_TIME_SEC), newLap.TagID)
 
-				} else if Config.MINIMAL_LAP_TIME_SEC*1000 <= myLastGap && lastGap < Config.RACE_TIMEOUT_SEC*1000 {
+				} else if int64(Config.MINIMAL_LAP_TIME_SEC)*1000 <= myLastGap && lastGap < int64(Config.RACE_TIMEOUT_SEC)*1000 {
 					//between MINIMAL_LAP_TIME_SEC <-> RACE_TIMEOUT_SEC
 					//в промежутке между минимальным временем круга и таймаутом заезда - создать новый круг
 
@@ -802,7 +802,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 					laps = append(laps, newLap)
 					//log.Printf("ADDED NEXT LAP %d TO BUFFER: laps: %d, raceid: %d, tag: %s, \n\n lap struct: %+v, \n\n laps slice: %+v\n\n", newLap.LapNumber, len(laps), newLap.RaceID,  newLap.TagID, newLap, laps )
 
-				} else if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
+				} else if lastGap > int64(Config.RACE_TIMEOUT_SEC)*1000 {
 
 					//rider data available, but race expired - create new race and append this rider.
 					//время заезда истекло - создать новый заезд
@@ -858,7 +858,7 @@ func addNewLapToLapsBuffer(newLap Lap) {
 				//no previous rider data in this race
 				//такой гонщик еще не учавствовал в гонке
 
-				if lastGap > Config.RACE_TIMEOUT_SEC*1000 {
+				if lastGap > int64(Config.RACE_TIMEOUT_SEC)*1000 {
 
 					//race expired - create new and append new rider
 					//время заезда истекло - создать новый заезд
@@ -1091,7 +1091,7 @@ func newAntennaConnection(conn net.Conn) {
 		//Debug all received data from RFID reader
 		log.Printf("NEW: IP=%s, TAG=%s, TIME=%d, ANT=%d\n", lap.AntennaIP, lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 
-		if Config.PROXY_ACTIVE {
+		if Config.PROXY_ADDRESS != "" {
 			go Proxy.ProxyDataToAnotherHost(lap.TagID, lap.DiscoveryTimePrepared.UnixNano()/int64(time.Millisecond), lap.Antenna)
 		}
 

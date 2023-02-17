@@ -27,13 +27,9 @@ import (
 var static embed.FS
 
 func main() {
-	//profiling CPU: https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz
-	//defer profile.Start(profile.ProfilePath(".")).Stop()
-
-	//DEFAULT: if Config.DB_TYPE == "sqlite"
 	var (
 		err error
-		dsn = "chicha.sqlite"
+		dsn = Config.DB_FULL_FILE_PATH
 	)
 	Models.DB, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		Logger:                 logger.Default.LogMode(logger.Silent),
@@ -63,7 +59,7 @@ func main() {
 
 	// Start RFID listener
 	go Models.StartAntennaListener()
-	log.Printf("Data collector IP = %s, db save interval = %d sec, minimal lap time = %d sec.\n", Config.APP_ANTENNA_LISTENER_IP, Config.LAPS_SAVE_INTERVAL_SEC, Config.MINIMAL_LAP_TIME_SEC)
+	log.Printf("Data collector IP = %s, db save interval = %d sec, minimal lap time = %d sec and race timeout = %d sec.\n", Config.APP_ANTENNA_LISTENER_IP, Config.LAPS_SAVE_INTERVAL_SEC, Config.MINIMAL_LAP_TIME_SEC, Config.RACE_TIMEOUT_SEC)
 
 	// Routing
 	r := Models.SetupRouter()
