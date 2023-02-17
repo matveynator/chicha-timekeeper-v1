@@ -4,7 +4,7 @@
 Free chronograf for sport and race competitions. 
 
 <p align="left">
-    <img property="og:image" src="https://repository-images.githubusercontent.com/368199185/536e5897-5dc4-41fc-ba32-66cb4bf55a7b" width="75%">
+    <img property="og:image" src="https://repository-images.githubusercontent.com/368199185/e26c553e-b23e-4bae-b4d2-c2df502e9f04" width="75%">
 </p>
 
 ## Demo: http://chicha.naikomextreme.ru
