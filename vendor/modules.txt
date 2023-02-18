@@ -1,0 +1,125 @@
+# github.com/dustin/go-humanize v1.0.1
+## explicit; go 1.16
+github.com/dustin/go-humanize
+# github.com/gin-contrib/multitemplate v0.0.0-20211002122701-e9e3201b87a0
+## explicit; go 1.13
+github.com/gin-contrib/multitemplate
+# github.com/gin-contrib/sse v0.1.0
+## explicit; go 1.12
+github.com/gin-contrib/sse
+# github.com/gin-gonic/gin v1.7.7
+## explicit; go 1.13
+github.com/gin-gonic/gin
+github.com/gin-gonic/gin/binding
+github.com/gin-gonic/gin/internal/bytesconv
+github.com/gin-gonic/gin/internal/json
+github.com/gin-gonic/gin/render
+# github.com/glebarez/go-sqlite v1.20.3
+## explicit; go 1.17
+github.com/glebarez/go-sqlite
+# github.com/glebarez/sqlite v1.7.0
+## explicit; go 1.18
+github.com/glebarez/sqlite
+# github.com/go-playground/locales v0.13.0
+## explicit; go 1.13
+github.com/go-playground/locales
+github.com/go-playground/locales/currency
+# github.com/go-playground/universal-translator v0.17.0
+## explicit; go 1.13
+github.com/go-playground/universal-translator
+# github.com/go-playground/validator/v10 v10.4.1
+## explicit; go 1.13
+github.com/go-playground/validator/v10
+# github.com/golang/protobuf v1.3.3
+## explicit; go 1.12
+github.com/golang/protobuf/proto
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/jinzhu/inflection v1.0.0
+## explicit
+github.com/jinzhu/inflection
+# github.com/jinzhu/now v1.1.5
+## explicit; go 1.12
+github.com/jinzhu/now
+# github.com/json-iterator/go v1.1.9
+## explicit; go 1.12
+github.com/json-iterator/go
+# github.com/kr/pretty v0.1.0
+## explicit
+# github.com/leodido/go-urn v1.2.0
+## explicit; go 1.13
+github.com/leodido/go-urn
+# github.com/mattn/go-isatty v0.0.17
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421
+## explicit
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
+## explicit
+github.com/modern-go/reflect2
+# github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
+## explicit; go 1.12
+github.com/remyoudompheng/bigfft
+# github.com/ugorji/go/codec v1.1.7
+## explicit
+github.com/ugorji/go/codec
+# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+## explicit; go 1.17
+golang.org/x/crypto/sha3
+# golang.org/x/sys v0.5.0
+## explicit; go 1.17
+golang.org/x/sys/cpu
+golang.org/x/sys/unix
+# gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
+## explicit
+# gopkg.in/yaml.v2 v2.2.8
+## explicit
+gopkg.in/yaml.v2
+# gorm.io/gorm v1.24.5
+## explicit; go 1.16
+gorm.io/gorm
+gorm.io/gorm/callbacks
+gorm.io/gorm/clause
+gorm.io/gorm/logger
+gorm.io/gorm/migrator
+gorm.io/gorm/schema
+gorm.io/gorm/utils
+# modernc.org/libc v1.22.2
+## explicit; go 1.17
+modernc.org/libc
+modernc.org/libc/errno
+modernc.org/libc/fcntl
+modernc.org/libc/fts
+modernc.org/libc/grp
+modernc.org/libc/honnef.co/go/netdb
+modernc.org/libc/langinfo
+modernc.org/libc/limits
+modernc.org/libc/netdb
+modernc.org/libc/netinet/in
+modernc.org/libc/poll
+modernc.org/libc/pthread
+modernc.org/libc/pwd
+modernc.org/libc/signal
+modernc.org/libc/stdio
+modernc.org/libc/stdlib
+modernc.org/libc/sys/socket
+modernc.org/libc/sys/stat
+modernc.org/libc/sys/types
+modernc.org/libc/termios
+modernc.org/libc/time
+modernc.org/libc/unistd
+modernc.org/libc/utime
+modernc.org/libc/uuid
+modernc.org/libc/uuid/uuid
+modernc.org/libc/wctype
+# modernc.org/mathutil v1.5.0
+## explicit; go 1.13
+modernc.org/mathutil
+# modernc.org/memory v1.5.0
+## explicit; go 1.18
+modernc.org/memory
+# modernc.org/sqlite v1.20.4
+## explicit; go 1.17
+modernc.org/sqlite/lib
