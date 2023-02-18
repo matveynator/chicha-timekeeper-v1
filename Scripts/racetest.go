@@ -8,17 +8,18 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"chicha/Packages/Config"
 )
 
 const (
-	host = "localhost"
-	port = 4000
-
 	competitors          = 10 // riders
 	results              = 10 // results from one rider
 	laps                 = 10 // laps
 	minimal_lap_time_sec = 120
 )
+
+var appAddr = Config.APP_ANTENNA_LISTENER_IP
 
 func main() {
 	var racers []Racer
@@ -76,7 +77,7 @@ func (r Racer) Run(wg *sync.WaitGroup) {
 }
 
 func (r Racer) writeRfid() {
-	dial, err := net.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+	dial, err := net.Dial("tcp", appAddr)
 	if err != nil {
 		log.Fatal("failed to dial to chicha:", err)
 		return

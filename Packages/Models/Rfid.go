@@ -22,6 +22,7 @@ import (
 
 	"chicha/Packages/Config"
 	"chicha/Packages/Proxy"
+	"chicha/Packages/race"
 )
 
 // Buffer for new RFID requests
@@ -50,17 +51,19 @@ func StartAntennaListener() {
 	// Start listener
 	l, err := net.Listen("tcp", Config.APP_ANTENNA_LISTENER_IP)
 	if err != nil {
-		log.Panicln("Can't start the antenna listener", err)
+		log.Panicln("Can't start the antenna listener:", err)
 	}
-	defer l.Close()
+	defer func() {
+		if errClose := l.Close(); errClose != nil {
+			log.Println("failed to close rfid listener:", errClose)
+		}
+	}()
 
 	// Listen new connections
 	for {
 		conn, err := l.Accept()
-		if err != nil {
-			if err != io.EOF {
-				log.Panicln("tcp connection error:", err)
-			}
+		if err != nil && err != io.EOF {
+			log.Panicln("tcp connection error:", err)
 		}
 
 		go newAntennaConnection(conn)
@@ -115,7 +118,7 @@ func saveLapsBufferSimplyToDB() {
 				}
 			} else {
 				//log.Println("Data not found in database:", err)
-				//not found - create new
+				//not found - create new.
 				err := DB.Create(&lap).Error
 				if err != nil {
 					log.Println("Error. Not created new data in database:", err)
@@ -402,7 +405,7 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 					}
 
 					//update everyone else best lap position globally in current laps
-					for i, _ := range laps {
+					for i := range laps {
 						if laps[i].RaceID == lap.RaceID && laps[i].TagID == lap.TagID && laps[i].LapIsCurrent == 1 {
 							laps[i].BestLapPosition = uint(position + 1)
 						}
@@ -555,7 +558,7 @@ func updateCurrentRacePositions(currentLap Lap) {
 
 	if positionsChange != nil {
 		select {
-		case positionsChange <- struct{}{}:
+		case positionsChange <- race.ID(currentLap.RaceID):
 			log.Println("lap updated on subscriber")
 		default:
 			log.Println("ERROR: lap cant updated on subscriber")
@@ -563,10 +566,10 @@ func updateCurrentRacePositions(currentLap Lap) {
 	}
 }
 
-var positionsChange chan struct{}
+var positionsChange chan race.ID
 
-func SubscribeOnceOnRacePositionsChange() <-chan struct{} {
-	positionsChange = make(chan struct{}, 1)
+func SubscribeOnceOnRacePositionsChange() <-chan race.ID {
+	positionsChange = make(chan race.ID, 1)
 	return positionsChange
 }
 
