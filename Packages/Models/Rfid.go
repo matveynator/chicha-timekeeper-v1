@@ -50,17 +50,19 @@ func StartAntennaListener() {
 	// Start listener
 	l, err := net.Listen("tcp", Config.APP_ANTENNA_LISTENER_IP)
 	if err != nil {
-		log.Panicln("Can't start the antenna listener", err)
+		log.Panicln("Can't start the antenna listener:", err)
 	}
-	defer l.Close()
+	defer func() {
+		if errClose := l.Close(); err != nil {
+			log.Println("failed to close rfid listener:", errClose)
+		}
+	}()
 
 	// Listen new connections
 	for {
 		conn, err := l.Accept()
-		if err != nil {
-			if err != io.EOF {
-				log.Panicln("tcp connection error:", err)
-			}
+		if err != nil && err != io.EOF {
+			log.Panicln("tcp connection error:", err)
 		}
 
 		go newAntennaConnection(conn)
@@ -402,7 +404,7 @@ func getMyBestLapTimeAndNumber(lastLap Lap) (myBestLapTime int64, myBestLapNumbe
 					}
 
 					//update everyone else best lap position globally in current laps
-					for i, _ := range laps {
+					for i := range laps {
 						if laps[i].RaceID == lap.RaceID && laps[i].TagID == lap.TagID && laps[i].LapIsCurrent == 1 {
 							laps[i].BestLapPosition = uint(position + 1)
 						}
