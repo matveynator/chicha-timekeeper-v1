@@ -22,6 +22,7 @@ import (
 
 	"chicha/Packages/Config"
 	"chicha/Packages/Proxy"
+	"chicha/Packages/race"
 )
 
 // Buffer for new RFID requests
@@ -557,7 +558,7 @@ func updateCurrentRacePositions(currentLap Lap) {
 
 	if positionsChange != nil {
 		select {
-		case positionsChange <- struct{}{}:
+		case positionsChange <- race.ID(currentLap.RaceID):
 			log.Println("lap updated on subscriber")
 		default:
 			log.Println("ERROR: lap cant updated on subscriber")
@@ -565,10 +566,10 @@ func updateCurrentRacePositions(currentLap Lap) {
 	}
 }
 
-var positionsChange chan struct{}
+var positionsChange chan race.ID
 
-func SubscribeOnceOnRacePositionsChange() <-chan struct{} {
-	positionsChange = make(chan struct{}, 1)
+func SubscribeOnceOnRacePositionsChange() <-chan race.ID {
+	positionsChange = make(chan race.ID, 1)
 	return positionsChange
 }
 

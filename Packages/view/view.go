@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"chicha/Packages/Models"
+	"chicha/Packages/race"
 	"chicha/Packages/view/sse"
 )
 
@@ -52,7 +53,7 @@ func (v *View) getFileSystem() http.FileSystem {
 	return http.FS(fsys)
 }
 
-func New(r *gin.Engine, static embed.FS, ch <-chan struct{}) *View {
+func New(r *gin.Engine, static embed.FS, ch <-chan race.ID) *View {
 	v := &View{static: static}
 	r.HTMLRender = v.setupRenderer()
 
