@@ -117,7 +117,7 @@ func saveLapsBufferSimplyToDB() {
 				}
 			} else {
 				//log.Println("Data not found in database:", err)
-				//not found - create new
+				//not found - create new.
 				err := DB.Create(&lap).Error
 				if err != nil {
 					log.Println("Error. Not created new data in database:", err)
