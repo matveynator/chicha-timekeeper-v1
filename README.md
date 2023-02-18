@@ -13,7 +13,7 @@ Free chronograf for sport and race competitions.
 Бесплатная программа хронометража для любого трека на базе UHF-RFID 860-960 MHz. 
 
 - ## [↓ Download latest version of CHICHA.](http://files.matveynator.ru/chicha/latest/) 
-- ## [↓ Скачать последнюю версию CHICHA.](http://files.matveynator.ru/chicha/latest/
+- ## [↓ Скачать последнюю версию CHICHA.](http://files.matveynator.ru/chicha/latest/)
 
 - Supported OS: [Linix](http://files.matveynator.ru/chicha/latest/linux), [Windows](http://files.matveynator.ru/chicha/latest/windows), [Android](http://files.matveynator.ru/chicha/latest/android), [Mac](http://files.matveynator.ru/chicha/latest/mac), [IOS](http://files.matveynator.ru/chicha/latest/ios), [FreeBSD](http://files.matveynator.ru/chicha/latest/freebsd), [DragonflyBSD](http://files.matveynator.ru/chicha/latest/dragonfly), [OpenBSD](http://files.matveynator.ru/chicha/latest/openbsd), [NetBSD](http://files.matveynator.ru/chicha/latest/netbsd), [Plan9](http://files.matveynator.ru/chicha/latest/plan9), [AIX](http://files.matveynator.ru/chicha/latest/aix), [Solaris](http://files.matveynator.ru/chicha/latest/solaris), [Illumos](http://files.matveynator.ru/chicha/latest/illumos)
 
