@@ -54,7 +54,7 @@ func StartAntennaListener() {
 		log.Panicln("Can't start the antenna listener:", err)
 	}
 	defer func() {
-		if errClose := l.Close(); err != nil {
+		if errClose := l.Close(); errClose != nil {
 			log.Println("failed to close rfid listener:", errClose)
 		}
 	}()
