@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -64,6 +65,8 @@ func (b *Broker) listen() {
 			if b.clients[client.raceID] == nil {
 				continue
 			}
+			log.Printf("SSE Removed client. %d registered clients for race %v", len(b.clients[client.raceID]), client.raceID)
+
 			// Remove closed client
 			delete(b.clients[client.raceID], client)
 			log.Printf("SSE Removed client. %d registered clients for race %v", len(b.clients[client.raceID]), client.raceID)
@@ -98,21 +101,24 @@ func (b *Broker) serveHTTP(c *gin.Context) {
 	// Send new connection to event server
 	b.newClients <- newClient
 
-	done := c.Request.Context().Done()
 	defer func() {
 		// удаляем клиентов после того как они уйдут со страницы и закроют соединение
 		// Send closed connection to event server
-		<-done
 		b.closingClients <- newClient
 	}()
 
+	timer := time.NewTimer(time.Second * 60) // открываем таймер для проверки подключения клиентов
+	defer timer.Stop()                       // закрываем таймер чтобы не было утечек
 	c.Stream(func(w io.Writer) bool {
 		// Stream message to client from message channel
-		if msg, ok := <-newClient.notify; ok {
+		select {
+		case msg := <-newClient.notify:
 			c.SSEvent("update", msg)
+			timer.Reset(time.Second * 60) // обновляем таймер если получилось отправить сообщение
 			return true
+		case <-timer.C:
+			return false
 		}
-		return false
 	})
 	log.Println("CONN CLOSED")
 }
