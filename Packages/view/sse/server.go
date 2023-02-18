@@ -107,14 +107,14 @@ func (b *Broker) serveHTTP(c *gin.Context) {
 		b.closingClients <- newClient
 	}()
 
-	timer := time.NewTimer(time.Second * 60) // открываем таймер для проверки подключения клиентов
-	defer timer.Stop()                       // закрываем таймер чтобы не было утечек
+	timer := time.NewTimer(time.Second * 120) // открываем таймер для проверки подключения клиентов
+	defer timer.Stop()                        // закрываем таймер чтобы не было утечек
 	c.Stream(func(w io.Writer) bool {
 		// Stream message to client from message channel
 		select {
 		case msg := <-newClient.notify:
 			c.SSEvent("update", msg)
-			timer.Reset(time.Second * 60) // обновляем таймер если получилось отправить сообщение
+			timer.Reset(time.Second * 120) // обновляем таймер если получилось отправить сообщение
 			return true
 		case <-timer.C:
 			return false
