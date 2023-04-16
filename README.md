@@ -16,7 +16,7 @@
 </p>
 
 
-### [Demo: http://chicha.zabiyaka.net](http://chicha.zabiyaka.net/)
+### Demo: [http://chicha.zabiyaka.net](http://chicha.zabiyaka.net/)
 
 - #### [↓ Download latest version of CHICHA.](http://files.matveynator.ru/chicha/latest/) 
 - #### [↓ Скачать последнюю версию CHICHA.](http://files.matveynator.ru/chicha/latest/)
