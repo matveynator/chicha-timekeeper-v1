@@ -11,8 +11,8 @@
 
 > Обратите внимание, что при использовании технологии UHF-RFID для точного подсчета результатов быстро движущихся участников необходимо замедлить их скорость до 25-30 км/ч в зонах замера. Для этого рекомендуется установить специальные считывающие устройства (финишные или промежуточные ворота) на крутых поворотах, где скорость движения не превышает 30 км/ч. Такой подход гарантирует точность считывания RFID меток.
 
-<p align="left">
-    <img property="og:image" src="https://github.com/matveynator/chicha/blob/c72409b460bfbefb0c6a562965eeed81d9044747/chicha-logo.jpg?raw=true" width="75%">
+<p align="right">
+    <img property="og:image" src="https://github.com/matveynator/chicha/blob/c72409b460bfbefb0c6a562965eeed81d9044747/chicha-logo.jpg?raw=true" width="50%">
 </p>
 
 
